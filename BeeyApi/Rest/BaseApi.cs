@@ -20,27 +20,29 @@ namespace BeeyApi.Rest
         protected string Url { get; set; }
         protected string? EndPoint { get; set; }
 
-        public Error LastError { get; protected set; }
-        public HttpStatusCode LastHttpStatusCode { get; protected set; }
+        public object? LastErrorData { get; private set; }
 
-        protected void SetLastError(string content, HttpStatusCode statusCode)
+        protected string GetServerErrorMessage(string content)
         {
+            string errorMessage = "";
+            LastErrorData = null;
             try
             {
-                LastError = JsonConvert.DeserializeObject<Error>(content);
+                var error = JsonConvert.DeserializeObject<Error>(content);
+                LastErrorData = error?.Data;
+                errorMessage = error?.Message ?? content;
             }
             catch (Exception)
             {
-                LastError = new Error($"Unknown error:{Environment.NewLine}{content}");
+                errorMessage = content;
             }
 
-            LastHttpStatusCode = statusCode;
+            return errorMessage;
         }
 
         public BaseApi(string url)
         {
             Url = url;
-            LastError = NoError;
         }
 
         internal virtual RestRequestBuilder CreateBuilder()
@@ -48,42 +50,54 @@ namespace BeeyApi.Rest
             return new RestRequestBuilder(this.Url).AddUrlSegment(EndPoint);
         }
 
-        internal T HandleResponse<T>(Response response, HttpStatusCode successStatusCode, Func<Response, T> success, Func<Response, T> fail)
+        internal T HandleResponse<T>(Response response, Func<Response, T> getValue)
         {
-            if (response.StatusCode != successStatusCode)
+            if (response.IsSuccessStatusCode == false)
             {
-                SetLastError(response.GetStringContent(), response.StatusCode);
+                string serverError = GetServerErrorMessage(response.GetStringContent());
+                string errMsg = $"Server error: {response.StatusCode.ToString()}({(int)response.StatusCode}){Environment.NewLine}{serverError}";
 
-                if (response.StatusCode == HttpStatusCode.InternalServerError)
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
                 {
-                    Logger.Log(Logging.LogLevel.Error, () => $"Server error: {LastError.Message}");
-                    throw new ApplicationException(LastError.Message);
+                    // do not log here, unauthorized exception is logged in outer Polly policy
+                    throw new UnauthorizedAccessException(errMsg);
                 }
-                return fail(response);
+                else
+                {
+                    Logger.Log(Logging.LogLevel.Error, () => errMsg);
+                    throw new HttpException(errMsg, response.StatusCode);
+                }
             }
 
-            LastError = NoError;
-            return success(response);
+            return getValue(response);
         }
 
-        internal async Task<T> HandleResponseAsync<T>(Response response, HttpStatusCode successStatusCode,
-            Func<Response, CancellationToken, Task<T>> success, Func<Response, CancellationToken, Task<T>> fail, CancellationToken cancellationToken)
+        internal async Task<T> HandleResponseAsync<T>(Response response, Func<Response, CancellationToken, Task<T>> getValue,
+            CancellationToken cancellationToken)
         {
-            if (response.StatusCode != successStatusCode)
+            if (response.IsSuccessStatusCode == false)
             {
-                SetLastError(response.GetStringContent(), response.StatusCode);
+                string serverError = GetServerErrorMessage(response.GetStringContent()); ;
+                string errMsg = $"Server error: {response.StatusCode.ToString()}({(int)response.StatusCode}){Environment.NewLine}{serverError}";
 
-                if (response.StatusCode == HttpStatusCode.InternalServerError)
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
                 {
-                    Logger.Log(Logging.LogLevel.Error, () => LastError.Message);
-                    throw new ApplicationException(LastError.Message);
+                    // do not log here, unauthorized exception is logged in outer Polly policy
+                    throw new UnauthorizedAccessException(errMsg);
                 }
-                return await fail(response, cancellationToken);
+                else
+                {
+                    Logger.Log(Logging.LogLevel.Error, () => errMsg);
+                    throw new HttpException(errMsg, response.StatusCode);
+                }
             }
 
-            LastError = NoError;
-            return await success(response, cancellationToken);
+            return await getValue(response, cancellationToken);
+        }
 
+        internal bool ResultNotFound(Response response)
+        {
+            return response.StatusCode == HttpStatusCode.NotFound;
         }
     }
 }

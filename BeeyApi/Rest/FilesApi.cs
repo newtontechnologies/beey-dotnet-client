@@ -34,12 +34,15 @@ namespace BeeyApi.Rest
                .AddParameter("fileId", trsxId.ToString())
                .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse<System.IO.Stream?>(result, HttpStatusCode.OK,
-                _ => result.Content,
-                _ => default);
+            if (ResultNotFound(result))
+            {
+                return null;
+            }
+
+            return HandleResponse(result, _ => result.Content);
         }
 
-        public async Task<bool> UploadFileAsync(IEnumerable<(string Name, byte[] Content)> files, int projectId, string language, bool transcribe, CancellationToken cancellationToken)
+        public async Task<bool> UploadFileAsync(string fileName, byte[] fileContent, int projectId, string language, bool transcribe, CancellationToken cancellationToken)
         {
             var builder = CreateBuilder()
                .AddUrlSegment("Recognize")
@@ -47,19 +50,16 @@ namespace BeeyApi.Rest
                .AddParameter("lang", language)
                .AddParameter("transcribe", transcribe.ToString().ToLower());
 
-            foreach (var (Name, Content) in files)
-            {
-                builder.AddFile(Name, Content);
-            }
+            builder.AddFile(fileName, fileContent);
 
             var result = await builder.ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                _ => true,
-                _ => false);
+            // TODO when false?
+
+            return HandleResponse(result, _ => true);
         }
 
-        public async Task<bool> UploadFileAsync(IEnumerable<(string Name, System.IO.Stream Content)> files, int projectId, string language, bool transcribe, CancellationToken cancellationToken)
+        public async Task<bool> UploadFileAsync(string fileName, System.IO.Stream fileContent, int projectId, string language, bool transcribe, CancellationToken cancellationToken)
         {
             var builder = CreateBuilder()
                .AddUrlSegment("Recognize")
@@ -67,16 +67,13 @@ namespace BeeyApi.Rest
                .AddParameter("lang", language)
                .AddParameter("transcribe", transcribe.ToString());
 
-            foreach (var (Name, Content) in files)
-            {
-                builder.AddFile(Name, Content);
-            }
+            builder.AddFile(fileName, fileContent);
 
             var result = await builder.ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                _ => true,
-                _ => false);
+            // TODO when false?
+
+            return HandleResponse(result, _ => true);
         }
     }
 }

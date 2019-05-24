@@ -15,9 +15,6 @@ namespace BeeyApi.WebSockets
     {
         private Logging.ILog logger = Logging.LogProvider.For<WebSocketsApi>();
 
-        public WebSocketCloseStatus? LastCloseStatus { get; private set; }
-        public string? LastCloseMessage { get; private set; }
-
         public LoginToken? Token { get; set; }
         private string url;
 
@@ -35,151 +32,120 @@ namespace BeeyApi.WebSockets
                 .AddParameter("Authorization", this.Token.Token);
         }
 
-        public async Task<string?> SpeakerSuggestionAsync(string search, CancellationToken cancellationToken)
+        public async Task<string> SpeakerSuggestionAsync(string search, CancellationToken cancellationToken)
         {
-            try
+            var policy = RetryPolicies.CreateAsyncNetworkPolicy(() => default(string), LogException, logger);
+            string res = await policy.ExecuteAsync(async (c) =>
             {
-                var policy = RetryPolicies.CreateAsyncNetworkPolicy(() => default(string?), logger);
-                string res = await policy.ExecuteAsync(async (c) =>
-                {
-                    OpenedWebSocket ws = await CreateBuilder()
-                    .AddUrlSegment("SpeakerSuggestion")
-                    .OpenConnectionAsync(c);
+                OpenedWebSocket ws = await CreateBuilder()
+                .AddUrlSegment("SpeakerSuggestion")
+                .OpenConnectionAsync(c);
 
-                    await ws.SendAsync(Encoding.UTF8.GetBytes(search), WebSocketMessageType.Text, true, cancellationToken);
-                    var result = await ws.ReceiveAsync(2048, c);
+                await ws.SendAsync(Encoding.UTF8.GetBytes(search), WebSocketMessageType.Text, true, cancellationToken);
+                var result = await ws.ReceiveAsync(2048, c);
 
-                    return Encoding.UTF8.GetString(result);
-                }, cancellationToken);
+                return Encoding.UTF8.GetString(result);
+            }, cancellationToken);
 
-                return res;
-            }
-            catch (Exception ex)
-            {
-                HandleException(ex);
-                throw;
-            }
-
+            return res;
         }
 
-        public async Task<string?> EchoAsync(string text, CancellationToken cancellationToken)
+        public async Task<string> EchoAsync(string text, CancellationToken cancellationToken)
         {
-            try
+            var policy = RetryPolicies.CreateAsyncNetworkPolicy(() => default(string), LogException, logger);
+            string res = await policy.ExecuteAsync(async (c) =>
             {
-                var policy = RetryPolicies.CreateAsyncNetworkPolicy(() => default(string?), logger);
+                OpenedWebSocket ws = await CreateBuilder()
+                        .AddUrlSegment("Echo")
+                        .OpenConnectionAsync(c);
 
-                string res = await policy.ExecuteAsync(async (c) =>
-                {
-                    OpenedWebSocket ws = await CreateBuilder()
-                            .AddUrlSegment("Echo")
-                            .OpenConnectionAsync(c);
+                await ws.SendAsync(Encoding.UTF8.GetBytes(text), WebSocketMessageType.Text, true, cancellationToken);
+                var result = await ws.ReceiveAsync(2048, c);
 
-                    await ws.SendAsync(Encoding.UTF8.GetBytes(text), WebSocketMessageType.Text, true, cancellationToken);
-                    var result = await ws.ReceiveAsync(2048, c);
+                return Encoding.UTF8.GetString(result);
 
-                    return Encoding.UTF8.GetString(result);
-
-                }, cancellationToken);
-                return res;
-            }
-            catch (Exception ex)
-            {
-                HandleException(ex);
-                throw;
-            }
+            }, cancellationToken);
+            return res;
         }
 
         public async Task<bool> UploadFileAsync(int projectId, string language, bool transcribe, FileInfo file, CancellationToken cancellationToken)
         {
-            try
+            var policy = RetryPolicies.CreateAsyncNetworkPolicy(() => false, LogException, logger);
+            bool res = await policy.ExecuteAsync(async (c) =>
             {
-                var policy = RetryPolicies.CreateAsyncNetworkPolicy(() => false, logger);
-                bool res = await policy.ExecuteAsync(async (c) =>
+                OpenedWebSocket ws = await CreateBuilder()
+                       .AddUrlSegment("Upload")
+                       .AddParameter("id", projectId.ToString())
+                       .AddParameter("lang", language)
+                       .AddParameter("transcribe", transcribe.ToString().ToLower())
+                       .OpenConnectionAsync(c);
+
+                await Task.Delay(1000);
+
+                int bufferSize = 4096;
+
+                using (var s = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    OpenedWebSocket ws = await CreateBuilder()
-                           .AddUrlSegment("Upload")
-                           .AddParameter("id", projectId.ToString())
-                           .AddParameter("lang", language)
-                           .AddParameter("transcribe", transcribe.ToString().ToLower())
-                           .OpenConnectionAsync(c);
+                    var res = await ws.ReceiveAsync(bufferSize, c);
 
-                    await Task.Delay(1000);
-
-                    int bufferSize = 4096;
-
-                    using (var s = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
+                    for (int i = 0; i < 10 && res.Length == 0; i++)
                     {
-                        var res = await ws.ReceiveAsync(bufferSize, c);
-
-                        for (int i = 0; i < 10 && res.Length == 0; i++)
-                        {
-                            await Task.Delay(1000);
-                            res = await ws.ReceiveAsync(bufferSize, c);
-                        }
-
-                        var fi = JsonConvert.DeserializeObject<FileStateInfo>(Encoding.UTF8.GetString(res));
-                        byte[] buffer = new byte[fi.BufferSize];
-
-
-                        fi = new FileStateInfo()
-                        {
-                            FileName = file.Name,
-                            TotalFileSize = (int)file.Length,
-                            BufferSize = buffer.Length,
-                        };
-
-                        await ws.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(fi)), WebSocketMessageType.Text, true, c);
-
-
-                        //send chunked
-                        using (MemoryStream ms = new MemoryStream(buffer))
-                        using (BinaryWriter bw = new BinaryWriter(ms))
-                        {
-                            while (true)
-                            {
-                                ms.Seek(0, SeekOrigin.Begin);
-                                bw.Write((double)s.Position);
-
-                                var read = s.Read(buffer, sizeof(double) + sizeof(short), buffer.Length - sizeof(double) - sizeof(short));
-                                if (read <= 0) //EOF
-                                    break;
-
-
-                                ms.Seek(sizeof(double), SeekOrigin.Begin);
-                                bw.Write((short)read);
-
-                                await ws.SendAsync(new ArraySegment<byte>(buffer, 0, sizeof(double) + sizeof(short) + read), WebSocketMessageType.Binary, true, c);
-                            }
-                        }
-                        await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "file sent", c);
+                        await Task.Delay(1000);
+                        res = await ws.ReceiveAsync(bufferSize, c);
                     }
 
-                    return true;
-                }, cancellationToken);
+                    var fi = JsonConvert.DeserializeObject<FileStateInfo>(Encoding.UTF8.GetString(res));
+                    byte[] buffer = new byte[fi.BufferSize];
 
-                return res;
-            }
-            catch (Exception ex)
-            {
-                HandleException(ex);
-                throw;
-            }
+
+                    fi = new FileStateInfo()
+                    {
+                        FileName = file.Name,
+                        TotalFileSize = (int)file.Length,
+                        BufferSize = buffer.Length,
+                    };
+
+                    await ws.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(fi)), WebSocketMessageType.Text, true, c);
+
+
+                    //send chunked
+                    using (MemoryStream ms = new MemoryStream(buffer))
+                    using (BinaryWriter bw = new BinaryWriter(ms))
+                    {
+                        while (true)
+                        {
+                            ms.Seek(0, SeekOrigin.Begin);
+                            bw.Write((double)s.Position);
+
+                            var read = s.Read(buffer, sizeof(double) + sizeof(short), buffer.Length - sizeof(double) - sizeof(short));
+                            if (read <= 0) //EOF
+                                break;
+
+
+                            ms.Seek(sizeof(double), SeekOrigin.Begin);
+                            bw.Write((short)read);
+
+                            await ws.SendAsync(new ArraySegment<byte>(buffer, 0, sizeof(double) + sizeof(short) + read), WebSocketMessageType.Binary, true, c);
+                        }
+                    }
+                    await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "file sent", c);
+                }
+
+                return true;
+            }, cancellationToken);
+
+            return res;
         }
 
-        private void HandleException(Exception ex)
+        private void LogException(Exception ex)
         {
             if (ex is WebSocketClosedException wsEx)
             {
-                if (wsEx.CloseStatus.HasValue)
+                if (wsEx.CloseStatus.HasValue
+                    && wsEx.CloseStatus != WebSocketCloseStatus.PolicyViolation)
                 {
-                    LastCloseStatus = wsEx.CloseStatus;
-                    LastCloseMessage = wsEx.CloseMessage;
-
                     // policy violation is logged in outer Polly policy
-                    if (wsEx.CloseStatus != WebSocketCloseStatus.PolicyViolation)
-                    {
-                        logger.Log(Logging.LogLevel.Error, () => $"WebSocket closed ({wsEx.CloseStatus?.ToString()}) with message '{wsEx.CloseMessage}'.", ex);
-                    }
+                    logger.Log(Logging.LogLevel.Error, () => $"WebSocket closed ({wsEx.CloseStatus?.ToString()}) with message '{wsEx.Message}'.", ex);
                 }
             }
             else

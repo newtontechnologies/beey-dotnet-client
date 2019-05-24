@@ -26,15 +26,13 @@ namespace BeeyApi.Rest
             EndPoint = "API/Project/";
         }
 
-        public async Task<Project?> CreateAsync(ParamsProjectInit init, CancellationToken cancellationToken)
+        public async Task<Project> CreateAsync(ParamsProjectInit init, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .SetBody(JsonConvert.SerializeObject(init), "application/json")
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                r => JsonConvert.DeserializeObject<Project?>(r.GetStringContent()),
-                _ => null);
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
         }
 
         public async Task<Project?> GetAsync(int id, CancellationToken cancellationToken)
@@ -43,9 +41,12 @@ namespace BeeyApi.Rest
                 .AddParameter("id", id.ToString())
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                r => JsonConvert.DeserializeObject<Project?>(r.GetStringContent()),
-                _ => null);
+            if (ResultNotFound(result))
+            {
+                return null;
+            }
+
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
         }
 
         public async Task<bool> UpdateAsync(Project project, CancellationToken cancellationToken)
@@ -55,9 +56,12 @@ namespace BeeyApi.Rest
                 .SetBody(JsonConvert.SerializeObject(project), "application/json")
                 .ExecuteAsync(HttpMethod.PUT, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                _ => true,
-                _ => false);
+            if (ResultNotFound(result))
+            {
+                return false;
+            }
+
+            return HandleResponse(result, _ => true);
         }
 
         public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken)
@@ -66,9 +70,12 @@ namespace BeeyApi.Rest
                 .AddParameter("id", id.ToString())
                 .ExecuteAsync(HttpMethod.DELETE, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                _ => true,
-                _ => false);
+            if (ResultNotFound(result))
+            {
+                return false;
+            }
+
+            return HandleResponse(result, _ => true);
         }
 
         public async Task<ProjectAccess?> GetProjectAccessAsync(int id, CancellationToken cancellationToken)
@@ -78,9 +85,12 @@ namespace BeeyApi.Rest
                 .AddParameter("id", id.ToString())
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                r => JsonConvert.DeserializeObject<ProjectAccess?>(r.GetStringContent()),
-                _ => null);
+            if (ResultNotFound(result))
+            {
+                return null;
+            }
+
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<ProjectAccess>(r.GetStringContent()));
         }
 
         public async Task<bool> UpdateProjectAccessAsync(ProjectAccess projectAccess, CancellationToken cancellationToken)
@@ -91,25 +101,26 @@ namespace BeeyApi.Rest
                 .SetBody(JsonConvert.SerializeObject(projectAccess), "application/json")
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                _ => true,
-                _ => false);
+            if (ResultNotFound(result))
+            {
+                return false;
+            }
+
+            return HandleResponse(result, _ => true);
         }
 
-        public async Task<Listing<ProjectAccess>?> ListProjectsAsync(int? count, int? skip,
+        public async Task<Listing<ProjectAccess>> ListProjectsAsync(int? count, int? skip,
             OrderOn orderOn, bool ascending, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("Access")
                 .AddUrlSegment("List")
-                .AddParameters(new { skip = skip?.ToString(), count = count?.ToString()})
+                .AddParameters(new { skip = skip?.ToString(), count = count?.ToString() })
                 .AddParameter("orderOn", GetOrderOn(orderOn))
                 .AddParameter("orderBy", ascending ? "ascending" : "descending")
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                r => JsonConvert.DeserializeObject<Listing<ProjectAccess>?>(r.GetStringContent()),
-                _ => null);
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<ProjectAccess>>(r.GetStringContent()));
         }
 
         public async Task<bool> UploadTrsxAsync(int id, string fileName, byte[] trsx, CancellationToken cancellationToken)
@@ -120,9 +131,7 @@ namespace BeeyApi.Rest
                .AddFile(fileName, trsx)
                .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                _ => true,
-                _ => false);
+            return HandleResponse(result, _ => true);
         }
 
         public async Task<bool> UploadTrsxAsync(int id, string fileName, System.IO.Stream trsx, CancellationToken cancellationToken)
@@ -133,9 +142,7 @@ namespace BeeyApi.Rest
                .AddFile(fileName, trsx)
                .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                _ => true,
-                _ => false);
+            return HandleResponse(result, _ => true);
         }
 
         public async Task<bool> ShareProjectAsync(int id, string email, CancellationToken cancellationToken)
@@ -146,21 +153,17 @@ namespace BeeyApi.Rest
                 .AddParameter("shareTo", email)
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                _ => true,
-                _ => false);
+            return HandleResponse(result, _ => true);
         }
 
-        public async Task<Listing<ProjectAccess>?> ListProjectSharing(int id, CancellationToken cancellationToken)
+        public async Task<Listing<ProjectAccess>> ListProjectSharing(int id, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("Share")
                 .AddParameter("id", id.ToString())
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                r => JsonConvert.DeserializeObject<Listing<ProjectAccess>?>(r.GetStringContent()),
-                _ => null);
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<ProjectAccess>>(r.GetStringContent()));
         }
 
 

@@ -25,16 +25,14 @@ namespace BeeyApi.Rest
             EndPoint = "API/Speaker/";
         }
 
-        public async Task<Listing<Speaker>?> ListAsync(int? count, int? skip, string? search, CancellationToken cancellationToken)
+        public async Task<Listing<Speaker>> ListAsync(int? count, int? skip, string? search, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("List")
                 .AddParameters(new { skip = skip?.ToString(), count = count?.ToString(), search })
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                r => JsonConvert.DeserializeObject<Listing<Speaker>?>(r.GetStringContent(), JsonConverters.Speaker),
-                _ => null);
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<Speaker>>(r.GetStringContent(), JsonConverters.Speaker));
         }
 
         public async Task<Speaker?> GetAsync(string dbId, CancellationToken cancellationToken)
@@ -43,20 +41,21 @@ namespace BeeyApi.Rest
                 .AddParameter("id", dbId)
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse<Speaker?>(result, HttpStatusCode.OK,
-                r => new Speaker(System.Xml.Linq.XElement.Parse(r.GetStringContent())),
-                _ => null);
+            if (ResultNotFound(result))
+            {
+                return null;
+            }
+
+            return HandleResponse(result, r => new Speaker(System.Xml.Linq.XElement.Parse(r.GetStringContent())));
         }
 
-        public async Task<Speaker?> CreateAsync(Speaker speaker, CancellationToken cancellationToken)
+        public async Task<Speaker> CreateAsync(Speaker speaker, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .SetBody(speaker.Serialize().ToString(), "text/xml")
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse<Speaker?>(result, HttpStatusCode.OK,
-                r => new Speaker(System.Xml.Linq.XElement.Parse(r.GetStringContent())),
-                _ => null);
+            return HandleResponse(result, r => new Speaker(System.Xml.Linq.XElement.Parse(r.GetStringContent())));
         }
 
         public async Task<bool> UpdateAsync(Speaker speaker, CancellationToken cancellationToken)
@@ -65,9 +64,12 @@ namespace BeeyApi.Rest
                 .SetBody(speaker.Serialize().ToString(), "text/xml")
                 .ExecuteAsync(HttpMethod.PUT, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                _ => true,
-                _ => false);
+            if (ResultNotFound(result))
+            {
+                return false;
+            }
+
+            return HandleResponse(result, _ => true);
         }
 
         public async Task<bool> DeleteAsync(string dbId, CancellationToken cancellationToken)
@@ -76,9 +78,12 @@ namespace BeeyApi.Rest
                 .AddParameter("id", dbId)
                 .ExecuteAsync(HttpMethod.DELETE, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                _ => true,
-                _ => false);
+            if (ResultNotFound(result))
+            {
+                return false;
+            }
+
+            return HandleResponse(result, _ => true);
         }
     }
 }

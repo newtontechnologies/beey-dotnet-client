@@ -31,9 +31,7 @@ namespace BeeyApi.Rest
                 .AddParameters(new { email, password })
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                r => JsonConvert.DeserializeObject<LoginToken?>(r.GetStringContent()),
-                _ => null);
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<LoginToken?>(r.GetStringContent()));
         }
 
         public async Task<bool> LogoutAsync(LoginToken token, CancellationToken cancellationToken)
@@ -43,9 +41,7 @@ namespace BeeyApi.Rest
                 .AddHeader("Authorization", token.Token)
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                _ => true,
-                _ => false);
+            return HandleResponse(result,  _ => true);
         }
 
         public async Task<bool> ChangePasswordAsync(LoginToken token, string oldPassword, string newPassword, CancellationToken cancellationToken)
@@ -56,9 +52,7 @@ namespace BeeyApi.Rest
                 .AddParameters(new { password = oldPassword, newPassword })
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, HttpStatusCode.OK,
-                _ => true,
-                _ => false);
+            return HandleResponse(result, _ => true);
         }
 
         public async Task<LoginToken?> RegisterAndLoginAsync(string email, string password, CancellationToken cancellationToken)
@@ -68,9 +62,7 @@ namespace BeeyApi.Rest
                 .AddParameters(new { email, password })
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return await HandleResponseAsync(result, HttpStatusCode.Created,
-                async (r, c) => await LoginAsync(email, password, c),
-                (r, c) => Task.FromResult(default(LoginToken?)),
+            return await HandleResponseAsync(result, async (r, c) => await LoginAsync(email, password, c),
                 cancellationToken);
         }
     }

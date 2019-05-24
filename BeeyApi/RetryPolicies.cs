@@ -1,5 +1,6 @@
 ﻿using Polly;
 using Polly.Retry;
+using Polly.Wrap;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,15 +18,25 @@ namespace BeeyApi
             return TimeSpan.FromSeconds(attempt);
         }
 
-        internal static AsyncRetryPolicy<T> CreateAsyncNetworkPolicy<T>(Func<T> defaultValueCreator, Logging.ILog logger)
+        internal static AsyncPolicyWrap<T> CreateAsyncNetworkPolicy<T>(Func<T> defaultValueCreator, Action<Exception> logException, Logging.ILog logger)
         {
-            return Policy<T>.Handle<Exception>(IsRetriableException)
+            return Policy.WrapAsync(
+                Policy<T>.Handle<Exception>(IsRetriableException)
+                    .FallbackAsync(defaultValueCreator(),
+                    (res, c) =>
+                    {
+                        // log final failed attempt
+                        logException(res.Exception);
+                        throw res.Exception;
+                    }),
+                Policy<T>.Handle<Exception>(IsRetriableException)
                 .WaitAndRetryAsync(networkErrorRetryCount,
                     i => CalculateWaitTime(i),
                     (ex, timeSpan, retryCount, context) =>
                     {
-                        logger.Log(Logging.LogLevel.Warn, () => string.Format(retryWarningMessage, retryCount, ex.Exception.Message, timeSpan));
-                    });
+                        logger.Log(Logging.LogLevel.Warn, () => string.Format(retryWarningMessage, retryCount, ex.Exception.Message, timeSpan.TotalSeconds));
+                    })
+                );
         }
 
         internal static bool IsRetriableException(Exception ex)

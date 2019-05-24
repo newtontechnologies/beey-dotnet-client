@@ -56,7 +56,7 @@ namespace BeeyUI
 
             if (LoginToken == null)
             {
-                return LoginApi.LastError.Message;
+                return null;
             }
 
             return null;
@@ -109,7 +109,7 @@ namespace BeeyUI
         #region Polly retry policies
 
         private const int unauthorizedRetryLoginCount = 1;
-        private const string retryUnauthorizedErrorMessage = "Attempt {0} - Request was not authorized. Trying to login and waiting {1}s before retry.";
+        private const string retryUnauthorizedErrorMessage = "Attempt {0} - Request was not authorized with message '{2}'. Trying to login and waiting {1}s before retry.";
         private const string unauthorizedErrorMessage = "Request was not authorized.";
         private Context CreatePollyContext(CancellationToken cancellationToken = default)
         {
@@ -120,32 +120,24 @@ namespace BeeyUI
             return result;
         }
 
-        private AsyncPolicyWrap<(TResult Result, HttpStatusCode StatusCode)> CreateHttpAsyncUnauthorizedPolicy<TResult>(Func<TResult> defaultValueCreator)
-        {
-            return CreateAsyncUnauthorizedPolicy(defaultValueCreator, HttpStatusCode.Unauthorized);
-        }
-
-        private AsyncPolicyWrap<(TResult Result, System.Net.WebSockets.WebSocketCloseStatus? StatusCode)> CreateWebSocketsAsyncUnauthorizedPolicy<TResult>(Func<TResult> defaultValueCreator)
+        private AsyncPolicyWrap<TResult> CreateWebSocketsAsyncUnauthorizedPolicy<TResult>(Func<TResult> defaultValueCreator)
         {
             return Policy.WrapAsync(
-                Policy.HandleResult<(TResult Result, System.Net.WebSockets.WebSocketCloseStatus? StatusCode)>(tuple =>
-                tuple.StatusCode == System.Net.WebSockets.WebSocketCloseStatus.PolicyViolation)
-                    .Or<WebSocketClosedException>(bEx => bEx.CloseStatus == System.Net.WebSockets.WebSocketCloseStatus.PolicyViolation)
+                Policy<TResult>.Handle<WebSocketClosedException>(bEx => bEx.CloseStatus == System.Net.WebSockets.WebSocketCloseStatus.PolicyViolation)
                     .Or<UnauthorizedAccessException>()
-                    .FallbackAsync<(TResult Result, System.Net.WebSockets.WebSocketCloseStatus? StatusCode)>((defaultValueCreator(), System.Net.WebSockets.WebSocketCloseStatus.PolicyViolation),
+                    .FallbackAsync(defaultValueCreator(),
                         (res, c) =>
                         {
-                            logger.Log(Logging.LogLevel.Error, () => unauthorizedErrorMessage);
-                            throw res.Exception ?? new UnauthorizedAccessException();
+                            logger.Log(Logging.LogLevel.Error, () => $"{unauthorizedErrorMessage} Message: '{res.Exception.Message}'");
+                            throw res.Exception;
                         }),
-                Policy.HandleResult<(TResult Result, System.Net.WebSockets.WebSocketCloseStatus? StatusCode)>(tuple => tuple.StatusCode == System.Net.WebSockets.WebSocketCloseStatus.PolicyViolation)
-                .Or<WebSocketClosedException>(bEx => bEx.CloseStatus == System.Net.WebSockets.WebSocketCloseStatus.PolicyViolation)
+                    Policy<TResult>.Handle<WebSocketClosedException>(bEx => bEx.CloseStatus == System.Net.WebSockets.WebSocketCloseStatus.PolicyViolation)
                     .Or<UnauthorizedAccessException>()
                     .WaitAndRetryAsync(unauthorizedRetryLoginCount,
                         i => TimeSpan.FromSeconds(i),
                         async (result, timeSpan, retryCount, context) =>
                         {
-                            logger.Log(Logging.LogLevel.Warn, () => string.Format(retryUnauthorizedErrorMessage, retryCount, timeSpan));
+                            logger.Log(Logging.LogLevel.Warn, () => string.Format(retryUnauthorizedErrorMessage, retryCount, timeSpan, result.Exception.Message));
 
                             if (context.TryGetValue("cancellationToken", out var cto)
                                 && cto is CancellationToken ct)
@@ -160,26 +152,28 @@ namespace BeeyUI
                 );
         }
 
-        private AsyncPolicyWrap<(TResult Result, TStatus StatusCode)> CreateAsyncUnauthorizedPolicy<TResult, TStatus>(Func<TResult> defaultValueCreator, TStatus unauthorized)
-            where TStatus : struct
+        /// <summary>        /// 
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="defaultValueCreator">Value is ignored, but could not be called on generics without it.</param>
+        /// <returns></returns>
+        private AsyncPolicyWrap<TResult> CreateHttpAsyncUnauthorizedPolicy<TResult>(Func<TResult> defaultValueCreator)
         {
             return Policy.WrapAsync(
-                Policy.HandleResult<(TResult Result, TStatus StatusCode)>(tuple => 
-                tuple.StatusCode.Equals(unauthorized))
-                    .Or<UnauthorizedAccessException>()
-                    .FallbackAsync<(TResult Result, TStatus StatusCode)>((defaultValueCreator(), unauthorized),
+                Policy<TResult>.Handle<UnauthorizedAccessException>()
+                    .FallbackAsync(defaultValueCreator(),
                         (res, c) =>
                         {
+                            // log final failed attempt
                             logger.Log(Logging.LogLevel.Error, () => unauthorizedErrorMessage);
-                            throw res.Exception ?? new UnauthorizedAccessException();
+                            throw res.Exception;
                         }),
-                Policy.HandleResult<(TResult Result, TStatus StatusCode)>(tuple => tuple.StatusCode.Equals(unauthorized))
-                    .Or<UnauthorizedAccessException>()
+                Policy<TResult>.Handle<UnauthorizedAccessException>()
                     .WaitAndRetryAsync(unauthorizedRetryLoginCount,
                         i => TimeSpan.FromSeconds(i),
                         async (result, timeSpan, retryCount, context) =>
                         {
-                            logger.Log(Logging.LogLevel.Warn, () => string.Format(retryUnauthorizedErrorMessage, retryCount, timeSpan));
+                            logger.Log(Logging.LogLevel.Warn, () => string.Format(retryUnauthorizedErrorMessage, retryCount, timeSpan.TotalSeconds, result.Exception.Message));
 
                             if (context.TryGetValue("cancellationToken", out var cto)
                                 && cto is CancellationToken ct)

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BeeyApi.Rest;
+using System.Net;
 
 namespace BeeyUI
 {
@@ -18,32 +19,30 @@ namespace BeeyUI
 
             return (await CreateHttpAsyncUnauthorizedPolicy(() => default(System.IO.Stream)).ExecuteAsync(async (c) =>
             {
-                var result = await FilesApi.DownloadTrsxAsync(projectId, trsxId, c);
-                return (result, FilesApi.LastHttpStatusCode);
-            }, cancellationToken)).Result;
+                return await FilesApi.DownloadTrsxAsync(projectId, trsxId, c);
+            }, cancellationToken));
         }
 
-        public async Task<bool> UploadFileAsync(IEnumerable<(string Name, byte[] Content)> files, int projectId, string language, bool transcribe = true, CancellationToken cancellationToken = default)
-        {
-            this.RequireAuthorization();
-            var policy = CreateHttpAsyncUnauthorizedPolicy(() => false);
-            return (await policy.ExecuteAsync(async (c) =>
-            {
-                var result = await FilesApi.UploadFileAsync(files, projectId, language, transcribe, cancellationToken);
-                return (result, FilesApi.LastHttpStatusCode);
-            }, cancellationToken)).Result;
-        }
-
-        public async Task<bool> UploadFileAsync(IEnumerable<(string Name, System.IO.Stream Content)> files, int projectId, string language, bool transcribe = true, CancellationToken cancellationToken = default)
+        public async Task<bool> UploadFileAsync(string fileName, byte[] fileContent, int projectId, string language, bool transcribe = true, CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
             var policy = CreateHttpAsyncUnauthorizedPolicy(() => false);
             return (await policy.ExecuteAsync(async (c) =>
             {
-                var result = await FilesApi.UploadFileAsync(files, projectId, language, transcribe, cancellationToken);
-                return (result, FilesApi.LastHttpStatusCode);
-            }, cancellationToken)).Result;
+                return await FilesApi.UploadFileAsync(fileName, fileContent, projectId, language, transcribe, cancellationToken);
+            }, cancellationToken));
+        }
+
+        public async Task<bool> UploadFileAsync(string fileName, System.IO.Stream fileContent, int projectId, string language, bool transcribe = true, CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy(() => false);
+            return (await policy.ExecuteAsync(async (c) =>
+            {
+                return await FilesApi.UploadFileAsync(fileName, fileContent, projectId, language, transcribe, cancellationToken);
+            }, cancellationToken));
         }
     }
 }

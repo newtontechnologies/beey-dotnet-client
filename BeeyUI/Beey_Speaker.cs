@@ -1,6 +1,7 @@
 ﻿using BeeyApi.POCO;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,20 +11,19 @@ namespace BeeyUI
 {
     public partial class Beey
     {
-        public async Task<Listing<Speaker>?> ListSpeakersAsync(int count = 0, int skip = 0, string? search = null,
+        public async Task<Listing<Speaker>> ListSpeakersAsync(int count = 0, int skip = 0, string? search = null,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<Speaker>?>(() => null);
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<Speaker>>(() => new Listing<Speaker>(-1, -1, new Speaker[0]));
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
-                var result = await SpeakerApi.ListAsync(
+                return await SpeakerApi.ListAsync(
                     count > 0 ? count : default(int?),
                     skip >= 0 ? skip : default(int?),
                     search, c);
-                return (result, SpeakerApi.LastHttpStatusCode);
-            }, CreatePollyContext(cancellationToken), cancellationToken)).Result;
+            }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
         public async Task<Speaker?> GetSpeakerAsync(string dbId,
@@ -34,41 +34,32 @@ namespace BeeyUI
             var policy = CreateHttpAsyncUnauthorizedPolicy<Speaker?>(() => null);
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
-                var result = await SpeakerApi.GetAsync(dbId, c);
-                return (result, SpeakerApi.LastHttpStatusCode);
-            }, CreatePollyContext(cancellationToken), cancellationToken)).Result;
+                return await SpeakerApi.GetAsync(dbId, c);
+            }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
-        public async Task<Speaker?> CreateSpeakerAsync(Speaker speaker,
+        public async Task<Speaker> CreateSpeakerAsync(Speaker speaker,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Speaker?>(() => null);
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Speaker>(() => new Speaker());
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
-                var result = await SpeakerApi.CreateAsync(speaker, c);
-                return (result, SpeakerApi.LastHttpStatusCode);
-            }, CreatePollyContext(cancellationToken), cancellationToken)).Result;
+                return await SpeakerApi.CreateAsync(speaker, c);
+            }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
-        public async Task<string?> UpdateSpeakerAsync(Speaker speaker,
+        public async Task<bool> UpdateSpeakerAsync(Speaker speaker,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
             var policy = CreateHttpAsyncUnauthorizedPolicy(() => false);
-            bool result = (await policy.ExecuteAsync(async (ctx, c) =>
+            return (await policy.ExecuteAsync(async (ctx, c) =>
             {
-                var r = await SpeakerApi.UpdateAsync(speaker, c);
-                return (r, SpeakerApi.LastHttpStatusCode);
-            }, CreatePollyContext(cancellationToken), cancellationToken)).Result;
-
-            if (!result)
-            {
-                return SpeakerApi.LastError.Message;
-            }
-            return null;
+                return await SpeakerApi.UpdateAsync(speaker, c);
+            }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
         public async Task<bool> DeleteSpeakerAsync(string dbId,
@@ -79,9 +70,8 @@ namespace BeeyUI
             var policy = CreateHttpAsyncUnauthorizedPolicy(() => false);
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
-                var result = await SpeakerApi.DeleteAsync(dbId, c);
-                return (result, SpeakerApi.LastHttpStatusCode);
-            }, CreatePollyContext(cancellationToken), cancellationToken)).Result;
+                return await SpeakerApi.DeleteAsync(dbId, c);
+            }, CreatePollyContext(cancellationToken), cancellationToken));
         }
     }
 }

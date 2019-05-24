@@ -70,7 +70,7 @@ namespace BeeyApi.WebSockets
         {
             if (webSocket.CloseStatus.HasValue)
             {
-                return new WebSocketClosedException(ex, webSocket.CloseStatus, webSocket.CloseStatusDescription);
+                return new WebSocketClosedException(webSocket.CloseStatusDescription, webSocket.CloseStatus, ex);
             }
             else
             {
