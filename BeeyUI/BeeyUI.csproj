@@ -15,7 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\backend\TranscriptionCore\TranscriptionCore.csproj" />
     <ProjectReference Include="..\BeeyApi\BeeyApi.csproj" />
   </ItemGroup>
 

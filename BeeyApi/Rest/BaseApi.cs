@@ -50,21 +50,25 @@ namespace BeeyApi.Rest
             return new RestRequestBuilder(this.Url).AddUrlSegment(EndPoint);
         }
 
+        internal void HandleResponse(Response response)
+        {
+            var _ = HandleResponse(response, (r) => new object());
+        }
+
         internal T HandleResponse<T>(Response response, Func<Response, T> getValue)
         {
             if (response.IsSuccessStatusCode == false)
             {
                 string serverError = GetServerErrorMessage(response.GetStringContent());
-                string errMsg = $"Server error: {response.StatusCode.ToString()}({(int)response.StatusCode}){Environment.NewLine}{serverError}";
+                string errMsg = $"Server error: {response.StatusCode.ToString()} ({(int)response.StatusCode}){Environment.NewLine}{serverError}";
 
+                Logger.Log(Logging.LogLevel.Error, () => errMsg);
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                 {
-                    // do not log here, unauthorized exception is logged in outer Polly policy
                     throw new UnauthorizedAccessException(errMsg);
                 }
                 else
                 {
-                    Logger.Log(Logging.LogLevel.Error, () => errMsg);
                     throw new HttpException(errMsg, response.StatusCode);
                 }
             }
@@ -72,8 +76,13 @@ namespace BeeyApi.Rest
             return getValue(response);
         }
 
+        internal async Task HandleResponseAsync(Response response, CancellationToken cancellationToken)
+        {
+            var _ = await HandleResponseAsync(response, (r, c) => Task.FromResult(new object()), cancellationToken);
+        }
+
         internal async Task<T> HandleResponseAsync<T>(Response response, Func<Response, CancellationToken, Task<T>> getValue,
-            CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
         {
             if (response.IsSuccessStatusCode == false)
             {

@@ -24,27 +24,27 @@ namespace BeeyApi.Rest
             EndPoint = "API/";
         }
 
-        public async Task<LoginToken?> LoginAsync(string email, string password, CancellationToken cancellationToken)
+        public async Task<LoginToken> LoginAsync(string email, string password, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("Login")
                 .AddParameters(new { email, password })
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<LoginToken?>(r.GetStringContent()));
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<LoginToken>(r.GetStringContent()));
         }
 
-        public async Task<bool> LogoutAsync(LoginToken token, CancellationToken cancellationToken)
+        public async Task LogoutAsync(LoginToken token, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("Logout")
                 .AddHeader("Authorization", token.Token)
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result,  _ => true);
+            HandleResponse(result,  _ => new object());
         }
 
-        public async Task<bool> ChangePasswordAsync(LoginToken token, string oldPassword, string newPassword, CancellationToken cancellationToken)
+        public async Task ChangePasswordAsync(LoginToken token, string oldPassword, string newPassword, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("ChangePassword")
@@ -52,10 +52,10 @@ namespace BeeyApi.Rest
                 .AddParameters(new { password = oldPassword, newPassword })
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, _ => true);
+            HandleResponse(result, _ => new object());
         }
 
-        public async Task<LoginToken?> RegisterAndLoginAsync(string email, string password, CancellationToken cancellationToken)
+        public async Task<LoginToken> RegisterAndLoginAsync(string email, string password, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("RegisterAndLogin")

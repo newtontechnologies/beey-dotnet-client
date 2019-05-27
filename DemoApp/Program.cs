@@ -3,6 +3,7 @@ using BeeyUI;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using TranscriptionCore;
@@ -13,6 +14,7 @@ namespace DemoApp
     {
         static void Main(string[] args)
         {
+            //Test();
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .Enrich.FromLogContext()
@@ -25,7 +27,7 @@ namespace DemoApp
             bool bResult = true;
 
             var beey = new Beey(url);
-            strResult = beey.LoginAsync("milos.kudelka@newtontech.cz", "OVPgod").Result;
+            beey.LoginAsync("milos.kudelka@newtontech.cz", "OVPgod").Wait();
 
             //string speakerFile = @"..\..\..\tvrlidi.ini";
             //SpeakerUpdater.LoadSpeakers(speakerFile);
@@ -40,6 +42,80 @@ namespace DemoApp
 
             var mp3Path = @"c:\Users\milos.kudelka\Downloads\test01.mp3";
             bResult = beey.UploadFileAsync(project?.Id ?? -1, new FileInfo(mp3Path), "cz", false).Result;
+        }
+
+        private static void Test()
+        {
+            int times = 10000;
+            var file = new FileInfo(@"c:\Users\milos.kudelka\Downloads\test01.mp3");
+
+            var watch = new Stopwatch();
+            watch.Start();
+            for (int x = 0; x < times; x++)
+            {
+                List<byte> result = new List<byte>();
+                using (var s = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    byte[] buffer = new byte[1024 * 4];
+                    using (MemoryStream ms = new MemoryStream(buffer))
+                    using (BinaryWriter bw = new BinaryWriter(ms))
+                    {
+                        while (true)
+                        {
+                            ms.Seek(0, SeekOrigin.Begin);
+                            bw.Write((double)s.Position);
+
+                            var read = s.Read(buffer, sizeof(double) + sizeof(short), buffer.Length - sizeof(double) - sizeof(short));
+                            if (read <= 0) //EOF
+                                break;
+
+
+                            ms.Seek(sizeof(double), SeekOrigin.Begin);
+                            bw.Write((short)read);
+                            var segment = new ArraySegment<byte>(buffer, 0, sizeof(double) + sizeof(short) + read);
+                            result.AddRange(segment.ToArray());
+                        }
+                    }
+                }
+            }
+            watch.Stop();
+            var elapsed = watch.Elapsed;
+
+            watch.Restart();
+            for (int x = 0; x < times; x++)
+            {
+                List<byte> result2 = new List<byte>();
+                using (var s = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    short sizeOfDouble = sizeof(double);
+                    byte[] buffer = new byte[1024 * 4];
+                    while (true)
+                    {
+                        byte[] pos = BitConverter.GetBytes((double)s.Position);
+                        for (int i = 0; i < pos.Length; i++)
+                        {
+                            buffer[i] = pos[i];
+                        }
+
+                        var read = s.Read(buffer, sizeof(double) + sizeof(short), buffer.Length - sizeof(double) - sizeof(short));
+                        if (read <= 0) //EOF
+                            break;
+
+                        byte[] length = BitConverter.GetBytes((short)read);
+                        for (int i = 0; i < length.Length; i++)
+                        {
+                            buffer[i + sizeOfDouble] = length[i];
+                        }
+
+                        var segment = new ArraySegment<byte>(buffer, 0, sizeof(double) + sizeof(short) + read);
+                        result2.AddRange(segment.ToArray());
+                    }
+                }
+            }
+            watch.Stop();
+            var elapsed2 = watch.Elapsed;
+
+            double difference = elapsed.TotalSeconds - elapsed2.TotalSeconds;
         }
 
         static void UpdateDatabase(string speakerFile, Beey beey)

@@ -139,14 +139,9 @@ namespace BeeyApi.WebSockets
 
         private void LogException(Exception ex)
         {
-            if (ex is WebSocketClosedException wsEx)
+            if (ex is WebSocketClosedException wsEx && wsEx.CloseStatus.HasValue)
             {
-                if (wsEx.CloseStatus.HasValue
-                    && wsEx.CloseStatus != WebSocketCloseStatus.PolicyViolation)
-                {
-                    // policy violation is logged in outer Polly policy
-                    logger.Log(Logging.LogLevel.Error, () => $"WebSocket closed ({wsEx.CloseStatus?.ToString()}) with message '{wsEx.Message}'.", ex);
-                }
+                logger.Log(Logging.LogLevel.Error, () => $"WebSocket closed ({wsEx.CloseStatus?.ToString()}) with message '{wsEx.Message}'.", ex);
             }
             else
             {

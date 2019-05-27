@@ -42,7 +42,7 @@ namespace BeeyUI
             WebSocketsApi = new WebSocketsApi(webSocketsUrl);
         }
 
-        public async Task<string?> LoginAsync(string email, string password,
+        public async Task LoginAsync(string email, string password,
             CancellationToken cancellationToken = default)
         {
             this.userEmail = email;
@@ -53,13 +53,6 @@ namespace BeeyUI
             ProjectApi.Token = LoginToken;
             FilesApi.Token = LoginToken;
             WebSocketsApi.Token = LoginToken;
-
-            if (LoginToken == null)
-            {
-                return null;
-            }
-
-            return null;
         }
 
         public async Task LogoutAsync(CancellationToken cancellationToken = default)
@@ -97,8 +90,8 @@ namespace BeeyUI
 
             try
             {
-                string? result = await LoginAsync(this.userEmail, this.userPassword, cancellationToken);
-                return result == null;
+                await LoginAsync(this.userEmail, this.userPassword, cancellationToken);
+                return true;
             }
             catch (Exception)
             {
