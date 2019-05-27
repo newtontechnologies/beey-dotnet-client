@@ -34,7 +34,7 @@ namespace BeeyApi.WebSockets
 
         public async Task<string> SpeakerSuggestionAsync(string search, CancellationToken cancellationToken)
         {
-            var policy = RetryPolicies.CreateAsyncNetworkPolicy(() => default(string), LogException, logger);
+            var policy = RetryPolicies.CreateAsyncNetworkPolicy<string>(LogException, logger);
             string res = await policy.ExecuteAsync(async (c) =>
             {
                 OpenedWebSocket ws = await CreateBuilder()
@@ -52,7 +52,7 @@ namespace BeeyApi.WebSockets
 
         public async Task<string> EchoAsync(string text, CancellationToken cancellationToken)
         {
-            var policy = RetryPolicies.CreateAsyncNetworkPolicy(() => default(string), LogException, logger);
+            var policy = RetryPolicies.CreateAsyncNetworkPolicy<string>(LogException, logger);
             string res = await policy.ExecuteAsync(async (c) =>
             {
                 OpenedWebSocket ws = await CreateBuilder()
@@ -70,7 +70,7 @@ namespace BeeyApi.WebSockets
 
         public async Task<bool> UploadFileAsync(int projectId, string language, bool transcribe, FileInfo file, CancellationToken cancellationToken)
         {
-            var policy = RetryPolicies.CreateAsyncNetworkPolicy(() => false, LogException, logger);
+            var policy = RetryPolicies.CreateAsyncNetworkPolicy<bool>(LogException, logger);
             bool res = await policy.ExecuteAsync(async (c) =>
             {
                 OpenedWebSocket ws = await CreateBuilder()

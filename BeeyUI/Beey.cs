@@ -102,7 +102,7 @@ namespace BeeyUI
         #region Polly retry policies
 
         private const int unauthorizedRetryLoginCount = 1;
-        private const string retryUnauthorizedErrorMessage = "Attempt {0} - Request was not authorized with message '{2}'. Trying to login and waiting {1}s before retry.";
+        private const string retryUnauthorizedErrorMessage = "Attempt {0} - Request was not authorized with message '{2}'. Trying to relogin and waiting {1}s before retry.";
         private const string unauthorizedErrorMessage = "Request was not authorized.";
         private Context CreatePollyContext(CancellationToken cancellationToken = default)
         {
@@ -113,24 +113,16 @@ namespace BeeyUI
             return result;
         }
 
-        private AsyncPolicyWrap<TResult> CreateWebSocketsAsyncUnauthorizedPolicy<TResult>(Func<TResult> defaultValueCreator)
+        private AsyncPolicy<TResult> CreateWebSocketsAsyncUnauthorizedPolicy<TResult>()
         {
             return Policy.WrapAsync(
-                Policy<TResult>.Handle<WebSocketClosedException>(bEx => bEx.CloseStatus == System.Net.WebSockets.WebSocketCloseStatus.PolicyViolation)
-                    .Or<UnauthorizedAccessException>()
-                    .FallbackAsync(defaultValueCreator(),
-                        (res, c) =>
-                        {
-                            logger.Log(Logging.LogLevel.Error, () => $"{unauthorizedErrorMessage} Message: '{res.Exception.Message}'");
-                            throw res.Exception;
-                        }),
                     Policy<TResult>.Handle<WebSocketClosedException>(bEx => bEx.CloseStatus == System.Net.WebSockets.WebSocketCloseStatus.PolicyViolation)
                     .Or<UnauthorizedAccessException>()
                     .WaitAndRetryAsync(unauthorizedRetryLoginCount,
                         i => TimeSpan.FromSeconds(i),
                         async (result, timeSpan, retryCount, context) =>
                         {
-                            logger.Log(Logging.LogLevel.Warn, () => string.Format(retryUnauthorizedErrorMessage, retryCount, timeSpan, result.Exception.Message));
+                            logger.Log(Logging.LogLevel.Info, () => string.Format(retryUnauthorizedErrorMessage, retryCount, timeSpan, result.Exception.Message));
 
                             if (context.TryGetValue("cancellationToken", out var cto)
                                 && cto is CancellationToken ct)
@@ -145,7 +137,7 @@ namespace BeeyUI
                 );
         }
 
-        /// <summary>        /// 
+        /// <summary>
         /// </summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="defaultValueCreator">Value is ignored, but could not be called on generics without it.</param>
@@ -154,7 +146,7 @@ namespace BeeyUI
         {
             return Policy.WrapAsync(
                 Policy<TResult>.Handle<UnauthorizedAccessException>()
-                    .FallbackAsync(defaultValueCreator(),
+                    .FallbackAsync(default(TResult)!,
                         (res, c) =>
                         {
                             // log final failed attempt
@@ -166,7 +158,7 @@ namespace BeeyUI
                         i => TimeSpan.FromSeconds(i),
                         async (result, timeSpan, retryCount, context) =>
                         {
-                            logger.Log(Logging.LogLevel.Warn, () => string.Format(retryUnauthorizedErrorMessage, retryCount, timeSpan.TotalSeconds, result.Exception.Message));
+                            logger.Log(Logging.LogLevel.Info, () => string.Format(retryUnauthorizedErrorMessage, retryCount, timeSpan.TotalSeconds, result.Exception.Message));
 
                             if (context.TryGetValue("cancellationToken", out var cto)
                                 && cto is CancellationToken ct)

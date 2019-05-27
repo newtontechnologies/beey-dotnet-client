@@ -17,7 +17,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateWebSocketsAsyncUnauthorizedPolicy<string>(() => "");
+            var policy = CreateWebSocketsAsyncUnauthorizedPolicy<string>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await WebSocketsApi.EchoAsync(text, cancellationToken);
@@ -29,7 +29,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateWebSocketsAsyncUnauthorizedPolicy<string>(() => "");
+            var policy = CreateWebSocketsAsyncUnauthorizedPolicy<string>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await WebSocketsApi.SpeakerSuggestionAsync(search, cancellationToken);
@@ -42,7 +42,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateWebSocketsAsyncUnauthorizedPolicy<bool>(() => false);
+            var policy = CreateWebSocketsAsyncUnauthorizedPolicy<bool>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await WebSocketsApi.UploadFileAsync(projectId, language, transcribe, fileInfo, cancellationToken);

@@ -115,23 +115,22 @@ namespace BeeyApi.Rest
 
         public async Task<Response> ExecuteAsync(HttpMethod method, CancellationToken cancellationToken)
         {
-            var policy = RetryPolicies.CreateAsyncNetworkPolicy(() => new HttpResponseMessage(HttpStatusCode.NotImplemented), LogException, logger);
-            var responseMessage = await policy.ExecuteAsync(
+            var policy = RetryPolicies.CreateAsyncNetworkPolicy<Response>(LogException, logger);
+            var result = await policy.ExecuteAsync(
                 async (c) =>
                 {
                     var requestMessage = CreateHttpRequest(this.request, method);
-                    return await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead, c);
+                    var responseMessage =  await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead, c);
+                    var content = await responseMessage.Content.ReadAsStreamAsync();
+                    return new Response(responseMessage.StatusCode, responseMessage.IsSuccessStatusCode, responseMessage.ReasonPhrase, content);
                 },
                 cancellationToken);
-
-            var content = await responseMessage.Content.ReadAsStreamAsync();
-            var result = new Response(responseMessage.StatusCode, responseMessage.IsSuccessStatusCode, responseMessage.ReasonPhrase, content);
             return result;
         }
 
         private static void LogException(Exception ex)
         {
-            logger.Log(Logging.LogLevel.Error, () => $"{RetryPolicies.retryErrorMessage} Message: '{ex.Message}'", ex);
+            logger.Log(Logging.LogLevel.Error, () => $"{RetryPolicies.errorMessage} Message: '{ex.Message}'", ex);
         }
 
         private static HttpRequestMessage CreateHttpRequest(Request request, HttpMethod method)
