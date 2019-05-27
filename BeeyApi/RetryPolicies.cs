@@ -18,7 +18,7 @@ namespace BeeyApi
             return TimeSpan.FromSeconds(attempt);
         }
 
-        internal static AsyncPolicyWrap<T> CreateAsyncNetworkPolicy<T>(Func<T> defaultValueCreator, Action<Exception> logException, Logging.ILog logger)
+        internal static AsyncPolicy<T> CreateAsyncNetworkPolicy<T>(Func<T> defaultValueCreator, Action<Exception> logException, Logging.ILog logger)
         {
             return Policy.WrapAsync(
                 Policy<T>.Handle<Exception>(IsRetriableException)

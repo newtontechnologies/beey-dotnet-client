@@ -89,14 +89,13 @@ namespace BeeyApi.Rest
                 string serverError = GetServerErrorMessage(response.GetStringContent()); ;
                 string errMsg = $"Server error: {response.StatusCode.ToString()}({(int)response.StatusCode}){Environment.NewLine}{serverError}";
 
+                Logger.Log(Logging.LogLevel.Error, () => errMsg);
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                 {
-                    // do not log here, unauthorized exception is logged in outer Polly policy
                     throw new UnauthorizedAccessException(errMsg);
                 }
                 else
                 {
-                    Logger.Log(Logging.LogLevel.Error, () => errMsg);
                     throw new HttpException(errMsg, response.StatusCode);
                 }
             }

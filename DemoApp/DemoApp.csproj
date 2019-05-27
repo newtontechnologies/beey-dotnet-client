@@ -16,4 +16,6 @@
     <ProjectReference Include="..\BeeyUI\BeeyUI.csproj" />
   </ItemGroup>
 
+  <Import Project="..\..\..\backend\BeeyApi.POCO\BeeyApi.POCO.projitems" Label="Shared" />
+
 </Project>

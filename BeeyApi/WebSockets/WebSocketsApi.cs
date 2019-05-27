@@ -141,7 +141,7 @@ namespace BeeyApi.WebSockets
         {
             if (ex is WebSocketClosedException wsEx && wsEx.CloseStatus.HasValue)
             {
-                logger.Log(Logging.LogLevel.Error, () => $"WebSocket closed ({wsEx.CloseStatus?.ToString()}) with message '{wsEx.Message}'.", ex);
+                logger.Log(Logging.LogLevel.Error, () => $"WebSocket closed ({wsEx.CloseStatus?.ToString()}) with message '{wsEx.Message}'.", wsEx);
             }
             else
             {
