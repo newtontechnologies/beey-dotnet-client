@@ -125,13 +125,17 @@ namespace BeeyApi.Rest
 
         public async Task<bool> UploadTrsxAsync(int id, string fileName, byte[] trsx, CancellationToken cancellationToken)
         {
-            var result = await CreateBuilder()
-               .AddUrlSegment("Trsx")
-               .AddParameter("id", id.ToString())
-               .AddFile(fileName, trsx)
-               .ExecuteAsync(HttpMethod.POST, cancellationToken);
+            System.IO.MemoryStream memoryStream;
+            try { memoryStream = new System.IO.MemoryStream(trsx); }
+            catch (Exception ex)
+            {
+                Utility.LogApiException(ex, Logger);
+                throw;
+            }
 
-            return HandleResponse(result, _ => true);
+            try { return await UploadTrsxAsync(id, fileName, memoryStream, cancellationToken); }
+            catch (Exception) { throw; }
+            finally { memoryStream.Close(); }
         }
 
         public async Task<bool> UploadTrsxAsync(int id, string fileName, System.IO.Stream trsx, CancellationToken cancellationToken)

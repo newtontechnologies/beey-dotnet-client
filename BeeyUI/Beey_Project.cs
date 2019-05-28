@@ -140,7 +140,7 @@ namespace BeeyUI
             return listing;
         }
 
-        public async Task<bool> UploadTrsxAsync(int id, string fileName, byte[] trsx,
+        public async Task<bool> UploadTrsxAsync(int projectId, string fileName, byte[] trsx,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
@@ -148,11 +148,11 @@ namespace BeeyUI
             var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
             return (await policy.ExecuteAsync(async (c) =>
             {
-                return await ProjectApi.UploadTrsxAsync(id, fileName, trsx, c);
+                return await ProjectApi.UploadTrsxAsync(projectId, fileName, trsx, c);
             }, cancellationToken));
         }
 
-        public async Task<bool> UploadTrsxAsync(int id, string fileName, System.IO.Stream trsx,
+        public async Task<bool> UploadTrsxAsync(int projectId, string fileName, System.IO.Stream trsx,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
@@ -160,7 +160,7 @@ namespace BeeyUI
             var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
             return (await policy.ExecuteAsync(async (c) =>
             {
-                return await ProjectApi.UploadTrsxAsync(id, fileName, trsx, c);
+                return await ProjectApi.UploadTrsxAsync(projectId, fileName, trsx, c);
             }, cancellationToken));
         }
     }
