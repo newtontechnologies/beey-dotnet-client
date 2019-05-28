@@ -37,7 +37,7 @@ namespace BeeyUI
         }
 
         public async Task<bool> UploadFileWebSocketsAsync(int projectId, System.IO.FileInfo fileInfo,
-            string language, bool transcribe = false,
+            string language = "cz", bool transcribe = false,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();

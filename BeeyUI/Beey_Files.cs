@@ -13,7 +13,8 @@ namespace BeeyUI
 {
     public partial class Beey
     {
-        public async Task<System.IO.Stream?> DownloadTrsxAsync(int projectId, int trsxId, CancellationToken cancellationToken = default)
+        public async Task<System.IO.Stream?> DownloadTrsxAsync(int projectId, int trsxId,
+            CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
@@ -24,7 +25,9 @@ namespace BeeyUI
             }, cancellationToken));
         }
 
-        public async Task<bool> UploadFileAsync(int projectId, string fileName, byte[] fileContent, string language, bool transcribe = true, CancellationToken cancellationToken = default)
+        public async Task<bool> UploadFileAsync(int projectId, string fileName, byte[] fileContent,
+            string language = "cz", bool transcribe = true,
+            CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
@@ -35,7 +38,9 @@ namespace BeeyUI
             }, cancellationToken));
         }
 
-        public async Task<bool> UploadFileAsync(int projectId, string fileName, System.IO.Stream fileContent, string language, bool transcribe = true, CancellationToken cancellationToken = default)
+        public async Task<bool> UploadFileAsync(int projectId, string fileName, System.IO.Stream fileContent,
+            string language = "cz", bool transcribe = true,
+            CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
@@ -46,7 +51,9 @@ namespace BeeyUI
             }, cancellationToken));
         }
 
-        public async Task<bool> UploadFileAsync(int projectId, System.IO.FileInfo fileInfo, string language, bool transcribe = true, CancellationToken cancellationToken = default)
+        public async Task<bool> UploadFileAsync(int projectId, System.IO.FileInfo fileInfo,
+            string language = "cz", bool transcribe = true,
+            CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
