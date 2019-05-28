@@ -12,7 +12,7 @@ namespace DemoApp
 {
     class Program
     {
-        static void Main(string[] args)
+        static async System.Threading.Tasks.Task Main(string[] args)
         {
             //Test();
             Log.Logger = new LoggerConfiguration()
@@ -27,21 +27,21 @@ namespace DemoApp
             bool bResult = true;
 
             var beey = new Beey(url);
-            beey.LoginAsync("milos.kudelka@newtontech.cz", "OVPgod").Wait();
+            bResult = await beey.LoginAsync("milos.kudelka@newtontech.cz", "OVPgod").TryAsync();
 
             //string speakerFile = @"..\..\..\tvrlidi.ini";
             //SpeakerUpdater.LoadSpeakers(speakerFile);
             //UpdateDatabase(speakerFile, beey);
             //var removed = RemoveDbDuplicitiesFromFile(speakerFile, beey);
 
-            var speakers = beey.ListSpeakersAsync(100).Result;
-            var speaker = beey.GetSpeakerAsync(speakers?.List.FirstOrDefault()?.DBID ?? "").Result;
+            var speakers = await beey.ListSpeakersAsync(100).TryRefAsync();
+            var speaker = await beey.GetSpeakerAsync(speakers.Result?.List.FirstOrDefault()?.DBID ?? "");
 
-            var projects = beey.ListProjectsAsync(100).Result;
-            var project = beey.GetProjectAsync(projects?.List.FirstOrDefault()?.Id ?? -1).Result;
+            var projects = await beey.ListProjectsAsync(100);
+            var project = await beey.GetProjectAsync(projects?.List.FirstOrDefault()?.Id ?? -1);
 
             var mp3Path = @"c:\Users\milos.kudelka\Downloads\test01.mp3";
-            bResult = beey.UploadFileWebSocketsAsync(project?.Id ?? -1, new FileInfo(mp3Path), "cz", false).Result;
+            bResult = await beey.UploadFileWebSocketsAsync(project?.Id ?? -1, new FileInfo(mp3Path), "cz", false);
         }
 
         private static void Test()
