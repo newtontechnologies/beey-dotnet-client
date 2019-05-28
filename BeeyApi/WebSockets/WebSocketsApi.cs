@@ -34,7 +34,7 @@ namespace BeeyApi.WebSockets
 
         public async Task<string> SpeakerSuggestionAsync(string search, CancellationToken cancellationToken)
         {
-            var policy = RetryPolicies.CreateAsyncNetworkPolicy<string>(LogException, logger);
+            var policy = RetryPolicies.CreateAsyncNetworkPolicy<string>(logger);
             string res = await policy.ExecuteAsync(async (c) =>
             {
                 OpenedWebSocket ws = await CreateBuilder()
@@ -52,7 +52,7 @@ namespace BeeyApi.WebSockets
 
         public async Task<string> EchoAsync(string text, CancellationToken cancellationToken)
         {
-            var policy = RetryPolicies.CreateAsyncNetworkPolicy<string>(LogException, logger);
+            var policy = RetryPolicies.CreateAsyncNetworkPolicy<string>(logger);
             string res = await policy.ExecuteAsync(async (c) =>
             {
                 OpenedWebSocket ws = await CreateBuilder()
@@ -68,9 +68,9 @@ namespace BeeyApi.WebSockets
             return res;
         }
 
-        public async Task<bool> UploadFileAsync(int projectId, string language, bool transcribe, FileInfo file, CancellationToken cancellationToken)
+        public async Task<bool> UploadFileAsync(int projectId, FileInfo fileInfo, string language, bool transcribe, CancellationToken cancellationToken)
         {
-            var policy = RetryPolicies.CreateAsyncNetworkPolicy<bool>(LogException, logger);
+            var policy = RetryPolicies.CreateAsyncNetworkPolicy<bool>(logger);
             bool res = await policy.ExecuteAsync(async (c) =>
             {
                 OpenedWebSocket ws = await CreateBuilder()
@@ -84,7 +84,7 @@ namespace BeeyApi.WebSockets
 
                 int bufferSize = 4096;
 
-                using (var s = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (var s = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var res = await ws.ReceiveAsync(bufferSize, c);
 
@@ -100,8 +100,8 @@ namespace BeeyApi.WebSockets
 
                     fi = new FileStateInfo()
                     {
-                        FileName = file.Name,
-                        TotalFileSize = (int)file.Length,
+                        FileName = fileInfo.Name,
+                        TotalFileSize = (int)fileInfo.Length,
                         BufferSize = buffer.Length,
                     };
 
@@ -135,18 +135,6 @@ namespace BeeyApi.WebSockets
             }, cancellationToken);
 
             return res;
-        }
-
-        private void LogException(Exception ex)
-        {
-            if (ex is WebSocketClosedException wsEx && wsEx.CloseStatus.HasValue)
-            {
-                logger.Log(Logging.LogLevel.Error, () => $"WebSocket closed ({wsEx.CloseStatus?.ToString()}) with message '{wsEx.Message}'.", wsEx);
-            }
-            else
-            {
-                logger.Log(Logging.LogLevel.Error, () => ex.Message, ex);
-            }
         }
     }
 }

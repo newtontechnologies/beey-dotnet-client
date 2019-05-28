@@ -41,7 +41,7 @@ namespace DemoApp
             var project = beey.GetProjectAsync(projects?.List.FirstOrDefault()?.Id ?? -1).Result;
 
             var mp3Path = @"c:\Users\milos.kudelka\Downloads\test01.mp3";
-            bResult = beey.UploadFileAsync(project?.Id ?? -1, new FileInfo(mp3Path), "cz", false).Result;
+            bResult = beey.UploadFileWebSocketsAsync(project?.Id ?? -1, new FileInfo(mp3Path), "cz", false).Result;
         }
 
         private static void Test()

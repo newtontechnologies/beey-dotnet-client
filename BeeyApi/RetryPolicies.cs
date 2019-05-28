@@ -11,21 +11,20 @@ namespace BeeyApi
     {
         private const string retryWarningMessage = "Attempt {0} failed with exception '{1}'. Waiting {2}s before retry.";
         private const int networkErrorRetryCount = 3;
-        public const string errorMessage = "Error during communication with server.";
 
         private static TimeSpan CalculateWaitTime(int attempt)
         {
             return TimeSpan.FromSeconds(attempt);
         }
 
-        internal static AsyncPolicy<T> CreateAsyncNetworkPolicy<T>(Action<Exception> logException, Logging.ILog logger)
+        internal static AsyncPolicy<T> CreateAsyncNetworkPolicy<T>(Logging.ILog logger)
         {
             return Policy.WrapAsync(
                 Policy<T>.Handle<Exception>()
                     .FallbackAsync(default(T)!,
                     (res, c) =>
                     {
-                        logException(res.Exception);
+                        Utility.LogApiException(res.Exception, logger);
                         throw res.Exception;
                     }),
                 Policy<T>.Handle<Exception>(IsRetriableException)
@@ -33,7 +32,7 @@ namespace BeeyApi
                     i => CalculateWaitTime(i),
                     (ex, timeSpan, retryCount, context) =>
                     {
-                        logger.Log(Logging.LogLevel.Info, () => string.Format(retryWarningMessage, retryCount, ex.Exception.Message, timeSpan.TotalSeconds));
+                        logger.Log(Logging.LogLevel.Warn, () => string.Format(retryWarningMessage, retryCount, ex.Exception.Message, timeSpan.TotalSeconds));
                     })
                 );
         }

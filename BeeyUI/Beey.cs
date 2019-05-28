@@ -137,12 +137,7 @@ namespace BeeyUI
                 );
         }
 
-        /// <summary>
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="defaultValueCreator">Value is ignored, but could not be called on generics without it.</param>
-        /// <returns></returns>
-        private AsyncPolicyWrap<TResult> CreateHttpAsyncUnauthorizedPolicy<TResult>(Func<TResult> defaultValueCreator)
+        private AsyncPolicyWrap<TResult> CreateHttpAsyncUnauthorizedPolicy<TResult>()
         {
             return Policy.WrapAsync(
                 Policy<TResult>.Handle<UnauthorizedAccessException>()
@@ -158,7 +153,7 @@ namespace BeeyUI
                         i => TimeSpan.FromSeconds(i),
                         async (result, timeSpan, retryCount, context) =>
                         {
-                            logger.Log(Logging.LogLevel.Info, () => string.Format(retryUnauthorizedErrorMessage, retryCount, timeSpan.TotalSeconds, result.Exception.Message));
+                            logger.Log(Logging.LogLevel.Warn, () => string.Format(retryUnauthorizedErrorMessage, retryCount, timeSpan.TotalSeconds, result.Exception.Message));
 
                             if (context.TryGetValue("cancellationToken", out var cto)
                                 && cto is CancellationToken ct)

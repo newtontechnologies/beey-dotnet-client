@@ -16,7 +16,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<Speaker>>(() => new Listing<Speaker>(-1, -1, new Speaker[0]));
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<Speaker>>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await SpeakerApi.ListAsync(
@@ -31,7 +31,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Speaker?>(() => null);
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Speaker?>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await SpeakerApi.GetAsync(dbId, c);
@@ -43,7 +43,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Speaker>(() => new Speaker());
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Speaker>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await SpeakerApi.CreateAsync(speaker, c);
@@ -55,7 +55,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy(() => false);
+            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await SpeakerApi.UpdateAsync(speaker, c);
@@ -67,7 +67,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy(() => false);
+            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await SpeakerApi.DeleteAsync(dbId, c);

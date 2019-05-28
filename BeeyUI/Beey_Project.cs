@@ -18,7 +18,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Project?>(() => null);
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Project?>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await ProjectApi.GetAsync(id, c);
@@ -30,7 +30,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>(() => new Project());
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await ProjectApi.CreateAsync(init, c);
@@ -42,7 +42,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy(() => false);
+            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await ProjectApi.UpdateAsync(project, c);
@@ -54,7 +54,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy(() => false);
+            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await ProjectApi.DeleteAsync(id, c);
@@ -67,7 +67,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<ProjectAccess>>(() => new Listing<ProjectAccess>(-1, -1, new ProjectAccess[0]));
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<ProjectAccess>>();
             var listing = (await policy.ExecuteAsync(async (c) =>
             {
                 return await ProjectApi.ListProjectsAsync(
@@ -85,7 +85,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectAccess?>(() => null);
+            var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectAccess?>();
             return (await policy.ExecuteAsync(async (c) =>
             {
                 return await ProjectApi.GetProjectAccessAsync(id, c);
@@ -97,7 +97,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy(() => false);
+            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
             return (await policy.ExecuteAsync(async (c) =>
             {
                 return await ProjectApi.UpdateProjectAccessAsync(projectAccess, c);
@@ -109,7 +109,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy(() => false);
+            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
             return (await policy.ExecuteAsync(async (c) =>
             {
                 return await ProjectApi.ShareProjectAsync(id, email, c);
@@ -121,7 +121,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<ProjectAccess>>(() => new Listing<ProjectAccess>(-1, -1, new ProjectAccess[0]));
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<ProjectAccess>>();
             var listing = (await policy.ExecuteAsync(async (c) =>
             {
                 return await ProjectApi.ListProjectSharing(id, c);
@@ -135,7 +135,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy(() => false);
+            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
             return (await policy.ExecuteAsync(async (c) =>
             {
                 return await ProjectApi.UploadTrsxAsync(id, fileName, trsx, c);
@@ -147,7 +147,7 @@ namespace BeeyUI
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy(() => false);
+            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
             return (await policy.ExecuteAsync(async (c) =>
             {
                 return await ProjectApi.UploadTrsxAsync(id, fileName, trsx, c);

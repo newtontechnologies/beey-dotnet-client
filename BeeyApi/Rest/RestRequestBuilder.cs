@@ -115,7 +115,7 @@ namespace BeeyApi.Rest
 
         public async Task<Response> ExecuteAsync(HttpMethod method, CancellationToken cancellationToken)
         {
-            var policy = RetryPolicies.CreateAsyncNetworkPolicy<Response>(LogException, logger);
+            var policy = RetryPolicies.CreateAsyncNetworkPolicy<Response>(logger);
             var result = await policy.ExecuteAsync(
                 async (c) =>
                 {
@@ -126,11 +126,6 @@ namespace BeeyApi.Rest
                 },
                 cancellationToken);
             return result;
-        }
-
-        private static void LogException(Exception ex)
-        {
-            logger.Log(Logging.LogLevel.Error, () => $"{RetryPolicies.errorMessage} Message: '{ex.Message}'", ex);
         }
 
         private static HttpRequestMessage CreateHttpRequest(Request request, HttpMethod method)

@@ -36,8 +36,8 @@ namespace BeeyUI
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
-        public async Task<bool> UploadFileAsync(int projectId, System.IO.FileInfo fileInfo,
-            string language, bool transcribe,
+        public async Task<bool> UploadFileWebSocketsAsync(int projectId, System.IO.FileInfo fileInfo,
+            string language, bool transcribe = false,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
@@ -45,7 +45,7 @@ namespace BeeyUI
             var policy = CreateWebSocketsAsyncUnauthorizedPolicy<bool>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
-                return await WebSocketsApi.UploadFileAsync(projectId, language, transcribe, fileInfo, cancellationToken);
+                return await WebSocketsApi.UploadFileAsync(projectId, fileInfo, language, transcribe, cancellationToken);
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
     }

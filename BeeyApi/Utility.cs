@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BeeyApi.WebSockets;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Net;
@@ -27,6 +28,18 @@ namespace BeeyApi
             }
 
             return result;
+        }
+
+        internal static void LogApiException(Exception ex, Logging.ILog logger)
+        {
+            if (ex is WebSocketClosedException wsEx && wsEx.CloseStatus.HasValue)
+            {
+                logger.Log(Logging.LogLevel.Error, () => $"Error in Beey API, WebSocket closed ({wsEx.CloseStatus?.ToString()}) with message '{wsEx.Message}'.", wsEx);
+            }
+            else
+            {
+                logger.Log(Logging.LogLevel.Error, () => $"Error in Beey API: '{ex.Message}'", ex);
+            }           
         }
     }
 }
