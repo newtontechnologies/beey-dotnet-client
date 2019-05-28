@@ -25,8 +25,18 @@ namespace BeeyUI
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
-        public async Task<Project> CreateProjectAsync(ParamsProjectInit init,
+        public async Task<Project> CreateProjectAsync(string name, string customPath,
             CancellationToken cancellationToken = default)
+        {
+            return await CreateProjectAsync(new ParamsProjectInit()
+            {
+                Name = name,
+                CustomPath = customPath
+            });
+        }
+
+        public async Task<Project> CreateProjectAsync(ParamsProjectInit init,
+        CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
