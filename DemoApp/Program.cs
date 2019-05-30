@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using TranscriptionCore;
 
 namespace DemoApp
@@ -34,8 +35,8 @@ namespace DemoApp
             //UpdateDatabase(speakerFile, beey);
             //var removed = RemoveDbDuplicitiesFromFile(speakerFile, beey);
 
-            var speakers = await beey.ListSpeakersAsync(100).TryRefAsync();
-            var speaker = await beey.GetSpeakerAsync(speakers.Result?.List.FirstOrDefault()?.DBID ?? "");
+            var speakers = await beey.ListSpeakersAsync(100).TryAsync();
+            var speaker = await beey.GetSpeakerAsync(speakers.Value?.List.FirstOrDefault()?.DBID ?? "");
 
             var projects = await beey.ListProjectsAsync(100);
             var project = await beey.GetProjectAsync(projects?.List.FirstOrDefault()?.Id ?? -1);

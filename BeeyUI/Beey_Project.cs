@@ -28,11 +28,13 @@ namespace BeeyUI
         public async Task<Project> CreateProjectAsync(string name, string customPath,
             CancellationToken cancellationToken = default)
         {
-            return await CreateProjectAsync(new ParamsProjectInit()
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+            return (await policy.ExecuteAsync(async (ctx, c) =>
             {
-                Name = name,
-                CustomPath = customPath
-            });
+                return await ProjectApi.CreateAsync(name, customPath, c);
+            }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
         public async Task<Project> CreateProjectAsync(ParamsProjectInit init,

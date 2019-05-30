@@ -10,7 +10,8 @@ namespace BeeyUI
         public Exception? Ex { get; private set; }
         public bool Success { get => Ex == null; }
 
-        public TryResult(Exception? ex)
+        public TryResult() { }
+        public TryResult(Exception ex)
         {
             Ex = ex;
         }
@@ -21,33 +22,36 @@ namespace BeeyUI
         }
     }
 
-    public class TryReferenceResult<T> : TryResult where T : class
+    public class TryValueResult<T> : TryResult
     {
-        public T? Result { get; private set; }
-
-        public TryReferenceResult(Exception? ex, T? result) : base(ex)
+        // hack to rid of nullable reference warnings
+        private object? value;
+        public T Value
         {
-            Result = result;
+            get
+            {
+                return Success ? (T)value! : throw new ArgumentNullException();
+            }
         }
 
-        public static implicit operator bool(TryReferenceResult<T> tryResult)
+        public TryValueResult(T result) : base()
         {
-            return tryResult.Success;
+            this.value = result;
         }
-    }
 
-    public class TryValueResult<T> : TryResult where T : struct
-    {
-        public T? Result { get; private set; }
-
-        public TryValueResult(Exception? ex, T? result) : base(ex)
+        public TryValueResult(Exception ex) : base(ex)
         {
-            Result = result;
+            this.value = default;
         }
 
         public static implicit operator bool(TryValueResult<T> tryResult)
         {
             return tryResult.Success;
+        }
+
+        public static implicit operator T(TryValueResult<T> tryResult)
+        {
+            return tryResult.Value;
         }
     }
 
@@ -58,7 +62,7 @@ namespace BeeyUI
             try
             {
                 await task;
-                return new TryResult(null);
+                return new TryResult();
             }
             catch (Exception ex)
             {
@@ -66,31 +70,16 @@ namespace BeeyUI
             }
         }
 
-        public static async Task<TryReferenceResult<TResult>> TryRefAsync<TResult>(this Task<TResult> task)
-            where TResult: class
+        public static async Task<TryValueResult<TResult>> TryAsync<TResult>(this Task<TResult> task)
         {
             try
             {
                 var result = await task;
-                return new TryReferenceResult<TResult>(null, result);
+                return new TryValueResult<TResult>(result);
             }
             catch (Exception ex)
             {
-                return new TryReferenceResult<TResult>(ex, null);
-            }
-        }
-
-        public static async Task<TryValueResult<TResult>> TryValAsync<TResult>(this Task<TResult> task)
-            where TResult : struct
-        {
-            try
-            {
-                var result = await task;
-                return new TryValueResult<TResult>(null, result);
-            }
-            catch (Exception ex)
-            {
-                return new TryValueResult<TResult>(ex, null);
+                return new TryValueResult<TResult>(ex);
             }
         }
     }

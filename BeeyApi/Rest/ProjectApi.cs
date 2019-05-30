@@ -26,6 +26,15 @@ namespace BeeyApi.Rest
             EndPoint = "API/Project/";
         }
 
+        public async Task<Project> CreateAsync(string name, string customPath, CancellationToken cancellationToken)
+        {
+            return await CreateAsync(new ParamsProjectInit()
+            {
+                Name = name,
+                CustomPath = customPath
+            }, cancellationToken);
+        }
+
         public async Task<Project> CreateAsync(ParamsProjectInit init, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
