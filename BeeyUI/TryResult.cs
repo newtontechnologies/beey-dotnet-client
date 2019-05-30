@@ -24,7 +24,7 @@ namespace BeeyUI
 
     public class TryValueResult<T> : TryResult
     {
-        // hack to rid of nullable reference warnings
+        // hack to get rid of nullable reference warnings
         private object? value;
         public T Value
         {
@@ -47,11 +47,6 @@ namespace BeeyUI
         public static implicit operator bool(TryValueResult<T> tryResult)
         {
             return tryResult.IsSuccess;
-        }
-
-        public static implicit operator T(TryValueResult<T> tryResult)
-        {
-            return tryResult.Value;
         }
     }
 
