@@ -43,11 +43,6 @@ namespace BeeyUI
         {
             this.value = default;
         }
-
-        public static implicit operator bool(TryValueResult<T> tryResult)
-        {
-            return tryResult.IsSuccess;
-        }
     }
 
     public static class TaskExtensions

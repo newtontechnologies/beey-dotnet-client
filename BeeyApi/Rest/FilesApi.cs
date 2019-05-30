@@ -26,7 +26,8 @@ namespace BeeyApi.Rest
             EndPoint = "API/Files/";
         }
 
-        public async Task<System.IO.Stream?> DownloadTrsxAsync(int projectId, int trsxId, CancellationToken cancellationToken)
+        public async Task<System.IO.Stream?> DownloadTrsxAsync(int projectId, int trsxId,
+            CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                .AddUrlSegment("Download")
@@ -42,7 +43,9 @@ namespace BeeyApi.Rest
             return HandleResponse(result, _ => result.Content);
         }
 
-        public async Task<bool> UploadFileAsync(int projectId, string fileName, System.IO.Stream fileContent, string language, bool transcribe, CancellationToken cancellationToken)
+        public async Task<bool> UploadFileAsync(int projectId, string fileName, System.IO.Stream fileContent,
+            string language, bool transcribe,
+            CancellationToken cancellationToken)
         {
             var builder = CreateBuilder()
                .AddUrlSegment("Recognize")
@@ -58,7 +61,9 @@ namespace BeeyApi.Rest
 
             return HandleResponse(result, _ => true);
         }
-        public async Task<bool> UploadFileAsync(int projectId, string fileName, byte[] fileContent, string language, bool transcribe, CancellationToken cancellationToken)
+        public async Task<bool> UploadFileAsync(int projectId, string fileName, byte[] fileContent,
+            string language, bool transcribe,
+            CancellationToken cancellationToken)
         {
             System.IO.MemoryStream memoryStream;
             try { memoryStream = new System.IO.MemoryStream(fileContent); }
@@ -72,7 +77,9 @@ namespace BeeyApi.Rest
             catch (Exception) { throw; }
             finally { memoryStream.Close(); }
         }
-        public async Task<bool> UploadFileAsync(int projectId, System.IO.FileInfo fileInfo, string language, bool transcribe, CancellationToken cancellationToken)
+        public async Task<bool> UploadFileAsync(int projectId, System.IO.FileInfo fileInfo,
+            string language, bool transcribe,
+            CancellationToken cancellationToken)
         {
             System.IO.FileStream fileStream;
             try { fileStream = fileInfo.OpenRead(); }

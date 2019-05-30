@@ -25,7 +25,8 @@ namespace BeeyApi.Rest
             EndPoint = "API/Speaker/";
         }
 
-        public async Task<Listing<Speaker>> ListAsync(int? count, int? skip, string? search, CancellationToken cancellationToken)
+        public async Task<Listing<Speaker>> ListAsync(int? count, int? skip, string? search,
+            CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("List")
@@ -49,7 +50,8 @@ namespace BeeyApi.Rest
             return HandleResponse(result, r => new Speaker(System.Xml.Linq.XElement.Parse(r.GetStringContent())));
         }
 
-        public async Task<Speaker> CreateAsync(Speaker speaker, CancellationToken cancellationToken)
+        public async Task<Speaker> CreateAsync(Speaker speaker,
+            CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .SetBody(speaker.Serialize().ToString(), "text/xml")
@@ -58,7 +60,8 @@ namespace BeeyApi.Rest
             return HandleResponse(result, r => new Speaker(System.Xml.Linq.XElement.Parse(r.GetStringContent())));
         }
 
-        public async Task<bool> UpdateAsync(Speaker speaker, CancellationToken cancellationToken)
+        public async Task<bool> UpdateAsync(Speaker speaker,
+            CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .SetBody(speaker.Serialize().ToString(), "text/xml")
@@ -72,7 +75,8 @@ namespace BeeyApi.Rest
             return HandleResponse(result, _ => true);
         }
 
-        public async Task<bool> DeleteAsync(string dbId, CancellationToken cancellationToken)
+        public async Task<bool> DeleteAsync(string dbId,
+            CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddParameter("id", dbId)

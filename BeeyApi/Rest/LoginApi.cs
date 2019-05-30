@@ -24,7 +24,8 @@ namespace BeeyApi.Rest
             EndPoint = "API/";
         }
 
-        public async Task<LoginToken> LoginAsync(string email, string password, CancellationToken cancellationToken)
+        public async Task<LoginToken> LoginAsync(string email, string password,
+            CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("Login")
@@ -44,7 +45,8 @@ namespace BeeyApi.Rest
             HandleResponse(result,  _ => new object());
         }
 
-        public async Task ChangePasswordAsync(LoginToken token, string oldPassword, string newPassword, CancellationToken cancellationToken)
+        public async Task ChangePasswordAsync(LoginToken token, string oldPassword, string newPassword,
+            CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("ChangePassword")
@@ -55,7 +57,8 @@ namespace BeeyApi.Rest
             HandleResponse(result, _ => new object());
         }
 
-        public async Task<LoginToken> RegisterAndLoginAsync(string email, string password, CancellationToken cancellationToken)
+        public async Task<LoginToken> RegisterAndLoginAsync(string email, string password,
+            CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("RegisterAndLogin")
