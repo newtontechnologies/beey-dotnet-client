@@ -7,18 +7,18 @@ namespace BeeyUI
 {
     public class TryResult
     {
-        public Exception? Ex { get; private set; }
-        public bool Success { get => Ex == null; }
+        public Exception? Exception { get; private set; }
+        public bool IsSuccess { get => Exception == null; }
 
         public TryResult() { }
         public TryResult(Exception ex)
         {
-            Ex = ex;
+            Exception = ex;
         }
 
         public static implicit operator bool(TryResult tryResult)
         {
-            return tryResult.Success;
+            return tryResult.IsSuccess;
         }
     }
 
@@ -30,7 +30,7 @@ namespace BeeyUI
         {
             get
             {
-                return Success ? (T)value! : throw new ArgumentNullException();
+                return IsSuccess ? (T)value! : throw new ArgumentNullException();
             }
         }
 
@@ -46,7 +46,7 @@ namespace BeeyUI
 
         public static implicit operator bool(TryValueResult<T> tryResult)
         {
-            return tryResult.Success;
+            return tryResult.IsSuccess;
         }
 
         public static implicit operator T(TryValueResult<T> tryResult)
