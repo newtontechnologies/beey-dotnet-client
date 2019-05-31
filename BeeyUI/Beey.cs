@@ -115,56 +115,47 @@ namespace BeeyUI
 
         private AsyncPolicy<TResult> CreateWebSocketsAsyncUnauthorizedPolicy<TResult>()
         {
-            return Policy.WrapAsync(
-                    Policy<TResult>.Handle<WebSocketClosedException>(bEx => bEx.CloseStatus == System.Net.WebSockets.WebSocketCloseStatus.PolicyViolation)
-                    .Or<UnauthorizedAccessException>()
-                    .WaitAndRetryAsync(unauthorizedRetryLoginCount,
-                        i => TimeSpan.FromSeconds(i),
-                        async (result, timeSpan, retryCount, context) =>
-                        {
-                            logger.Log(Logging.LogLevel.Info, () => string.Format(retryUnauthorizedErrorMessage, retryCount, timeSpan, result.Exception.Message));
+            return Policy<TResult>.Handle<WebSocketClosedException>(bEx => bEx.CloseStatus == System.Net.WebSockets.WebSocketCloseStatus.PolicyViolation)
+                .Or<UnauthorizedAccessException>()
+                .WaitAndRetryAsync(unauthorizedRetryLoginCount,
+                    i => TimeSpan.FromSeconds(i),
+                    async (result, timeSpan, retryCount, context) =>
+                    {
+                        logger.Log(Logging.LogLevel.Info, () => string.Format(retryUnauthorizedErrorMessage, retryCount, timeSpan, result.Exception.Message));
 
-                            if (context.TryGetValue("cancellationToken", out var cto)
-                                && cto is CancellationToken ct)
-                            {
-                                await TryReloginAsync(ct);
-                            }
-                            else
-                            {
-                                await TryReloginAsync();
-                            }
-                        })
+                        if (context.TryGetValue("cancellationToken", out var cto)
+                            && cto is CancellationToken ct)
+                        {
+                            await TryReloginAsync(ct);
+                        }
+                        else
+                        {
+                            await TryReloginAsync();
+                        }
+                    }
                 );
         }
 
-        private AsyncPolicyWrap<TResult> CreateHttpAsyncUnauthorizedPolicy<TResult>()
+        private AsyncPolicy<TResult> CreateHttpAsyncUnauthorizedPolicy<TResult>()
         {
-            return Policy.WrapAsync(
-                Policy<TResult>.Handle<UnauthorizedAccessException>()
-                    .FallbackAsync(default(TResult)!,
-                        (res, c) =>
-                        {
-                            // log final failed attempt
-                            logger.Log(Logging.LogLevel.Error, () => unauthorizedErrorMessage);
-                            throw res.Exception;
-                        }),
-                Policy<TResult>.Handle<UnauthorizedAccessException>()
-                    .WaitAndRetryAsync(unauthorizedRetryLoginCount,
-                        i => TimeSpan.FromSeconds(i),
-                        async (result, timeSpan, retryCount, context) =>
-                        {
-                            logger.Log(Logging.LogLevel.Warn, () => string.Format(retryUnauthorizedErrorMessage, retryCount, timeSpan.TotalSeconds, result.Exception.Message));
+            return Policy<TResult>.Handle<HttpException>(bEx => bEx.HttpStatusCode == HttpStatusCode.Unauthorized)
+                .Or<UnauthorizedAccessException>()
+                .WaitAndRetryAsync(unauthorizedRetryLoginCount,
+                    i => TimeSpan.FromSeconds(i),
+                    async (result, timeSpan, retryCount, context) =>
+                    {
+                        logger.Log(Logging.LogLevel.Info, () => string.Format(retryUnauthorizedErrorMessage, retryCount, timeSpan.TotalSeconds, result.Exception.Message));
 
-                            if (context.TryGetValue("cancellationToken", out var cto)
-                                && cto is CancellationToken ct)
-                            {
-                                await TryReloginAsync(ct);
-                            }
-                            else
-                            {
-                                await TryReloginAsync();
-                            }
-                        })
+                        if (context.TryGetValue("cancellationToken", out var cto)
+                            && cto is CancellationToken ct)
+                        {
+                            await TryReloginAsync(ct);
+                        }
+                        else
+                        {
+                            await TryReloginAsync();
+                        }
+                    }
                 );
         }
 

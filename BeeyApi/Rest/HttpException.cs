@@ -5,7 +5,7 @@ using System.Text;
 
 namespace BeeyApi.Rest
 {
-    class HttpException : Exception
+    public class HttpException : Exception
     {
         public HttpStatusCode HttpStatusCode { get; private set; }
 
