@@ -162,7 +162,7 @@ namespace BeeyApi.Rest
             var result = await CreateBuilder()
                .AddUrlSegment("Trsx")
                .AddParameter("id", id.ToString())
-               .AddFile(fileName, trsx)
+               .AddFile(System.IO.Path.GetFileName(fileName), trsx)
                .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
             return HandleResponse(result, _ => true);
