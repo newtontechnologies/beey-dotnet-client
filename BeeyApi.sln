@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TranscriptionCore", "..\..\
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "BeeyApi.POCO", "..\..\backend\BeeyApi.POCO\BeeyApi.POCO.shproj", "{306CEFB5-A8C2-4577-8332-13827A9EC870}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XUnitTests", "XUnitTests\XUnitTests.csproj", "{437B076B-5930-4505-87BA-300A6AC1E357}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		..\..\backend\BeeyApi.POCO\BeeyApi.POCO.projitems*{306cefb5-a8c2-4577-8332-13827a9ec870}*SharedItemsImports = 13
@@ -56,6 +58,14 @@ Global
 		{069C1833-9026-4E69-83BC-18EFEF29B743}.Release|Any CPU.Build.0 = Release|Any CPU
 		{069C1833-9026-4E69-83BC-18EFEF29B743}.Release|x86.ActiveCfg = Release|x86
 		{069C1833-9026-4E69-83BC-18EFEF29B743}.Release|x86.Build.0 = Release|x86
+		{437B076B-5930-4505-87BA-300A6AC1E357}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{437B076B-5930-4505-87BA-300A6AC1E357}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{437B076B-5930-4505-87BA-300A6AC1E357}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{437B076B-5930-4505-87BA-300A6AC1E357}.Debug|x86.Build.0 = Debug|Any CPU
+		{437B076B-5930-4505-87BA-300A6AC1E357}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{437B076B-5930-4505-87BA-300A6AC1E357}.Release|Any CPU.Build.0 = Release|Any CPU
+		{437B076B-5930-4505-87BA-300A6AC1E357}.Release|x86.ActiveCfg = Release|Any CPU
+		{437B076B-5930-4505-87BA-300A6AC1E357}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
