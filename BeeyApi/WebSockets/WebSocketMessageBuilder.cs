@@ -59,14 +59,13 @@ namespace BeeyApi.WebSockets
             return this;
         }
 
-        public async Task<OpenedWebSocket> OpenConnectionAsync(CancellationToken cancellationToken)
+        public async Task<ClientWebSocket> OpenConnectionAsync(CancellationToken cancellationToken)
         {
             var ws = new ClientWebSocket();
             var uri = CreateUri(webSocketMessage);
-
             await ws.ConnectAsync(uri, cancellationToken);
 
-            return new OpenedWebSocket(ws);
+            return ws;
         }
 
         private Uri CreateUri(WebSocketMessage webSocketMessage)
