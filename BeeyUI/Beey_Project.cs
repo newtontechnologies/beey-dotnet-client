@@ -73,7 +73,7 @@ namespace BeeyUI
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
-        public async Task<Listing<Project>> ListProjectsAsync(int count = 0, int skip = 0,
+        public async Task<Listing<Project>> ListProjectsAsync(int count, int skip = 0,
             ProjectApi.OrderOn orderOn = ProjectApi.OrderOn.None, bool ascending = true,
             CancellationToken cancellationToken = default)
         {
@@ -82,10 +82,7 @@ namespace BeeyUI
             var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<ProjectAccess>>();
             var listing = (await policy.ExecuteAsync(async (c) =>
             {
-                return await ProjectApi.ListProjectsAsync(
-                    count > 0 ? count : default(int?),
-                    skip >= 0 ? skip : default(int?),
-                    orderOn, ascending, c);
+                return await ProjectApi.ListProjectsAsync(count, skip, orderOn, ascending, c);
             }, cancellationToken));
 
             return new Listing<Project>(listing.TotalCount, listing.ListedCount,

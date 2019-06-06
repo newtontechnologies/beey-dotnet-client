@@ -13,7 +13,7 @@ namespace DemoApp
 {
     class Program
     {
-        static async System.Threading.Tasks.Task Main(string[] args)
+        static async Task Main(string[] args)
         {
             //Test();
             Log.Logger = new LoggerConfiguration()
@@ -24,7 +24,6 @@ namespace DemoApp
                 .CreateLogger();
 
             string url = "http://localhost:61497";
-            string? strResult = "";
             bool bResult = true;
 
             var beey = new Beey(url);

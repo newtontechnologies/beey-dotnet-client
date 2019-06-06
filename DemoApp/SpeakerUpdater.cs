@@ -27,7 +27,7 @@ namespace DemoApp
             var unsuccessfullyInserted = new List<Speaker>();
             foreach (var speaker in speakers)
             {
-                Speaker newSpeaker = null;
+                Speaker? newSpeaker = null;
                 try
                 {
                     newSpeaker = beey.CreateSpeakerAsync(speaker).Result;

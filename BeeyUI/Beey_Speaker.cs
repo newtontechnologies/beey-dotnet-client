@@ -11,7 +11,7 @@ namespace BeeyUI
 {
     public partial class Beey
     {
-        public async Task<Listing<Speaker>> ListSpeakersAsync(int count = 0, int skip = 0, string? search = null,
+        public async Task<Listing<Speaker>> ListSpeakersAsync(int count, int skip = 0, string? search = null,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
@@ -19,10 +19,7 @@ namespace BeeyUI
             var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<Speaker>>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
-                return await SpeakerApi.ListAsync(
-                    count > 0 ? count : default(int?),
-                    skip >= 0 ? skip : default(int?),
-                    search, c);
+                return await SpeakerApi.ListAsync(count, skip, search, c);
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
