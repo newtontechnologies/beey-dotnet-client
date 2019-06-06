@@ -15,6 +15,8 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "BeeyApi.POCO", "..\..\backe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StreamPusher", "StreamPusher\StreamPusher.csproj", "{A99ED462-327A-4DFC-8778-95B6B2CDF057}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XUnitTests", "XUnitTests\XUnitTests.csproj", "{87FE7FF1-0E49-4F20-8E52-35D989A78AC6}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		..\..\backend\BeeyApi.POCO\BeeyApi.POCO.projitems*{306cefb5-a8c2-4577-8332-13827a9ec870}*SharedItemsImports = 13
@@ -66,6 +68,14 @@ Global
 		{A99ED462-327A-4DFC-8778-95B6B2CDF057}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A99ED462-327A-4DFC-8778-95B6B2CDF057}.Release|x86.ActiveCfg = Release|Any CPU
 		{A99ED462-327A-4DFC-8778-95B6B2CDF057}.Release|x86.Build.0 = Release|Any CPU
+		{87FE7FF1-0E49-4F20-8E52-35D989A78AC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87FE7FF1-0E49-4F20-8E52-35D989A78AC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87FE7FF1-0E49-4F20-8E52-35D989A78AC6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{87FE7FF1-0E49-4F20-8E52-35D989A78AC6}.Debug|x86.Build.0 = Debug|Any CPU
+		{87FE7FF1-0E49-4F20-8E52-35D989A78AC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87FE7FF1-0E49-4F20-8E52-35D989A78AC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87FE7FF1-0E49-4F20-8E52-35D989A78AC6}.Release|x86.ActiveCfg = Release|Any CPU
+		{87FE7FF1-0E49-4F20-8E52-35D989A78AC6}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

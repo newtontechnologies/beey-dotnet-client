@@ -63,5 +63,17 @@ namespace BeeyUI
                 return await FilesApi.UploadFileAsync(projectId, fileInfo, language, transcribe, cancellationToken);
             }, cancellationToken));
         }
+
+        public async Task<System.IO.Stream> DownloadFileAsync(int projectId, int recordingId,
+            CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<System.IO.Stream>();
+            return (await policy.ExecuteAsync(async (c) =>
+            {
+                return await FilesApi.DownloadFileAsync(projectId, recordingId, cancellationToken);
+            }, cancellationToken));
+        }
     }
 }

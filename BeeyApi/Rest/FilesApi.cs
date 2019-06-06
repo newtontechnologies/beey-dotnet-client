@@ -93,5 +93,18 @@ namespace BeeyApi.Rest
             catch (Exception) { throw; }
             finally { fileStream.Close(); }
         }
+
+        public async Task<System.IO.Stream> DownloadFileAsync(int projectId, int recordingId,
+            CancellationToken cancellationToken)
+        {
+            var builder = CreateBuilder()
+               .AddUrlSegment("Download")
+               .AddParameter("projectId", projectId.ToString())
+               .AddParameter("fileId", recordingId.ToString());
+
+            var result = await builder.ExecuteAsync(HttpMethod.GET, cancellationToken);
+
+            return HandleResponse(result, r => r.Content);
+        }
     }
 }
