@@ -125,14 +125,15 @@ namespace BeeyApi.Rest
             return HandleResponse(result, _ => true);
         }
 
-        public async Task<Listing<ProjectAccess>> ListProjectsAsync(int? count, int? skip,
-            OrderOn orderOn, bool ascending,
-            CancellationToken cancellationToken)
+        public async Task<Listing<ProjectAccess>> ListProjectsAsync(int count, int skip = 0,
+            OrderOn orderOn = OrderOn.Created, bool ascending = false,
+            CancellationToken cancellationToken = default)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("Access")
                 .AddUrlSegment("List")
-                .AddParameters(new { skip = skip?.ToString(), count = count?.ToString() })
+                .AddParameter("skip", skip)
+                .AddParameter("count", count)
                 .AddParameter("orderOn", GetOrderOn(orderOn))
                 .AddParameter("orderBy", ascending ? "ascending" : "descending")
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
@@ -193,14 +194,12 @@ namespace BeeyApi.Rest
 
 
         public enum OrderOn { Created, Updated, None }
-        private static string? GetOrderOn(OrderOn orderOn)
+        private static string GetOrderOn(OrderOn orderOn)
         {
             return orderOn switch
             {
-                OrderOn.Created => "created",
                 OrderOn.Updated => "updated",
-                OrderOn.None => null,
-                _ => null
+                _ => "created",
             };
         }
     }

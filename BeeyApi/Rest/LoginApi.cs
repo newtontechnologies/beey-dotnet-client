@@ -29,7 +29,7 @@ namespace BeeyApi.Rest
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("Login")
-                .AddParameters(new { email, password })
+                .AddParameters((email, password))
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<LoginToken>(r.GetStringContent()));
@@ -42,7 +42,7 @@ namespace BeeyApi.Rest
                 .AddHeader("Authorization", token.Token)
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            HandleResponse(result,  _ => new object());
+            HandleResponse(result, _ => new object());
         }
 
         public async Task ChangePasswordAsync(LoginToken token, string oldPassword, string newPassword,
@@ -51,7 +51,7 @@ namespace BeeyApi.Rest
             var result = await CreateBuilder()
                 .AddUrlSegment("ChangePassword")
                 .AddHeader("Authorization", token.Token)
-                .AddParameters(new { password = oldPassword, newPassword })
+                .AddParameters(("password", oldPassword), ("newPassword", newPassword))
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
             HandleResponse(result, _ => new object());
@@ -62,7 +62,7 @@ namespace BeeyApi.Rest
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("RegisterAndLogin")
-                .AddParameters(new { email, password })
+                .AddParameters((email, password))
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
             return await HandleResponseAsync(result, async (r, c) => await LoginAsync(email, password, c),

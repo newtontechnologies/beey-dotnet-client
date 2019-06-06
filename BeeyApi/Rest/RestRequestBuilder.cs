@@ -47,19 +47,15 @@ namespace BeeyApi.Rest
             }
             return this;
         }
-        public RestRequestBuilder AddHeaders(object values)
+        public RestRequestBuilder AddHeaders((string name, string value)[] headers)
         {
-            foreach (var value in Utility.AnonymousObjectToDictionary(values))
-            {
-                if (value.Value != null)
-                {
-                    request.Headers.Add(value.Key, value.Value);
-                }
-            }
+            foreach (var p in headers)
+                AddHeader(p.name, p.value);
+
             return this;
         }
 
-        public RestRequestBuilder AddParameter(string name, string? value)
+        public RestRequestBuilder AddParameter(string name, string value)
         {
             if (value != null)
             {
@@ -67,15 +63,21 @@ namespace BeeyApi.Rest
             }
             return this;
         }
-        public RestRequestBuilder AddParameters(object values)
+        public RestRequestBuilder AddParameter(string name, object value) => AddParameter(name, value.ToString());
+
+        public RestRequestBuilder AddParameters(params (string name, string value)[] pars)
         {
-            foreach (var value in Utility.AnonymousObjectToDictionary(values))
-            {
-                if (value.Value != null)
-                {
-                    request.Parameters.Add(value.Key, value.Value);
-                }
-            }
+            foreach (var p in pars)
+                AddParameter(p.name, p.value);
+
+            return this;
+        }
+
+        public RestRequestBuilder AddParameters(params (string name, object value)[] pars)
+        {
+            foreach (var p in pars)
+                AddParameter(p.name, p.value);
+
             return this;
         }
 
@@ -120,7 +122,7 @@ namespace BeeyApi.Rest
                 async (c) =>
                 {
                     var requestMessage = CreateHttpRequest(this.request, method);
-                    var responseMessage =  await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead, c);
+                    var responseMessage = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead, c);
                     var content = await responseMessage.Content.ReadAsStreamAsync();
                     return new Response(responseMessage.StatusCode, responseMessage.IsSuccessStatusCode, responseMessage.ReasonPhrase, content);
                 },

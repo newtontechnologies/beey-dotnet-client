@@ -25,13 +25,17 @@ namespace BeeyApi.Rest
             EndPoint = "API/Speaker/";
         }
 
-        public async Task<Listing<Speaker>> ListAsync(int? count, int? skip, string? search,
-            CancellationToken cancellationToken)
+        public async Task<Listing<Speaker>> ListAsync(int count, int skip = 0, string? search = null,
+            CancellationToken cancellationToken = default)
         {
-            var result = await CreateBuilder()
+            var bld = CreateBuilder()
                 .AddUrlSegment("List")
-                .AddParameters(new { skip = skip?.ToString(), count = count?.ToString(), search })
-                .ExecuteAsync(HttpMethod.POST, cancellationToken);
+                .AddParameter("skip", skip)
+                .AddParameter("count", count);
+            if (search != null)
+                bld.AddParameter("search", search);
+
+             var result = await bld.ExecuteAsync(HttpMethod.POST, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<Speaker>>(r.GetStringContent(), JsonConverters.Speaker));
         }

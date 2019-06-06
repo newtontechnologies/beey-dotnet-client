@@ -47,15 +47,11 @@ namespace BeeyApi.WebSockets
             }
             return this;
         }
-        public WebSocketMessageBuilder AddParameters(object values)
+        public WebSocketMessageBuilder AddParameters(params (string name, string value)[] pars)
         {
-            foreach (var value in Utility.AnonymousObjectToDictionary(values))
-            {
-                if (value.Value != null)
-                {
-                    webSocketMessage.Parameters.Add(value.Key, value.Value);
-                }
-            }
+            foreach (var p in pars)
+                AddParameter(p.name, p.value);
+
             return this;
         }
 
