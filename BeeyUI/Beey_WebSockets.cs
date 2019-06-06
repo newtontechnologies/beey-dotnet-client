@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BeeyApi.WebSockets;
+using System.IO;
 
 namespace BeeyUI
 {
@@ -36,17 +37,28 @@ namespace BeeyUI
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
-        public async Task<bool> UploadFileWebSocketsAsync(int projectId, System.IO.FileInfo fileInfo,
-            string language = "cz", bool transcribe = false,
-            CancellationToken cancellationToken = default)
+        public async Task<bool> UploadStreamAsync(int projectId, string dataName, Stream data,
+            long? dataLength, string language, bool transcribe, CancellationToken cancellationToken)
         {
             this.RequireAuthorization();
 
             var policy = CreateWebSocketsAsyncUnauthorizedPolicy<bool>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
-                return await WebSocketsApi.UploadFileAsync(projectId, fileInfo, language, transcribe, cancellationToken);
+                return await WebSocketsApi.UploadStreamAsync(projectId, dataName, data, dataLength, language, transcribe, cancellationToken);
             }, CreatePollyContext(cancellationToken), cancellationToken));
+        }
+
+        public async Task<IAsyncEnumerable<string>> ListenToMessages(int projectId, CancellationToken cancellationToken)
+        {
+            this.RequireAuthorization();
+            var policy = CreateWebSocketsAsyncUnauthorizedPolicy<IAsyncEnumerable<string>>();
+            var it = await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                return await WebSocketsApi.ListenToMessages(projectId, cancellationToken);
+            }, CreatePollyContext(cancellationToken), cancellationToken);
+
+            return it;
         }
     }
 }

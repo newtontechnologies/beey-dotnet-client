@@ -34,11 +34,7 @@ namespace BeeyUI
             ProjectApi = new ProjectApi(url);
             FilesApi = new FilesApi(url);
 
-            string webSocketsUrl = url;
-            if (webSocketsUrl.StartsWith("http"))
-            {
-                webSocketsUrl = "ws" + webSocketsUrl.Substring(4);
-            }
+            string webSocketsUrl = url.Replace("http://", "ws://").Replace("https://", "wss://");
             WebSocketsApi = new WebSocketsApi(webSocketsUrl);
         }
 
