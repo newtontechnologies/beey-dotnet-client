@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TranscriptionCore", "..\..\
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "BeeyApi.POCO", "..\..\backend\BeeyApi.POCO\BeeyApi.POCO.shproj", "{306CEFB5-A8C2-4577-8332-13827A9EC870}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreamPusher", "StreamPusher\StreamPusher.csproj", "{A99ED462-327A-4DFC-8778-95B6B2CDF057}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StreamPusher", "StreamPusher\StreamPusher.csproj", "{A99ED462-327A-4DFC-8778-95B6B2CDF057}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
