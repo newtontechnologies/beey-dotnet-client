@@ -11,19 +11,6 @@ namespace XUnitTests
     [Collection("2 - Speaker Collection")]
     public class SpeakerApiUnitTests
     {
-        public async Task TestAsync()
-        {
-            Task<int> test = Task.Run(() => -1);
-            var res = await test.TryAsync();
-            Task<SpeakerApi> test2 = Task.Run(() => new SpeakerApi(Configuration.BeeyUrl));
-            var res2 = await test2.TryAsync();
-
-            Task<int?> test3 = Task.Run(() => (int?)null);
-            var res3 = await test3.TryAsync();
-            Task<SpeakerApi?> test4 = Task.Run(() => (SpeakerApi?)null);
-            var res4 = await test4.TryAsync();
-        }
-
         static readonly SpeakerApi api = new SpeakerApi(Configuration.BeeyUrl);
 
         const string testFirstName = "Milošek";

@@ -16,17 +16,17 @@ namespace XUnitTests
         public async Task LoginAsync()
         {
             LoginApi api = new LoginApi(Configuration.BeeyUrl);
-            Assert.True(await api.LoginAsync(Configuration.Email, Configuration.Password, default).TryAsync());
+            Assert.NotNull(await api.LoginAsync(Configuration.Email, Configuration.Password, default));
         }
 
         [Fact, TestPriority(2)]
         public async Task ChangePasswordAsync()
         {
             LoginApi api = new LoginApi(Configuration.BeeyUrl);
-            var token = await api.LoginAsync(Configuration.Email, Configuration.Password, default).TryAsync();
+            var token = await api.LoginAsync(Configuration.Email, Configuration.Password, default);
 
-            Assert.True(await api.ChangePasswordAsync(token.Value, Configuration.Password, testPassword, default).TryAsync());
-            Assert.True(await api.ChangePasswordAsync(token.Value, testPassword, Configuration.Password, default).TryAsync());
+            await api.ChangePasswordAsync(token, Configuration.Password, testPassword, default);
+            await api.ChangePasswordAsync(token, testPassword, Configuration.Password, default);
         }
 
         [Fact, TestPriority(3)]
@@ -34,8 +34,7 @@ namespace XUnitTests
         {
             LoginApi api = new LoginApi(Configuration.BeeyUrl);
             var token = await api.LoginAsync(Configuration.Email, Configuration.Password, default);
-
-            Assert.True(await api.LogoutAsync(token, default).TryAsync());
+            await api.LogoutAsync(token, default);
         }
     }
 }

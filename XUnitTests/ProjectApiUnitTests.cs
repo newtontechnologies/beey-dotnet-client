@@ -110,9 +110,8 @@ namespace XUnitTests
         [Fact, TestPriority(4)]
         public async Task ListProjectsAsync()
         {
-            var listing = await projectApi.ListProjectsAsync(10, 0, ProjectApi.OrderOn.Created, true, default).TryAsync();
-            Assert.True(listing);
-            var created = listing.Value.List.Where(p => p.Project.Id == createdProjectId);
+            var listing = await projectApi.ListProjectsAsync(10, 0, ProjectApi.OrderOn.Created, true, default);
+            var created = listing.List.Where(p => p.Project.Id == createdProjectId);
             Assert.Single(created);
             createdProjectAccessId = created.First().Id;
         }
