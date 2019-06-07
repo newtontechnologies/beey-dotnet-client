@@ -39,7 +39,7 @@ namespace BeeyApi.WebSockets
             return this;
         }
 
-        public WebSocketMessageBuilder AddParameter(string name, string? value)
+        public WebSocketMessageBuilder AddParameter(string name, string value)
         {
             if (value != null)
             {
@@ -47,6 +47,9 @@ namespace BeeyApi.WebSockets
             }
             return this;
         }
+
+        public WebSocketMessageBuilder AddParameter(string name, object value) => AddParameter(name, value.ToString());
+
         public WebSocketMessageBuilder AddParameters(params (string name, string value)[] pars)
         {
             foreach (var p in pars)
