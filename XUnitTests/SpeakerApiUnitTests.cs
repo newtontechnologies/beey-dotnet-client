@@ -5,7 +5,10 @@ using Xunit;
 
 namespace XUnitTests
 {
-    [Collection("2")]
+    [CollectionDefinition("2 - Speaker Collection")]
+    public class SpeakerCollectionDefinition : ICollectionFixture<LoginFixture> { }
+
+    [Collection("2 - Speaker Collection")]
     public class SpeakerApiUnitTests
     {
         public async Task TestAsync()
@@ -29,48 +32,47 @@ namespace XUnitTests
         const string changedFirstName = "ASDF__ASDF";
         const TranscriptionCore.Speaker.Sexes testSex = TranscriptionCore.Speaker.Sexes.Male;
 
-        private string createdSpeakerId;
+        private static string createdSpeakerId;
 
         public SpeakerApiUnitTests(LoginFixture fixture)
         {
             api.Token = fixture.Token;
-            createdSpeakerId = "";
         }
 
-        [Fact]
+        [Fact, TestPriority(1)]
         public async Task GetNoSpeakerAsync()
         {
             Assert.Null(await api.GetAsync("ASFDASDFASDFAFADSF_DA_F23", default));
         }
 
-        [Fact]
+        [Fact, TestPriority(2)]
         public async Task ListNoSpeakersAsync()
         {
             var listing = await api.ListAsync(100, 0, "ASFDASDFASDFAFADSF_DA_F23", default);
             Assert.Equal(0, listing.ListedCount);
         }
 
-        [Fact]
+        [Fact, TestPriority(3)]
         public async Task CreateSpeakerAsync()
         {
             var speaker = await api.CreateAsync(new TranscriptionCore.Speaker(testFirstName, testSurname, testSex, ""), default);
             createdSpeakerId = speaker.DBID;
         }
 
-        [Fact]
+        [Fact, TestPriority(4)]
         public async Task ListSpeakersAsync()
         {
             var listing = await api.ListAsync(1, 0, testSurname, default);
             Assert.Equal(1, listing.ListedCount);
         }
 
-        [Fact]
+        [Fact, TestPriority(5)]
         public async Task GetSpeakerAsync()
         {
             Assert.NotNull(await api.GetAsync(createdSpeakerId, default));
         }
 
-        [Fact]
+        [Fact, TestPriority(6)]
         public async Task UpdateSpeakerAsync()
         {
             var speaker = await api.GetAsync(createdSpeakerId, default);
@@ -85,7 +87,7 @@ namespace XUnitTests
             Assert.Equal(speaker!.FirstName, changedFirstName);
         }
 
-        [Fact]
+        [Fact, TestPriority(7)]
         public async Task DeleteSpeakerAsync()
         {
             var res = await api.DeleteAsync(createdSpeakerId, default);

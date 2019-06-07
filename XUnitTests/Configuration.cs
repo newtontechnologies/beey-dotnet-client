@@ -1,6 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Xunit;
+
+// Set the orderers
+[assembly: TestCollectionOrderer("XUnitTests.TestCollectionOrderer", "XUnitTests")]
+[assembly: TestCaseOrderer("XUnitTests.TestCaseOrderer", "XUnitTests")]
+
+// Need to turn off test parallelization so we can validate the run order
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace XUnitTests
 {

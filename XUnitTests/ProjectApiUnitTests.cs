@@ -10,9 +10,12 @@ using Xunit;
 
 namespace XUnitTests
 {
-    [Collection("3")]
-    public class ProjectApiUnitTests : IClassFixture<LoginFixture>
-    {
+    [CollectionDefinition("3 - Project Collection")]
+    public class ProjectCollectionDefinition : ICollectionFixture<LoginFixture> { }
+
+    [Collection("3 - Project Collection")]
+    public class ProjectApiUnitTests
+    { 
         private const string testName = "test";
         private const string testPath = "test/path";
         private const string changedName = "ASDF__ASDF";
@@ -20,8 +23,8 @@ namespace XUnitTests
         private static readonly FilesApi filesApi = new FilesApi(Configuration.BeeyUrl);
         private static readonly WebSocketsApi wsApi = new WebSocketsApi(Configuration.BeeyUrl);
 
-        private byte[]? _testFile;
-        private byte[] testFile
+        private static byte[]? _testFile;
+        private static byte[] testFile
         {
             get
             {
@@ -37,7 +40,8 @@ namespace XUnitTests
             }
         }
 
-        private int createdProjectId;
+        private static int createdProjectId;
+        private static int createdProjectAccessId;
 
         public ProjectApiUnitTests(LoginFixture fixture)
         {
@@ -47,14 +51,14 @@ namespace XUnitTests
         }
 
         #region ProjectApi
-        [Fact]
+        [Fact, TestPriority(1)]
         public async Task GetNoProjectAsync()
         {
-            var created = await projectApi.GetProjectAccessAsync(123123, default);
+            var created = await projectApi.GetAsync(123123, default);
             Assert.True(created == null);
         }
 
-        [Theory]
+        [Theory, TestPriority(2)]
         [InlineData(ProjectApi.OrderOn.Created, true)]
         [InlineData(ProjectApi.OrderOn.Created, false)]
         [InlineData(ProjectApi.OrderOn.Updated, true)]
@@ -96,45 +100,53 @@ namespace XUnitTests
             }
         }
 
-        [Fact]
+        [Fact, TestPriority(3)]
         public async Task CreateProjectAsync()
         {
-            var project = await projectApi.CreateAsync(testName, testPath, default);
+            var project = await projectApi.CreateAsync($"{testName}_{DateTime.Now.ToShortTimeString()}", testPath, default);
             createdProjectId = project.Id;
         }
 
-        [Fact]
+        [Fact, TestPriority(4)]
         public async Task ListProjectsAsync()
         {
             var listing = await projectApi.ListProjectsAsync(10, 0, ProjectApi.OrderOn.Created, true, default).TryAsync();
             Assert.True(listing);
-            var created = listing.Value.List.Where(p => p.CustomPath == testPath && p.Project.Name == testName);
+            var created = listing.Value.List.Where(p => p.Project.Id == createdProjectId);
             Assert.Single(created);
+            createdProjectAccessId = created.First().Id;
         }
 
-        [Fact]
+        [Fact, TestPriority(5)]
         public async Task GetProjectAsync()
         {
-            var created = await projectApi.GetProjectAccessAsync(createdProjectId, default);
+            var created = await projectApi.GetAsync(createdProjectId, default);
             Assert.NotNull(created);
         }
 
-        [Fact]
+        [Fact, TestPriority(6)]
         public async Task UpdateProjectAsync()
         {
-            var created = await projectApi.GetProjectAccessAsync(createdProjectId, default);
+            var created = await projectApi.GetAsync(createdProjectId, default);
 
-            created!.Project.Name = changedName;
-            Assert.True(await projectApi.UpdateAsync(created.Project, default));
+            created!.Name = changedName;
+            Assert.True(await projectApi.UpdateAsync(created, default));
 
-            created = await projectApi.GetProjectAccessAsync(createdProjectId, default);
-            Assert.Equal(created!.Project.Name, changedName);
+            created = await projectApi.GetAsync(createdProjectId, default);
+            Assert.Equal(created!.Name, changedName);
         }
 
-        [Fact]
+        [Fact, TestPriority(6.5)]
+        public async Task GetProjectAccessAsync()
+        {
+            var created = await projectApi.GetProjectAccessAsync(createdProjectAccessId, default);
+            Assert.NotNull(created);
+        }
+
+        [Fact, TestPriority(7)]
         public async Task UpdateProjectAccessAsync()
         {
-            var created = await projectApi.GetProjectAccessAsync(createdProjectId, default);
+            var created = await projectApi.GetProjectAccessAsync(createdProjectAccessId, default);
 
             created!.CustomPath = changedName;
             Assert.True(await projectApi.UpdateProjectAccessAsync(created, default));
@@ -142,28 +154,30 @@ namespace XUnitTests
             Assert.Equal(created!.CustomPath, changedName);
         }
 
-        [Fact]
+        [Fact, TestPriority(8)]
         public async Task ShareProjectAsync()
         {
             Assert.True(await projectApi.ShareProjectAsync(createdProjectId, "martin.podloucky@newtontech.cz", default));
         }
 
-        [Fact]
+        [Fact, TestPriority(9)]
         public async Task ListProjectSharingAsync()
         {
             var listing = await projectApi.ListProjectSharing(createdProjectId, default);
-            Assert.Equal(1, listing.TotalCount);
-            Assert.Equal("martin.podloucky@newtontech.cz", listing.List[0].User.Email);
+            Assert.Equal(2, listing.TotalCount);
+
+            var sharing = listing.List.Where(sh => sh.User.Email == "martin.podloucky@newtontech.cz");
+            Assert.Equal("martin.podloucky@newtontech.cz", sharing.FirstOrDefault()?.User.Email);
         }
 
-        [Fact]
+        [Fact, TestPriority(10)]
         public async Task UploadTrsxAsync()
         {
             Assert.True(await projectApi.UploadTrsxAsync(createdProjectId, "test", testFile, default));
         }
         #endregion
 
-        [Fact]
+        [Fact, TestPriority(11)]
         public async Task DownloadTrsxAsync()
         {
             var project = await projectApi.GetAsync(createdProjectId, default);
@@ -181,13 +195,13 @@ namespace XUnitTests
             Assert.Equal(testFile, trsx);
         }
 
-        [Fact]
+        [Fact, TestPriority(12)]
         public async Task UploadFileAsync()
         {
             Assert.True(await filesApi.UploadFileAsync(createdProjectId, "test", testFile, "cz", false, default));
         }
 
-        [Fact]
+        [Fact, TestPriority(13)]
         public async Task DownloadFileAsync()
         {
             var project = await projectApi.GetAsync(createdProjectId, default);
@@ -195,17 +209,17 @@ namespace XUnitTests
             var stream = await filesApi.DownloadFileAsync(createdProjectId, project!.RecordingId ?? throw new Exception(), default);
             Assert.NotNull(stream);
 
-            byte[] trsx;
+            byte[] file;
             using (var ms = new System.IO.MemoryStream())
             {
                 stream!.CopyTo(ms);
-                trsx = ms.ToArray();
+                file = ms.ToArray();
             }
 
-            Assert.Equal(testFile, trsx);
+            Assert.Equal(testFile, file);
         }
 
-        [Fact]
+        [Fact, TestPriority(14)]
         public async Task DeleteProjectAsync()
         {
             Assert.True(await projectApi.DeleteAsync(createdProjectId, default));
