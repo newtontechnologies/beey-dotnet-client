@@ -54,7 +54,7 @@ namespace XUnitTests
         [Fact, TestPriority(1)]
         public async Task GetNoProjectAsync()
         {
-            var created = await projectApi.GetAsync(123123, default);
+            var created = await projectApi.GetAsync(-1, default);
             Assert.True(created == null);
         }
 
@@ -136,24 +136,6 @@ namespace XUnitTests
             Assert.Equal(created!.Name, changedName);
         }
 
-        [Fact, TestPriority(6.5)]
-        public async Task GetProjectAccessAsync()
-        {
-            var created = await projectApi.GetProjectAccessAsync(createdProjectAccessId, default);
-            Assert.NotNull(created);
-        }
-
-        [Fact, TestPriority(7)]
-        public async Task UpdateProjectAccessAsync()
-        {
-            var created = await projectApi.GetProjectAccessAsync(createdProjectAccessId, default);
-
-            created!.CustomPath = changedName;
-            Assert.True(await projectApi.UpdateProjectAccessAsync(created, default));
-            created = await projectApi.GetProjectAccessAsync(createdProjectId, default);
-            Assert.Equal(created!.CustomPath, changedName);
-        }
-
         [Fact, TestPriority(8)]
         public async Task ShareProjectAsync()
         {
@@ -173,7 +155,7 @@ namespace XUnitTests
         [Fact, TestPriority(10)]
         public async Task UploadTrsxAsync()
         {
-            Assert.True(await projectApi.UploadTrsxAsync(createdProjectId, "test", testFile, default));
+            Assert.True(await projectApi.UploadTrsxAsync(createdProjectId, "test.trsx", testFile, default));
         }
         #endregion
 
@@ -181,8 +163,8 @@ namespace XUnitTests
         public async Task DownloadTrsxAsync()
         {
             var project = await projectApi.GetAsync(createdProjectId, default);
-            Assert.NotNull(project!.CurrentTrsxId);
-            var stream = await filesApi.DownloadTrsxAsync(createdProjectId, project!.CurrentTrsxId ?? throw new Exception(), default);
+            Assert.NotNull(project!.OriginalTrsxId);
+            var stream = await filesApi.DownloadTrsxAsync(createdProjectId, project!.OriginalTrsxId ?? throw new Exception(), default);
             Assert.NotNull(stream);
 
             byte[] trsx;
@@ -198,7 +180,7 @@ namespace XUnitTests
         [Fact, TestPriority(12)]
         public async Task UploadFileAsync()
         {
-            Assert.True(await filesApi.UploadFileAsync(createdProjectId, "test", testFile, "cz", false, default));
+            Assert.True(await filesApi.UploadFileAsync(createdProjectId, "test.mp3", testFile, "cz", false, default));
         }
 
         [Fact, TestPriority(13)]

@@ -51,7 +51,7 @@ namespace BeeyApi.Rest
                .AddUrlSegment("Recognize")
                .AddParameter("projectId", projectId.ToString())
                .AddParameter("lang", language)
-               .AddParameter("transcribe", transcribe.ToString());
+               .AddParameter("transcribe", transcribe.ToString().ToLower());
 
             builder.AddFile(fileName, fileContent);
 
