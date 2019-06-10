@@ -23,22 +23,7 @@ namespace XUnitTests
         private static readonly FilesApi filesApi = new FilesApi(Configuration.BeeyUrl);
         private static readonly WebSocketsApi wsApi = new WebSocketsApi(Configuration.BeeyUrl);
 
-        private static byte[]? _testFile;
-        private static byte[] testFile
-        {
-            get
-            {
-                if (_testFile == null)
-                {
-                    _testFile = new byte[256];
-                    for (int i = 0; i < 256; i++)
-                    {
-                        _testFile[i] = (byte)i;
-                    }
-                }
-                return _testFile;
-            }
-        }
+        private static byte[] testFile;
 
         private static int createdProjectId;
         private static int createdProjectAccessId;
@@ -48,6 +33,12 @@ namespace XUnitTests
             projectApi.Token = fixture.Token;
             filesApi.Token = fixture.Token;
             wsApi.Token = fixture.Token;
+
+            testFile = new byte[256];
+            for (int i = 0; i < 256; i++)
+            {
+                testFile[i] = (byte)i;
+            }
         }
 
         #region ProjectApi
@@ -201,6 +192,36 @@ namespace XUnitTests
         }
 
         [Fact, TestPriority(14)]
+        public async Task UploadFileWebSocketsAsync()
+        {
+            testFile[0] = 255;
+            using (var ms = new System.IO.MemoryStream(testFile))
+            {
+                Assert.True(await wsApi.UploadStreamAsync(createdProjectId, "test2.mp3", ms, testFile.Length, "cz", false, default));
+            }
+        }
+
+        [Fact, TestPriority(15)]
+        public async Task DownloadWebSocketFileAsync()
+        {
+            testFile[0] = 255;
+            var project = await projectApi.GetAsync(createdProjectId, default);
+            Assert.NotNull(project!.RecordingId);
+            var stream = await filesApi.DownloadFileAsync(createdProjectId, project!.RecordingId ?? throw new Exception(), default);
+            Assert.NotNull(stream);
+
+            byte[] file;
+            using (var ms = new System.IO.MemoryStream())
+            {
+                stream!.CopyTo(ms);
+                file = ms.ToArray();
+            }
+
+            var res = file.SequenceEqual(testFile);
+            Assert.Equal(testFile, file);
+        }
+
+        [Fact, TestPriority(16)]
         public async Task DeleteProjectAsync()
         {
             Assert.True(await projectApi.DeleteAsync(createdProjectId, default));
