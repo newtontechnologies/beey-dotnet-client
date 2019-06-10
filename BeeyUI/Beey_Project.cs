@@ -13,12 +13,12 @@ namespace BeeyUI
 {
     public partial class Beey
     {
-        public async Task<Project?> GetProjectAsync(int id,
+        public async Task<Project> GetProjectAsync(int id,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Project?>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await ProjectApi.GetAsync(id, c);
@@ -89,12 +89,12 @@ namespace BeeyUI
                 listing.List.Select(p => p.Project).ToArray());
         }
 
-        public async Task<ProjectAccess?> GetProjectAccessAsync(int id,
+        public async Task<ProjectAccess> GetProjectAccessAsync(int id,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectAccess?>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectAccess>();
             return (await policy.ExecuteAsync(async (c) =>
             {
                 return await ProjectApi.GetProjectAccessAsync(id, c);

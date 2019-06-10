@@ -40,16 +40,11 @@ namespace BeeyApi.Rest
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<Speaker>>(r.GetStringContent(), JsonConverters.Speaker));
         }
 
-        public async Task<Speaker?> GetAsync(string dbId, CancellationToken cancellationToken)
+        public async Task<Speaker> GetAsync(string dbId, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddParameter("id", dbId)
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
-
-            if (ResultNotFound(result))
-            {
-                return null;
-            }
 
             return HandleResponse(result, r => new Speaker(System.Xml.Linq.XElement.Parse(r.GetStringContent())));
         }

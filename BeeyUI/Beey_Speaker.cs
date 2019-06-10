@@ -23,12 +23,12 @@ namespace BeeyUI
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
-        public async Task<Speaker?> GetSpeakerAsync(string dbId,
+        public async Task<Speaker> GetSpeakerAsync(string dbId,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Speaker?>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Speaker>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await SpeakerApi.GetAsync(dbId, c);

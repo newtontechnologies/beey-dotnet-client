@@ -46,17 +46,12 @@ namespace BeeyApi.Rest
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
         }
 
-        public async Task<Project?> GetAsync(int id,
+        public async Task<Project> GetAsync(int id,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddParameter("id", id.ToString())
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
-
-            if (ResultNotFound(result))
-            {
-                return null;
-            }
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
         }
@@ -92,18 +87,13 @@ namespace BeeyApi.Rest
             return HandleResponse(result, _ => true);
         }
 
-        public async Task<ProjectAccess?> GetProjectAccessAsync(int id,
+        public async Task<ProjectAccess> GetProjectAccessAsync(int id,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("Access")
                 .AddParameter("id", id.ToString())
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
-
-            if (ResultNotFound(result))
-            {
-                return null;
-            }
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<ProjectAccess>(r.GetStringContent()));
         }

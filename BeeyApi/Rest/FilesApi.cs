@@ -26,7 +26,7 @@ namespace BeeyApi.Rest
             EndPoint = "API/Files/";
         }
 
-        public async Task<System.IO.Stream?> DownloadTrsxAsync(int projectId, int trsxId,
+        public async Task<System.IO.Stream> DownloadTrsxAsync(int projectId, int trsxId,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
@@ -34,11 +34,6 @@ namespace BeeyApi.Rest
                .AddParameter("projectId", projectId.ToString())
                .AddParameter("fileId", trsxId.ToString())
                .ExecuteAsync(HttpMethod.GET, cancellationToken);
-
-            if (ResultNotFound(result))
-            {
-                return null;
-            }
 
             return HandleResponse(result, _ => result.Content);
         }
