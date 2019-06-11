@@ -1,5 +1,5 @@
 using BeeyApi.Rest;
-using System;
+using BeeyUI;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -29,7 +29,7 @@ namespace XUnitTests
         [Fact, TestPriority(1)]
         public async Task GetNoSpeakerAsync()
         {
-            Assert.Null(await api.GetAsync("ASFDASDFASDFAFADSF_DA_F23", default));
+            Assert.False(await api.GetAsync("ASFDASDFASDFAFADSF_DA_F23", default).TryAsync());
         }
 
         [Fact, TestPriority(2)]

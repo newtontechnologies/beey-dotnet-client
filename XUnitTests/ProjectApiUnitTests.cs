@@ -1,10 +1,10 @@
 ﻿using BeeyApi.POCO.Projects;
 using BeeyApi.Rest;
 using BeeyApi.WebSockets;
+using BeeyUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -45,8 +45,7 @@ namespace XUnitTests
         [Fact, TestPriority(1)]
         public async Task GetNoProjectAsync()
         {
-            var created = await projectApi.GetAsync(-1, default);
-            Assert.True(created == null);
+            Assert.False(await projectApi.GetAsync(-1, default).TryAsync());
         }
 
         [Theory, TestPriority(2)]
