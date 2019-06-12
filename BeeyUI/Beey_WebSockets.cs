@@ -38,7 +38,8 @@ namespace BeeyUI
         }
 
         public async Task<bool> UploadStreamAsync(int projectId, string dataName, Stream data,
-            long? dataLength, string language, bool transcribe, CancellationToken cancellationToken)
+            long? dataLength, string language, bool transcribe,
+            CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
@@ -49,7 +50,8 @@ namespace BeeyUI
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
-        public async Task<IAsyncEnumerable<string>> ListenToMessages(int projectId, CancellationToken cancellationToken)
+        public async Task<IAsyncEnumerable<string>> ListenToMessages(int projectId,
+            CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
             var policy = CreateWebSocketsAsyncUnauthorizedPolicy<IAsyncEnumerable<string>>();
