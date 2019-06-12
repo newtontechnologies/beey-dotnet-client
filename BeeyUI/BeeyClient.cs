@@ -1,4 +1,4 @@
-﻿using BeeyApi.POCO.Auth;
+﻿using Beey.DataExchangeModel.Auth;
 using BeeyApi;
 using Polly;
 using Polly.Retry;
@@ -12,9 +12,9 @@ using BeeyApi.WebSockets;
 
 namespace BeeyUI
 {
-    public partial class Beey
+    public partial class BeeyClient
     {
-        private static readonly Logging.ILog logger = Logging.LogProvider.For<Beey>();
+        private static readonly Logging.ILog logger = Logging.LogProvider.For<BeeyClient>();
 
         private string? userEmail;
         // TODO get rid of password in plaintext and still be able to re-login?
@@ -27,7 +27,7 @@ namespace BeeyUI
         protected FilesApi FilesApi { get; set; }
         protected WebSocketsApi WebSocketsApi { get; set; }
 
-        public Beey(string url)
+        public BeeyClient(string url)
         {
             LoginApi = new LoginApi(url);
             SpeakerApi = new SpeakerApi(url);

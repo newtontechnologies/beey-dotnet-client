@@ -1,6 +1,6 @@
 ﻿using BeeyApi.Logging;
-using BeeyApi.POCO.Auth;
-using BeeyApi.POCO.Files;
+using Beey.DataExchangeModel.Auth;
+using Beey.DataExchangeModel.Files;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

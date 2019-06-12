@@ -15,12 +15,11 @@
     <PackageReference Include="NodaTime" Version="2.4.5" />
     <PackageReference Include="NodaTime.Serialization.JsonNet" Version="2.2.0" />
     <PackageReference Include="Polly" Version="7.1.0" />
+  </ItemGroup>  <ItemGroup>
+    <ProjectReference Include="..\TranscriptionCore\TranscriptionCore.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\backend\TranscriptionCore\TranscriptionCore.csproj" />
-  </ItemGroup>
 
-  <Import Project="..\..\..\backend\BeeyApi.POCO\BeeyApi.POCO.projitems" Label="Shared" />
+  <Import Project="..\DataExchangeModel\Beey.DataExchangeModel.projitems" Label="Shared" />
 
 </Project>

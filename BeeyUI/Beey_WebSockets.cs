@@ -11,7 +11,7 @@ using System.IO;
 
 namespace BeeyUI
 {
-    public partial class Beey
+    public partial class BeeyClient
     {
         public async Task<string> EchoAsync(string text,
             CancellationToken cancellationToken = default)

@@ -1,4 +1,4 @@
-﻿using BeeyApi.POCO;
+﻿using Beey.DataExchangeModel;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -9,7 +9,7 @@ using TranscriptionCore;
 
 namespace BeeyUI
 {
-    public partial class Beey
+    public partial class BeeyClient
     {
         public async Task<Listing<Speaker>> ListSpeakersAsync(int count, int skip = 0, string? search = null,
             CancellationToken cancellationToken = default)

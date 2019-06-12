@@ -1,4 +1,4 @@
-﻿using BeeyApi.POCO.Projects;
+﻿using Beey.DataExchangeModel.Projects;
 using BeeyApi.Rest;
 using BeeyApi.WebSockets;
 using BeeyUI;

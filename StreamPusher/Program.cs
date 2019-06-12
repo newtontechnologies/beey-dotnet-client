@@ -1,5 +1,5 @@
-﻿using BeeyApi.POCO.Files;
-using BeeyApi.POCO.Projects;
+﻿using Beey.DataExchangeModel.Files;
+using Beey.DataExchangeModel.Projects;
 using BeeyUI;
 using Newtonsoft.Json;
 using Serilog;
@@ -31,39 +31,38 @@ namespace StreamPusher
             int projectid = int.Parse(args[3]);
             string dataurl = args[4];
 
-            var beey = new Beey(beeyurl);
+            var beey = new BeeyClient(beeyurl);
             await beey.LoginAsync(login, pass);
 
             var now = DateTime.Now;
-            using (var fs = File.Create(now.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss") + "croplus128.mp3"))
-            using (var msw = new StreamWriter(File.Create(now.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss") + "croplus128.msgs")))
-            {
-                var p = await beey.GetProjectAsync(projectid);
 
-                if (p == null)
-                    p = await beey.CreateProjectAsync(new ParamsProjectInit() { Name = "icecast ČRO+", CustomPath = "ČRO+/" });
+            using var fs = File.Create(now.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss") + "croplus128.mp3");
+            using var msw = new StreamWriter(File.Create(now.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss") + "croplus128.msgs"));
+            var p = await beey.GetProjectAsync(projectid);
 
-                _logger.Information("Created project {@project}", p);
+            if (p == null)
+                p = await beey.CreateProjectAsync(new ParamsProjectInit() { Name = "icecast ČRO+", CustomPath = "ČRO+/" });
 
-                HttpClient downloader = new HttpClient();
-                var watchdog = Listener(beey, p, msw);
-                var data = await downloader.GetStreamAsync(dataurl);
-                _logger.Information("downloading file:{stream}", dataurl);
-                var written = await UploadStream(data, beey, p, fs);
+            _logger.Information("Created project {@project}", p);
 
-                _logger.Information("Upload stopped, bytes written: {written}", written);
-            }
+            HttpClient downloader = new HttpClient();
+            var watchdog = Listener(beey, p, msw);
+            var data = await downloader.GetStreamAsync(dataurl);
+            _logger.Information("downloading file:{stream}", dataurl);
+            var written = await UploadStream(data, beey, p, fs);
+
+            _logger.Information("Upload stopped, bytes written: {written}", written);
         }
 
         static readonly CancellationTokenSource breaker = new CancellationTokenSource();
-        public static async Task Listener(Beey beey, Project proj, StreamWriter writer)
+        public static async Task Listener(BeeyClient beey, Project proj, StreamWriter writer)
         {
             try
             {
                 var messages = await beey.ListenToMessages(proj.Id, breaker.Token);
                 breaker.CancelAfter(TimeSpan.FromMinutes(1));
                 await foreach (var s in messages)
-                { 
+                {
                     await writer.WriteLineAsync(s);
                     if (!s.Contains("FileOffset") && s.Length > 5)
                         breaker.CancelAfter(TimeSpan.FromMinutes(1));
@@ -76,8 +75,8 @@ namespace StreamPusher
             breaker.Cancel();
         }
 
-
-        public static async Task<long> UploadStream(Stream data, Beey beey, Project proj, Stream backup)
+        //TODO: logging stream is not logging...
+        public static async Task<long> UploadStream(Stream data, BeeyClient beey, Project proj, Stream backup)
         {
             using LoggingStream ls = new LoggingStream(data);
             await beey.UploadStreamAsync(proj.Id, "icecast.mp3", ls, null, "cz", true, breaker.Token);

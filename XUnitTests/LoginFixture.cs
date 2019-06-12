@@ -1,4 +1,4 @@
-﻿using BeeyApi.POCO.Auth;
+﻿using Beey.DataExchangeModel.Auth;
 using BeeyApi.Rest;
 using System;
 using System.Collections.Generic;

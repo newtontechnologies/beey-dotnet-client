@@ -1,5 +1,5 @@
-﻿using BeeyApi.POCO;
-using BeeyApi.POCO.Projects;
+﻿using Beey.DataExchangeModel;
+using Beey.DataExchangeModel.Projects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +11,7 @@ using System.Net;
 
 namespace BeeyUI
 {
-    public partial class Beey
+    public partial class BeeyClient
     {
         public async Task<System.IO.Stream?> DownloadTrsxAsync(int projectId, int trsxId,
             CancellationToken cancellationToken = default)

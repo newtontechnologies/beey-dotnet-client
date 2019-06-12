@@ -17,7 +17,7 @@ namespace DemoApp
         /// <param name="speakers"></param>
         /// <param name="speakerApi"></param>
         /// <returns></returns>
-        public static List<Speaker> InsertNewSpeakers(IEnumerable<Speaker> speakers, Beey beey)
+        public static List<Speaker> InsertNewSpeakers(IEnumerable<Speaker> speakers, BeeyClient beey)
         {
             if (beey == null || speakers == null)
             {
@@ -46,7 +46,7 @@ namespace DemoApp
             return unsuccessfullyInserted;
         }
 
-        public static IEnumerable<Speaker> GetNewSpeakers(string speakerFile, Beey beey)
+        public static IEnumerable<Speaker> GetNewSpeakers(string speakerFile, BeeyClient beey)
         {
             if (beey == null || string.IsNullOrEmpty(speakerFile))
             {
@@ -61,7 +61,7 @@ namespace DemoApp
             return newSpeakers.Select(s => speakersFromFile[s]);
         }
 
-        public static IEnumerable<Speaker> GetAllSpeakers(Beey beey)
+        public static IEnumerable<Speaker> GetAllSpeakers(BeeyClient beey)
         {
             var result = new List<Speaker>();
             int count = 1000;
@@ -144,7 +144,7 @@ namespace DemoApp
         /// <param name="speakerFile"></param>
         /// <param name="speakerApi"></param>
         /// <returns></returns>
-        public static List<IEnumerable<Speaker>> FindDbDuplicitiesFromFile(string speakerFile, Beey beey)
+        public static List<IEnumerable<Speaker>> FindDbDuplicitiesFromFile(string speakerFile, BeeyClient beey)
         {
             var speakersFromFile = LoadSpeakers(speakerFile)
                 .ToDictionary(s => s.FullName);

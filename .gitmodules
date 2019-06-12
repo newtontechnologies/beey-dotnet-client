@@ -1,0 +1,6 @@
+[submodule "TranscriptionCore"]
+	path = TranscriptionCore
+	url = https://github.com/Ttxman/TranscriptionCore.git
+[submodule "DataExchangeModel"]
+	path = DataExchangeModel
+	url = https://gitlab.com/newtontech/beey/dataexchangemodel.git

@@ -26,7 +26,7 @@ namespace DemoApp
             string url = "http://localhost:61497";
             bool bResult = true;
 
-            var beey = new Beey(url);
+            var beey = new BeeyClient(url);
             bResult = await beey.LoginAsync("milos.kudelka@newtontech.cz", "OVPgod").TryAsync();
 
             //string speakerFile = @"..\..\..\tvrlidi.ini";
@@ -121,13 +121,13 @@ namespace DemoApp
             double difference = elapsed.TotalSeconds - elapsed2.TotalSeconds;
         }
 
-        static void UpdateDatabase(string speakerFile, Beey beey)
+        static void UpdateDatabase(string speakerFile, BeeyClient beey)
         {
             var newSpeakers = SpeakerUpdater.GetNewSpeakers(speakerFile, beey);
             var notInserted = SpeakerUpdater.InsertNewSpeakers(newSpeakers, beey);
         }
 
-        static Dictionary<string, (List<string> Success, List<string> Fail)> RemoveDbDuplicitiesFromFile(string speakerFile, Beey beey)
+        static Dictionary<string, (List<string> Success, List<string> Fail)> RemoveDbDuplicitiesFromFile(string speakerFile, BeeyClient beey)
         {
             var dbDuplicitiesFromFile = SpeakerUpdater.FindDbDuplicitiesFromFile(speakerFile, beey);
 

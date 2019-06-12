@@ -1,4 +1,4 @@
-﻿using BeeyApi.POCO;
+﻿using Beey.DataExchangeModel;
 using Newtonsoft.Json;
 using Polly;
 using Polly.Retry;
