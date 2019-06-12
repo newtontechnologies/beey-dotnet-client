@@ -82,10 +82,9 @@ namespace DemoApp
         {
             if (File.Exists(file))
             {
-                var pars = new SpeakerIniParser();
-                var ini = pars.Parse(File.ReadAllText(file));
+                var ini = SpeakerIniParser.Parse(File.ReadAllText(file));
 
-                var speakers = ini.Sections.Select((s, si) =>
+                var speakers = ini.Select((s, si) =>
                 {
                     var name = s.SectionName.Split(';');
 
@@ -93,7 +92,7 @@ namespace DemoApp
                     {
                         Surname = name[0],
                         FirstName = name.Length > 1 ? name[1] : null,
-                        Attributes = s.Keys.Select((kd, i) => new SpeakerAttribute(i.ToString(), "role", kd.KeyName)).ToList()
+                        Attributes = s.Keys.Select((kd, i) => new SpeakerAttribute(i.ToString(), "role", kd)).ToList()
                     };
                 }
                 );

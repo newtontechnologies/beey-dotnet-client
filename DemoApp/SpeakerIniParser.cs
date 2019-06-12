@@ -5,57 +5,25 @@ using System.Text;
 
 namespace DemoApp
 {
-    class SpeakerIniParser
+    static class SpeakerIniParser
     {
-        public SpeakerIniParser()
+        public static List<(string SectionName, List<string> Keys)> Parse(string fileContent)
         {
-
-        }
-
-        public SpeakerIniFile Parse(string fileContent)
-        {
-            var result = new SpeakerIniFile();
-
-            var sections = fileContent.Split("\n\n", StringSplitOptions.RemoveEmptyEntries);
-            foreach (var section in sections)
-            {
-                var sectionParts = section.Split('\n', StringSplitOptions.RemoveEmptyEntries).Select((str,i) => (str,i));
-                var speakerSection = new SpeakerSection();
-
-                int nameIndex = sectionParts.Single(p => p.str.StartsWith("[") && p.str.EndsWith("]")).i;
-
-                if (nameIndex < 0)
+            return fileContent.Split("\n\n", StringSplitOptions.RemoveEmptyEntries)
+                .Select(section =>
                 {
-                    throw new FormatException("Missing section name.");
-                }
+                    var sectionParts = section.Split('\n', StringSplitOptions.RemoveEmptyEntries).Select((str, i) => (str, i));
+                    int nameIndex = sectionParts.Single(p => p.str.StartsWith("[") && p.str.EndsWith("]")).i;
 
-                speakerSection.SectionName = sectionParts.Single(p => p.i == nameIndex).str.TrimStart('[').TrimEnd(']');
-                var keys = sectionParts.Where(p => p.i != nameIndex).Select(p => p.str);
+                    if (nameIndex < 0)
+                        throw new FormatException("Missing section name.");
 
-                foreach (var key in keys)
-                {
-                    speakerSection.Keys.Add(new SpeakerKey() { KeyName = key });
-                }
+                    var sectionName = sectionParts.Single(p => p.i == nameIndex).str.TrimStart('[').TrimEnd(']');
+                    var keys = sectionParts.Where(p => p.i != nameIndex).Select(p => p.str).ToList();
 
-                result.Sections.Add(speakerSection);
-            }
-
-            return result;
+                    return (SectionName: sectionName, Keys: keys);
+                }).ToList();
         }
     }
 
-    class SpeakerIniFile
-    {
-        public List<SpeakerSection> Sections { get; } = new List<SpeakerSection>();
-    }
-    class SpeakerSection
-    {
-        public string SectionName { get; set; }
-        public List<SpeakerKey> Keys { get; } = new List<SpeakerKey>();
-
-    }
-    class SpeakerKey
-    {
-        public string KeyName { get; set; }
-    }
 }
