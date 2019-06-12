@@ -77,6 +77,16 @@ namespace BeeyUI
             ProjectApi.OrderOn orderOn = ProjectApi.OrderOn.None, bool ascending = true,
             CancellationToken cancellationToken = default)
         {
+            var listing = await ListProjectAccessesAsync(count, skip, orderOn, ascending, cancellationToken);
+
+            return new Listing<Project>(listing.TotalCount, listing.ListedCount,
+                listing.List.Select(p => p.Project).ToArray());
+        }
+
+        public async Task<Listing<ProjectAccess>> ListProjectAccessesAsync(int count, int skip = 0,
+            ProjectApi.OrderOn orderOn = ProjectApi.OrderOn.None, bool ascending = true,
+            CancellationToken cancellationToken = default)
+        {
             this.RequireAuthorization();
 
             var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<ProjectAccess>>();
@@ -85,8 +95,7 @@ namespace BeeyUI
                 return await ProjectApi.ListProjectsAsync(count, skip, orderOn, ascending, c);
             }, cancellationToken));
 
-            return new Listing<Project>(listing.TotalCount, listing.ListedCount,
-                listing.List.Select(p => p.Project).ToArray());
+            return listing;
         }
 
         public async Task<ProjectAccess> GetProjectAccessAsync(int id,
