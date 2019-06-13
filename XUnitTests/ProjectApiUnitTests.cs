@@ -1,6 +1,6 @@
 ﻿using Beey.DataExchangeModel.Projects;
-using BeeyApi.Rest;
-using BeeyApi.WebSockets;
+using Beey.Api.Rest;
+using Beey.Api.WebSockets;
 using BeeyUI;
 using System;
 using System.Collections.Generic;

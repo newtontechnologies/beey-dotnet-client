@@ -1,4 +1,4 @@
-﻿using BeeyApi;
+﻿using Beey.Api;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -6,7 +6,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using BeeyApi.WebSockets;
+using Beey.Api.WebSockets;
 using System.IO;
 
 namespace BeeyUI

@@ -1,4 +1,4 @@
-﻿using BeeyApi.Rest;
+﻿using Beey.Api.Rest;
 using System;
 using System.Collections.Generic;
 using System.Text;

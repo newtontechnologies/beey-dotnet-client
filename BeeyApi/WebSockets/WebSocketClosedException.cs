@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Text;
 
-namespace BeeyApi.WebSockets
+namespace Beey.Api.WebSockets
 {
     public class WebSocketClosedException : Exception
     {

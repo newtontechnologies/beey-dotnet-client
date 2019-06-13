@@ -4,7 +4,7 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BeeyApi.WebSockets
+namespace Beey.Api.WebSockets
 {
     internal class WebSocketMessageBuilder
     {

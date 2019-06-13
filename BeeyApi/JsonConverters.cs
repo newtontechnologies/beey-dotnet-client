@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using TranscriptionCore;
 
-namespace BeeyApi
+namespace Beey.Api
 {
     class JsonConverters
     {

@@ -1,5 +1,5 @@
 ﻿using Beey.DataExchangeModel.Auth;
-using BeeyApi;
+using Beey.Api;
 using Polly;
 using Polly.Retry;
 using Polly.Wrap;
@@ -7,8 +7,8 @@ using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using BeeyApi.Rest;
-using BeeyApi.WebSockets;
+using Beey.Api.Rest;
+using Beey.Api.WebSockets;
 
 namespace BeeyUI
 {
