@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Beey.Api.WebSockets;
 using System.IO;
 
-namespace BeeyUI
+namespace Beey.Client
 {
     public partial class BeeyClient
     {

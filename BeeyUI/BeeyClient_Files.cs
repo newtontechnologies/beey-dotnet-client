@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Beey.Api.Rest;
 
-namespace BeeyUI
+namespace Beey.Client
 {
     public partial class BeeyClient
     {

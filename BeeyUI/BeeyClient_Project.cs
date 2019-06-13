@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Beey.Api.Rest;
 using System.Net;
 
-namespace BeeyUI
+namespace Beey.Client
 {
     public partial class BeeyClient
     {

@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BeeyApi\Beey.Api.csproj" />
-    <ProjectReference Include="..\BeeyUI\BeeyUI.csproj" />
+    <ProjectReference Include="..\BeeyUI\Beey.Client.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-﻿using BeeyUI;
+﻿using Beey.Client;
 using Serilog;
 using System;
 using System.Collections.Generic;

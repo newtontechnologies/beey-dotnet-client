@@ -1,5 +1,5 @@
 using Beey.Api.Rest;
-using BeeyUI;
+using Beey.Client;
 using System.Threading.Tasks;
 using Xunit;
 

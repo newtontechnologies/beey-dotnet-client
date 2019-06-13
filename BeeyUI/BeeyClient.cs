@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Beey.Api.Rest;
 using Beey.Api.WebSockets;
 
-namespace BeeyUI
+namespace Beey.Client
 {
     public partial class BeeyClient
     {
