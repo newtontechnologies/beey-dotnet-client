@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BeeyUI\Beey.Client.csproj" />
+    <ProjectReference Include="..\Client\Beey.Client.csproj" />
   </ItemGroup>
 
 </Project>
