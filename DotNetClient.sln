@@ -5,9 +5,9 @@ VisualStudioVersion = 16.0.28803.156
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DemoApp", "DemoApp\DemoApp.csproj", "{01294BBA-17BE-4AA7-A655-2329CDB4B70A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeeyApi", "BeeyApi\BeeyApi.csproj", "{328F4E0D-EF46-409F-A2CC-D7025294757F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Beey.Api", "Api\Beey.Api.csproj", "{328F4E0D-EF46-409F-A2CC-D7025294757F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeeyUI", "BeeyUI\BeeyUI.csproj", "{75B04FFC-F9EA-4A31-9257-5F1D4F8DED16}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Beey.Client", "Client\Beey.Client.csproj", "{75B04FFC-F9EA-4A31-9257-5F1D4F8DED16}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StreamPusher", "StreamPusher\StreamPusher.csproj", "{A99ED462-327A-4DFC-8778-95B6B2CDF057}"
 EndProject

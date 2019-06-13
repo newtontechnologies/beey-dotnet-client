@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TranscriptionCore;
 
-namespace BeeyApi.Rest
+namespace Beey.Api.Rest
 {
     /// <summary>
     /// All methods:

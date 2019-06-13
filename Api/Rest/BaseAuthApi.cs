@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BeeyApi.Rest
+namespace Beey.Api.Rest
 {
     public abstract class BaseAuthApi<TApi> : BaseApi<TApi> where TApi : BaseAuthApi<TApi>
     {

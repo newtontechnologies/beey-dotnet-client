@@ -1,4 +1,4 @@
-﻿using BeeyApi.WebSockets;
+﻿using Beey.Api.WebSockets;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6,7 +6,7 @@ using System.Net;
 using System.Text;
 
 
-namespace BeeyApi
+namespace Beey.Api
 {
     internal class Utility
     {

@@ -1,5 +1,5 @@
-﻿using BeeyApi;
-using BeeyUI;
+﻿using Beey.Api;
+using Beey.Client;
 using System;
 using System.Collections.Generic;
 using System.IO;

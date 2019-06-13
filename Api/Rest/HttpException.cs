@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 
-namespace BeeyApi.Rest
+namespace Beey.Api.Rest
 {
     public class HttpException : Exception
     {

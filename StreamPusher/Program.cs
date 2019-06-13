@@ -1,6 +1,6 @@
 ﻿using Beey.DataExchangeModel.Files;
 using Beey.DataExchangeModel.Projects;
-using BeeyUI;
+using Beey.Client;
 using Newtonsoft.Json;
 using Serilog;
 using System;

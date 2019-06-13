@@ -1,15 +1,8 @@
-﻿using Beey.DataExchangeModel;
-using Beey.DataExchangeModel.Projects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
-using BeeyApi.Rest;
-using System.Net;
+using Beey.Api.Rest;
 
-namespace BeeyUI
+namespace Beey.Client
 {
     public partial class BeeyClient
     {

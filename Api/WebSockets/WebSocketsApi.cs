@@ -1,5 +1,4 @@
-﻿using BeeyApi.Logging;
-using Beey.DataExchangeModel.Auth;
+﻿using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Files;
 using Newtonsoft.Json;
 using System;
@@ -10,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BeeyApi.WebSockets
+namespace Beey.Api.WebSockets
 {
     public class WebSocketsApi
     {
@@ -131,7 +130,7 @@ namespace BeeyApi.WebSockets
                             var tdelta = DateTime.Now - lastreporttime;
                             if (tdelta > TimeSpan.FromSeconds(10))
                             {
-                                logger.Info("written: {bytes}B seconds: {seconds}:", totalRead, DateTime.Now - starttime);
+                                logger.Log(Logging.LogLevel.Info, () => $"written: {totalRead}B seconds: {DateTime.Now - starttime}:");
                                 lastreporttime = DateTime.Now;
                             }
                         }

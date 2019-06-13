@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TranscriptionCore;
 
-namespace BeeyUI
+namespace Beey.Client
 {
     public partial class BeeyClient
     {

@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BeeyApi.Rest
+namespace Beey.Api.Rest
 {
     public abstract class BaseApi<TApi> where TApi : BaseApi<TApi>
     {

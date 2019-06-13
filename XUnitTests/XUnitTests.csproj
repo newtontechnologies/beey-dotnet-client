@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BeeyApi\BeeyApi.csproj" />
-    <ProjectReference Include="..\BeeyUI\BeeyUI.csproj" />
+    <ProjectReference Include="..\Api\Beey.Api.csproj" />
+    <ProjectReference Include="..\Client\Beey.Client.csproj" />
   </ItemGroup>
 
 </Project>
