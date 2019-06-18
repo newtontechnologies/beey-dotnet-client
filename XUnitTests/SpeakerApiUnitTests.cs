@@ -69,7 +69,7 @@ namespace XUnitTests
 
             speaker = await api.GetAsync(createdSpeakerId, default);
             Assert.NotNull(speaker);
-            Assert.Equal(speaker!.FirstName, changedFirstName);
+            Assert.Equal(changedFirstName, speaker!.FirstName);
         }
 
         [Fact, TestPriority(7)]

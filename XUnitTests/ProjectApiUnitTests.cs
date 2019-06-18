@@ -123,7 +123,18 @@ namespace XUnitTests
             await projectApi.UpdateAsync(created, default);
 
             created = await projectApi.GetAsync(createdProjectId, default);
-            Assert.Equal(created!.Name, changedName);
+            Assert.Equal(changedName, created!.Name);
+        }
+
+        [Fact, TestPriority(7)]
+        public async Task UpdateProjectPropertyAsync()
+        {
+            var created = await projectApi.GetAsync(createdProjectId, default);
+
+            await projectApi.UpdateAsync(created.Id, new Dictionary<string, object>() { { "Name", testName } }, default);
+
+            created = await projectApi.GetAsync(createdProjectId, default);
+            Assert.Equal(testName, created!.Name);
         }
 
         [Fact, TestPriority(8)]
