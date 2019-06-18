@@ -67,6 +67,22 @@ namespace Beey.Api.Rest
             HandleResponse(result, _ => true);
         }
 
+        public async Task UpdateAsync(int id, Dictionary<string, object> properties,
+           CancellationToken cancellationToken)
+        {
+            if (!properties.ContainsKey("Id") && !properties.ContainsKey("id"))
+            {
+                properties.Add("Id", id);
+            }
+
+            var result = await CreateBuilder()
+                .AddParameter("id", id.ToString())
+                .SetBody(JsonConvert.SerializeObject(properties), "application/json")
+                .ExecuteAsync(HttpMethod.PUT, cancellationToken);
+
+            HandleResponse(result, _ => true);
+        }
+
         public async Task<bool> DeleteAsync(int id,
             CancellationToken cancellationToken)
         {

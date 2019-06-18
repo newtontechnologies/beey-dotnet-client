@@ -25,7 +25,7 @@ namespace DemoApp
             string url = "http://localhost:61497";
 
             var beey = new BeeyClient(url);
-            await beey.LoginAsync("milos.kudelka@newtontech.cz", "OVPgods");
+            await beey.LoginAsync("milos.kudelka@newtontech.cz", "OVPgod");
 
             //string speakerFile = @"..\..\..\tvrlidi.ini";
             //SpeakerUpdater.LoadSpeakers(speakerFile);

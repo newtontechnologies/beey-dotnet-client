@@ -62,6 +62,34 @@ namespace Beey.Client
             }, CreatePollyContext(cancellationToken), cancellationToken);
         }
 
+        public async Task UpdateProjectAsync(int id, string name, string value,
+            CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var properties = new Dictionary<string, object>() { { name, value } };
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
+            await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                await ProjectApi.UpdateAsync(id, properties, c);
+                return true;
+            }, CreatePollyContext(cancellationToken), cancellationToken);
+        }
+
+        public async Task UpdateProjectAsync(int id, Dictionary<string, object> properties,
+            CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
+            await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                await ProjectApi.UpdateAsync(id, properties, c);
+                return true;
+            }, CreatePollyContext(cancellationToken), cancellationToken);
+        }
+
         public async Task<bool> DeleteProjectAsync(int id,
             CancellationToken cancellationToken = default)
         {
