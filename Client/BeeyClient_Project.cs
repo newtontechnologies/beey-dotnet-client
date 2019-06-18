@@ -49,16 +49,45 @@ namespace Beey.Client
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
-        public async Task<bool> UpdateProjectAsync(Project project,
+        public async Task UpdateProjectAsync(Project project,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
             var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
-            return (await policy.ExecuteAsync(async (ctx, c) =>
+            await policy.ExecuteAsync(async (ctx, c) =>
             {
-                return await ProjectApi.UpdateAsync(project, c);
-            }, CreatePollyContext(cancellationToken), cancellationToken));
+                await ProjectApi.UpdateAsync(project, c);
+                return true;
+            }, CreatePollyContext(cancellationToken), cancellationToken);
+        }
+
+        public async Task UpdateProjectAsync(int id, string name, string value,
+            CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var properties = new Dictionary<string, object>() { { name, value } };
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
+            await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                await ProjectApi.UpdateAsync(id, properties, c);
+                return true;
+            }, CreatePollyContext(cancellationToken), cancellationToken);
+        }
+
+        public async Task UpdateProjectAsync(int id, Dictionary<string, object> properties,
+            CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
+            await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                await ProjectApi.UpdateAsync(id, properties, c);
+                return true;
+            }, CreatePollyContext(cancellationToken), cancellationToken);
         }
 
         public async Task<bool> DeleteProjectAsync(int id,
@@ -110,28 +139,30 @@ namespace Beey.Client
             }, cancellationToken));
         }
 
-        public async Task<bool> UpdateProjectAccessAsync(ProjectAccess projectAccess,
+        public async Task UpdateProjectAccessAsync(ProjectAccess projectAccess,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
             var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
-            return (await policy.ExecuteAsync(async (c) =>
+            await policy.ExecuteAsync(async (c) =>
             {
-                return await ProjectApi.UpdateProjectAccessAsync(projectAccess, c);
-            }, cancellationToken));
+                await ProjectApi.UpdateProjectAccessAsync(projectAccess, c);
+                return true;
+            }, cancellationToken);
         }
 
-        public async Task<bool> ShareProjectAsync(int id, string email,
+        public async Task ShareProjectAsync(int id, string email,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
             var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
-            return (await policy.ExecuteAsync(async (c) =>
+            await policy.ExecuteAsync(async (c) =>
             {
-                return await ProjectApi.ShareProjectAsync(id, email, c);
-            }, cancellationToken));
+                await ProjectApi.ShareProjectAsync(id, email, c);
+                return true;
+            }, cancellationToken);
         }
 
         public async Task<Listing<ProjectAccess>> ListProjectSharingAsync(int id,
@@ -148,28 +179,30 @@ namespace Beey.Client
             return listing;
         }
 
-        public async Task<bool> UploadTrsxAsync(int projectId, string fileName, byte[] trsx,
+        public async Task UploadTrsxAsync(int projectId, string fileName, byte[] trsx,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
             var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
-            return (await policy.ExecuteAsync(async (c) =>
+            await policy.ExecuteAsync(async (c) =>
             {
-                return await ProjectApi.UploadTrsxAsync(projectId, fileName, trsx, c);
-            }, cancellationToken));
+                await ProjectApi.UploadTrsxAsync(projectId, fileName, trsx, c);
+                return true;
+            }, cancellationToken);
         }
 
-        public async Task<bool> UploadTrsxAsync(int projectId, string fileName, System.IO.Stream trsx,
+        public async Task UploadTrsxAsync(int projectId, string fileName, System.IO.Stream trsx,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
             var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
-            return (await policy.ExecuteAsync(async (c) =>
+            await policy.ExecuteAsync(async (c) =>
             {
-                return await ProjectApi.UploadTrsxAsync(projectId, fileName, trsx, c);
-            }, cancellationToken));
+                await ProjectApi.UploadTrsxAsync(projectId, fileName, trsx, c);
+                return true;
+            }, cancellationToken);
         }
     }
 }

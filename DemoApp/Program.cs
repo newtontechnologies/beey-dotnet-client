@@ -23,18 +23,17 @@ namespace DemoApp
                 .CreateLogger();
 
             string url = "http://localhost:61497";
-            bool bResult = true;
 
             var beey = new BeeyClient(url);
-            bResult = await beey.LoginAsync("milos.kudelka@newtontech.cz", "OVPgod").TryAsync();
+            await beey.LoginAsync("milos.kudelka@newtontech.cz", "OVPgod");
 
             //string speakerFile = @"..\..\..\tvrlidi.ini";
             //SpeakerUpdater.LoadSpeakers(speakerFile);
             //UpdateDatabase(speakerFile, beey);
             //var removed = RemoveDbDuplicitiesFromFile(speakerFile, beey);
 
-            var speakers = await beey.ListSpeakersAsync(100).TryAsync();
-            var speaker = await beey.GetSpeakerAsync(speakers.Value?.List.FirstOrDefault()?.DBID ?? "");
+            var speakers = await beey.ListSpeakersAsync(100);
+            var speaker = await beey.GetSpeakerAsync(speakers.List.FirstOrDefault()?.DBID ?? "");
 
             var projects = await beey.ListProjectsAsync(100);
             var project = await beey.GetProjectAsync(projects?.List.FirstOrDefault()?.Id ?? -1);
@@ -42,7 +41,7 @@ namespace DemoApp
             var mp3Path = @"c:\Users\milos.kudelka\Downloads\test01.mp3";
             if (project != null)
             {
-                bResult = await beey.UploadFileAsync(project.Id, new FileInfo(mp3Path), "cz", false);
+                await beey.UploadFileAsync(project.Id, new FileInfo(mp3Path), "cz", false);
             }
         }
 

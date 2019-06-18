@@ -47,16 +47,17 @@ namespace Beey.Client
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
-        public async Task<bool> UpdateSpeakerAsync(Speaker speaker,
+        public async Task UpdateSpeakerAsync(Speaker speaker,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
             var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
-            return (await policy.ExecuteAsync(async (ctx, c) =>
+            await policy.ExecuteAsync(async (ctx, c) =>
             {
-                return await SpeakerApi.UpdateAsync(speaker, c);
-            }, CreatePollyContext(cancellationToken), cancellationToken));
+                await SpeakerApi.UpdateAsync(speaker, c);
+                return true;
+            }, CreatePollyContext(cancellationToken), cancellationToken);
         }
 
         public async Task<bool> DeleteSpeakerAsync(string dbId,

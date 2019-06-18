@@ -59,19 +59,14 @@ namespace Beey.Api.Rest
             return HandleResponse(result, r => new Speaker(System.Xml.Linq.XElement.Parse(r.GetStringContent())));
         }
 
-        public async Task<bool> UpdateAsync(Speaker speaker,
+        public async Task UpdateAsync(Speaker speaker,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .SetBody(speaker.Serialize().ToString(), "text/xml")
                 .ExecuteAsync(HttpMethod.PUT, cancellationToken);
 
-            if (ResultNotFound(result))
-            {
-                return false;
-            }
-
-            return HandleResponse(result, _ => true);
+            HandleResponse(result, _ => true);
         }
 
         public async Task<bool> DeleteAsync(string dbId,
