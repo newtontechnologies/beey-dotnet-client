@@ -28,8 +28,7 @@ namespace DemoApp
             await beey.LoginAsync("milos.kudelka@newtontech.cz", "OVPgod");
 
             //string speakerFile = @"..\..\..\tvrlidi.ini";
-            //SpeakerUpdater.LoadSpeakers(speakerFile);
-            //UpdateDatabase(speakerFile, beey);
+            //var notInserted = UpdateDatabase(speakerFile, beey);
             //var removed = RemoveDbDuplicitiesFromFile(speakerFile, beey);
 
             var speakers = await beey.ListSpeakersAsync(100);
@@ -119,10 +118,12 @@ namespace DemoApp
             double difference = elapsed.TotalSeconds - elapsed2.TotalSeconds;
         }
 
-        static void UpdateDatabase(string speakerFile, BeeyClient beey)
+        static List<Speaker> UpdateDatabase(string speakerFile, BeeyClient beey)
         {
             var newSpeakers = SpeakerUpdater.GetNewSpeakers(speakerFile, beey);
             var notInserted = SpeakerUpdater.InsertNewSpeakers(newSpeakers, beey);
+
+            return notInserted;
         }
 
         static Dictionary<string, (List<string> Success, List<string> Fail)> RemoveDbDuplicitiesFromFile(string speakerFile, BeeyClient beey)
