@@ -65,9 +65,7 @@ namespace XUnitTests
             var speaker = await api.GetAsync(createdSpeakerId, default);
 
             speaker!.FirstName = changedFirstName;
-            var res = await api.UpdateAsync(speaker, default);
-
-            Assert.True(res);
+            await api.UpdateAsync(speaker, default);
 
             speaker = await api.GetAsync(createdSpeakerId, default);
             Assert.NotNull(speaker);

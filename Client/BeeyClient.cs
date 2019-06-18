@@ -38,6 +38,19 @@ namespace Beey.Client
             WebSocketsApi = new WebSocketsApi(webSocketsUrl);
         }
 
+        public async Task ChangePasswordAsync(string oldPassword, string newPassword,
+            CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
+            await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                await LoginApi.ChangePasswordAsync(LoginToken!, oldPassword, newPassword, cancellationToken);
+                return true;
+            }, CreatePollyContext(cancellationToken), cancellationToken);
+        }
+
         public async Task LoginAsync(string email, string password,
             CancellationToken cancellationToken = default)
         {

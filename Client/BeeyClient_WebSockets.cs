@@ -37,17 +37,18 @@ namespace Beey.Client
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
-        public async Task<bool> UploadStreamAsync(int projectId, string dataName, Stream data,
+        public async Task UploadStreamAsync(int projectId, string dataName, Stream data,
             long? dataLength, string language, bool transcribe,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
             var policy = CreateWebSocketsAsyncUnauthorizedPolicy<bool>();
-            return (await policy.ExecuteAsync(async (ctx, c) =>
+            await policy.ExecuteAsync(async (ctx, c) =>
             {
-                return await WebSocketsApi.UploadStreamAsync(projectId, dataName, data, dataLength, language, transcribe, cancellationToken);
-            }, CreatePollyContext(cancellationToken), cancellationToken));
+                await WebSocketsApi.UploadStreamAsync(projectId, dataName, data, dataLength, language, transcribe, cancellationToken);
+                return true;
+            }, CreatePollyContext(cancellationToken), cancellationToken);
         }
 
         public async Task<IAsyncEnumerable<string>> ListenToMessages(int projectId,

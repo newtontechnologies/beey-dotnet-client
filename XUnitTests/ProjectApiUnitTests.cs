@@ -41,7 +41,8 @@ namespace XUnitTests
             }
         }
 
-        #region ProjectApi
+        // ProjectApi
+
         [Fact, TestPriority(1)]
         public async Task GetNoProjectAsync()
         {
@@ -119,7 +120,7 @@ namespace XUnitTests
             var created = await projectApi.GetAsync(createdProjectId, default);
 
             created!.Name = changedName;
-            Assert.True(await projectApi.UpdateAsync(created, default));
+            await projectApi.UpdateAsync(created, default);
 
             created = await projectApi.GetAsync(createdProjectId, default);
             Assert.Equal(created!.Name, changedName);
@@ -128,7 +129,7 @@ namespace XUnitTests
         [Fact, TestPriority(8)]
         public async Task ShareProjectAsync()
         {
-            Assert.True(await projectApi.ShareProjectAsync(createdProjectId, "martin.podloucky@newtontech.cz", default));
+            await projectApi.ShareProjectAsync(createdProjectId, "martin.podloucky@newtontech.cz", default);
         }
 
         [Fact, TestPriority(9)]
@@ -144,9 +145,10 @@ namespace XUnitTests
         [Fact, TestPriority(10)]
         public async Task UploadTrsxAsync()
         {
-            Assert.True(await projectApi.UploadTrsxAsync(createdProjectId, "test.trsx", testFile, default));
+            await projectApi.UploadTrsxAsync(createdProjectId, "test.trsx", testFile, default);
         }
-        #endregion
+
+        // FilesApi
 
         [Fact, TestPriority(11)]
         public async Task DownloadTrsxAsync()
@@ -169,7 +171,7 @@ namespace XUnitTests
         [Fact, TestPriority(12)]
         public async Task UploadFileAsync()
         {
-            Assert.True(await filesApi.UploadFileAsync(createdProjectId, "test.mp3", testFile, "cz", false, default));
+            await filesApi.UploadFileAsync(createdProjectId, "test.mp3", testFile, "cz", false, default);
         }
 
         [Fact, TestPriority(13)]
@@ -196,7 +198,7 @@ namespace XUnitTests
             testFile[0] = 255;
             using (var ms = new System.IO.MemoryStream(testFile))
             {
-                Assert.True(await wsApi.UploadStreamAsync(createdProjectId, "test2.mp3", ms, testFile.Length, "cz", false, default));
+                await wsApi.UploadStreamAsync(createdProjectId, "test2.mp3", ms, testFile.Length, "cz", false, default);
             }
         }
 
