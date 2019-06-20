@@ -64,12 +64,12 @@ namespace XUnitTests
         {
             var speaker = await api.GetAsync(createdSpeakerId, default);
 
-            speaker!.FirstName = changedFirstName;
+            speaker.FirstName = changedFirstName;
             await api.UpdateAsync(speaker, default);
 
             speaker = await api.GetAsync(createdSpeakerId, default);
             Assert.NotNull(speaker);
-            Assert.Equal(changedFirstName, speaker!.FirstName);
+            Assert.Equal(changedFirstName, speaker.FirstName);
         }
 
         [Fact, TestPriority(7)]
