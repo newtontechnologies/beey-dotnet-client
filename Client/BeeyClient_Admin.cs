@@ -32,7 +32,7 @@ namespace Beey.Client
             var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<User>>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
-                return await UserApi.ListAsync(count, skip, c);
+                return await AdminUserApi.ListAsync(count, skip, c);
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
@@ -44,7 +44,7 @@ namespace Beey.Client
             var policy = CreateHttpAsyncUnauthorizedPolicy<User>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
-                return await UserApi.GetAsync(id, c);
+                return await AdminUserApi.GetAsync(id, c);
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
@@ -56,7 +56,7 @@ namespace Beey.Client
             var policy = CreateHttpAsyncUnauthorizedPolicy<User>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
-                return await UserApi.CreateAsync(User, c);
+                return await AdminUserApi.CreateAsync(User, c);
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
@@ -68,7 +68,7 @@ namespace Beey.Client
             var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
             await policy.ExecuteAsync(async (ctx, c) =>
             {
-                await UserApi.UpdateAsync(User, c);
+                await AdminUserApi.UpdateAsync(User, c);
                 return true;
             }, CreatePollyContext(cancellationToken), cancellationToken);
         }
@@ -81,7 +81,7 @@ namespace Beey.Client
             var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
-                return await UserApi.DeleteAsync(id, c);
+                return await AdminUserApi.DeleteAsync(id, c);
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
     }

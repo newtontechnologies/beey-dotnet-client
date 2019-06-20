@@ -14,7 +14,7 @@ namespace XUnitTests
     [Collection("3 - User Collection")]
     public class UserApiUnitTests
     {
-        static readonly UserApi api = new UserApi(Configuration.BeeyUrl);
+        static readonly AdminUserApi api = new AdminUserApi(Configuration.BeeyUrl);
 
         const string testEmail = "milos.kudelka@gmail.com";
         const string testPassword = "He55lo";

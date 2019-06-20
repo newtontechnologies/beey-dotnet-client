@@ -29,7 +29,7 @@ namespace Beey.Client
         protected WebSocketsApi WebSocketsApi { get; set; }
 
         // Admin
-        protected UserApi UserApi { get; set; }
+        protected AdminUserApi AdminUserApi { get; set; }
         protected EmailApi EmailApi { get; set; }
 
         public BeeyClient(string url)
@@ -39,7 +39,7 @@ namespace Beey.Client
             ProjectApi = new ProjectApi(url);
             FilesApi = new FilesApi(url);
 
-            UserApi = new UserApi(url);
+            AdminUserApi = new AdminUserApi(url);
             EmailApi = new EmailApi(url);
 
             string webSocketsUrl = url.Replace("http://", "ws://").Replace("https://", "wss://");
@@ -69,7 +69,7 @@ namespace Beey.Client
             SpeakerApi.Token = LoginToken;
             ProjectApi.Token = LoginToken;
             FilesApi.Token = LoginToken;
-            UserApi.Token = LoginToken;
+            AdminUserApi.Token = LoginToken;
             EmailApi.Token = LoginToken;
             WebSocketsApi.Token = LoginToken;
         }
@@ -84,7 +84,7 @@ namespace Beey.Client
             SpeakerApi.Token = null;
             ProjectApi.Token = null;
             FilesApi.Token = null;
-            UserApi.Token = null;
+            AdminUserApi.Token = null;
             EmailApi.Token = null;
             WebSocketsApi.Token = null;
 
