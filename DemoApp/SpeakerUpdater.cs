@@ -80,29 +80,22 @@ namespace DemoApp
 
         public static List<Speaker> LoadSpeakers(string file)
         {
-            if (File.Exists(file))
-            {
-                var ini = SpeakerIniParser.Parse(File.ReadAllText(file));
+            var ini = SpeakerIniParser.Parse(file);
 
-                var speakers = ini.Select((s, si) =>
+            var speakers = ini.Select((s, si) =>
+            {
+                var name = s.SectionName.Split(';');
+
+                return new Speaker()
                 {
-                    var name = s.SectionName.Split(';');
-
-                    return new Speaker()
-                    {
-                        Surname = name[0],
-                        FirstName = name.Length > 1 ? name[1] : null,
-                        Attributes = s.Keys.Select((kd, i) => new SpeakerAttribute(i.ToString(), "role", kd)).ToList()
-                    };
-                }
-                );
-
-                return speakers.ToList();
+                    Surname = name[0],
+                    FirstName = name.Length > 1 ? name[1] : null,
+                    Attributes = s.Keys.Select((kd, i) => new SpeakerAttribute(i.ToString(), "role", kd)).ToList()
+                };
             }
-            else
-            {
-                throw new Exception("File does not exist.");
-            }
+            );
+
+            return speakers.ToList();
         }
 
         /// <summary>
