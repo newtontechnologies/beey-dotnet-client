@@ -4,7 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace DemoApp
+namespace SpeakerDbUpdater
+
 {
     static class SpeakerIniParser
     {
@@ -23,6 +24,7 @@ namespace DemoApp
             var fileContent = File.ReadAllText(file, Encoding.GetEncoding(1250));
 
             return fileContent.Split("[", StringSplitOptions.RemoveEmptyEntries)
+                .Where(s => s.Trim() != "")
                 .Select(section =>
                 {
                     var sectionParts = section.Split('\n', StringSplitOptions.RemoveEmptyEntries)
