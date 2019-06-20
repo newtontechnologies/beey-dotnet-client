@@ -15,7 +15,7 @@ namespace Beey.Api.Rest.Admin
             EndPoint = "API/Admin/Email";
         }
 
-        public async Task SendEmail(PlainEmail email, CancellationToken cancellationToken)
+        public async Task SendEmailAsync(PlainEmail email, CancellationToken cancellationToken)
         {
             var builder = CreateBuilder()
                 .AddParameter("From", email.From)

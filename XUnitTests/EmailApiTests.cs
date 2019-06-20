@@ -30,7 +30,7 @@ namespace XUnitTests
             mail.Subject = "TEST";
             mail.Body = "This is only test email. Sorry. <br/><br/>Beey";
 
-            Assert.True(await api.SendEmail(mail, default).TryAsync());
+            Assert.True(await api.SendEmailAsync(mail, default).TryAsync());
         }
     }
 }
