@@ -62,12 +62,11 @@ namespace SpeakerDbUpdater
                     Log.Verbose(builder.ToString());
                 }
 
-                // NOT WORKING
                 if (checkAndRemoveDuplicitiesInDb)
                 {
                     dbSpeakers = GetSpeakers(beey);
                     Log.Information("Searching for duplicit Speakers in DB.");
-                    var dbDuplicities = FindDuplicities(dbSpeakers, fileSpeakers);
+                    var dbDuplicities = FindDuplicities(dbSpeakers);
                     Log.Information($"Found {dbDuplicities.Count} Speakers with duplicities.");
 
                     if (dbDuplicities.Any())
@@ -239,35 +238,21 @@ namespace SpeakerDbUpdater
         /// <param name="speakers"></param>
         /// <param name="suspectedWithDuplicities"></param>
         /// <returns></returns>
-        static List<IEnumerable<Speaker>> FindDuplicities(List<Speaker> speakers, List<Speaker> suspectedWithDuplicities)
+        static List<IEnumerable<Speaker>> FindDuplicities(List<Speaker> speakers)
         {
-            var speakersDict = speakers.ToDictionary(s => s.FullName);
-
-            var presentSuspectedSpeakers = speakersDict.Keys
-                .Intersect(suspectedWithDuplicities.Select(s => s.FullName))
-                .Select(fullName => speakersDict[fullName]).ToList();
-
+            var uniqueSpeakers = speakers.Distinct((CustomEqualityComparer<Speaker>)IsDuplicit);
+            var speakersWithoutUnique = speakers.Except(uniqueSpeakers);
             var result = new List<IEnumerable<Speaker>>();
-            foreach (var speaker in presentSuspectedSpeakers)
+            foreach (var speaker in uniqueSpeakers)
             {
-                var duplicits = speakers.Where(s => IsDuplicit(speaker, s));
-                if (duplicits.Count() > 1)
+                var duplicits = speakersWithoutUnique.Where(s => IsDuplicit(speaker, s)).ToList();
+                if (duplicits.Count > 1)
                 {
                     result.Add(duplicits);
                 }
             }
 
             return result;
-        }
-
-        /// <summary>
-        /// Finds speakers with duplicitites.
-        /// </summary>
-        /// <param name="speakers"></param>
-        /// <returns></returns>
-        static List<IEnumerable<Speaker>> FindDuplicities(List<Speaker> speakers)
-        {
-            return FindDuplicities(speakers, speakers);
         }
     }
 }
