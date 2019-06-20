@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace Beey.Api.Rest.Admin
 {
-    public class UsersApi : BaseAuthApi<UsersApi>
+    public class UserApi : BaseAuthApi<UserApi>
     {
-        public UsersApi(string url) : base(url)
+        public UserApi(string url) : base(url)
         {
             EndPoint = "API/Admin/Users";
         }
