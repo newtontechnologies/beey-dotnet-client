@@ -43,6 +43,7 @@ namespace XUnitTests
         public async Task CreateSpeakerAsync()
         {
             var speaker = await api.CreateAsync(new TranscriptionCore.Speaker(testFirstName, testSurname, testSex, ""), default);
+            System.Threading.Thread.Sleep(2000);
             createdSpeakerId = speaker.DBID;
         }
 
@@ -64,12 +65,12 @@ namespace XUnitTests
         {
             var speaker = await api.GetAsync(createdSpeakerId, default);
 
-            speaker!.FirstName = changedFirstName;
+            speaker.FirstName = changedFirstName;
             await api.UpdateAsync(speaker, default);
 
             speaker = await api.GetAsync(createdSpeakerId, default);
             Assert.NotNull(speaker);
-            Assert.Equal(changedFirstName, speaker!.FirstName);
+            Assert.Equal(changedFirstName, speaker.FirstName);
         }
 
         [Fact, TestPriority(7)]

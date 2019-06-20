@@ -25,8 +25,8 @@ namespace Beey.Api.Rest
             EndPoint = "API/Speaker/";
         }
 
-        public async Task<Listing<Speaker>> ListAsync(int count, int skip = 0, string? search = null,
-            CancellationToken cancellationToken = default)
+        public async Task<Listing<Speaker>> ListAsync(int count, int skip, string? search,
+            CancellationToken cancellationToken)
         {
             var bld = CreateBuilder()
                 .AddUrlSegment("List")

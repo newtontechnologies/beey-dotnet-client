@@ -121,9 +121,9 @@ namespace Beey.Api.Rest
             HandleResponse(result, _ => true);
         }
 
-        public async Task<Listing<ProjectAccess>> ListProjectsAsync(int count, int skip = 0,
-            OrderOn orderOn = OrderOn.Created, bool ascending = false,
-            CancellationToken cancellationToken = default)
+        public async Task<Listing<ProjectAccess>> ListProjectsAsync(int count, int skip,
+            OrderOn orderOn, bool ascending,
+            CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("Access")
