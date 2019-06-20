@@ -43,6 +43,7 @@ namespace XUnitTests
         public async Task CreateSpeakerAsync()
         {
             var speaker = await api.CreateAsync(new TranscriptionCore.Speaker(testFirstName, testSurname, testSex, ""), default);
+            System.Threading.Thread.Sleep(2000);
             createdSpeakerId = speaker.DBID;
         }
 
