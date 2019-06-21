@@ -40,9 +40,10 @@ namespace SpeakerDbUpdater
             if (Configuration.SpeakerDbUpdater.UpdateDb)
             {
                 UpdateDbFromFile(Configuration.SpeakerDbUpdater.IniPath!, Configuration.SpeakerDbUpdater.InsertOnlyNew, beey);
-            }
 
-            Thread.Sleep(2000);
+                // wait for elastic to save speakers
+                Thread.Sleep(2000);
+            }
 
             if (Configuration.SpeakerDbUpdater.RemoveDuplicities)
             {
