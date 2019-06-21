@@ -2,6 +2,7 @@
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,91 +14,109 @@ namespace SpeakerDbUpdater
     {
         static async Task Main(string[] args)
         {
+            var now = DateTime.Now.ToString("yyyy-MM-dd_hh-mm-ss");
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
-                .WriteTo.File("beey.log")
+                .WriteTo.File($"{now}_beey.log", Serilog.Events.LogEventLevel.Information)
+                .WriteTo.File($"{now}_beey_verbose.log")
                 .CreateLogger();
 
             string url = "http://localhost:61497";
             string login = "milos.kudelka@newtontech.cz";
             string password = "OVPgod";
             string speakerFile = @"c:\Users\milos.kudelka\Downloads\Production\tvr_add.ini";
-            bool checkAndRemoveDuplicitiesInDb = true;
+            bool updateFromFile = true;
+            bool insertOnlyNew = true;
+            bool removeDuplicities = true;
 
             var beey = new BeeyClient(url);
             await beey.LoginAsync(login, password);
 
+            if (updateFromFile)
+            {
+                UpdateDbFromFile(speakerFile, insertOnlyNew, beey);
+            }
+
+            if (removeDuplicities)
+            {
+                RemoveDuplicities(beey);
+            }
+        }
+
+        private static void RemoveDuplicities(BeeyClient beey)
+        {
+            Log.Information("Loading Speakers from DB.");
+            var dbSpeakers = GetSpeakers(beey);
+            Log.Information("Found {count} Speakers.", dbSpeakers.Count);
+
+            Log.Information("Searching for duplicit Speakers in DB.");
+            var dbDuplicities = FindDuplicities(dbSpeakers);
+            Log.Information("Found {count} Speakers with duplicities.", dbDuplicities.Count);
+
+            if (dbDuplicities.Any())
+            {
+                Log.Information("Removing duplicit Speakers.");
+                var removed = RemoveDuplicitiesFromDb(dbDuplicities, beey);
+
+                if (removed.Any())
+                {
+                    int allDuplicities = 0;
+                    int removedDuplicities = 0;
+                    foreach (var speaker in removed)
+                    {
+                        if (speaker.Value.Success.Any() || speaker.Value.Fail.Any())
+                        {
+                            allDuplicities += speaker.Value.Success.Count + speaker.Value.Fail.Count;
+                            removedDuplicities += speaker.Value.Success.Count;
+                        }
+                    }
+                    if (removedDuplicities > 0)
+                        Log.Information("Successfuly removed {count} duplicitites.", removedDuplicities);
+                    if (allDuplicities - removedDuplicities > 0)
+                        Log.Error("Failed to remove {count} duplicities.", allDuplicities - removedDuplicities);
+                }
+            }
+            Log.Information("Process finished.");
+        }
+
+        private static void UpdateDbFromFile(string speakerFile, bool insertOnlyNew, BeeyClient beey)
+        {
+            Log.Information("Loading Speakers from {file}.", Path.GetFileName(speakerFile));
             var fileSpeakers = GetSpeakers(speakerFile);
-            Log.Information($"Found {fileSpeakers.Count} Speakers in file.");
+            Log.Information("Found {count} Speakers.", fileSpeakers.Count);
 
             if (fileSpeakers.Any())
             {
-                Log.Information("Loading current Speakers from DB.");
+                Log.Information("Loading Speakers from DB.");
                 var dbSpeakers = GetSpeakers(beey);
+                Log.Information("Found {count} Speakers.", dbSpeakers.Count);
+                List<Speaker> newSpeakers;
 
-                Log.Information($"Inserting new Speakers.");
-                var (newSpeakers, notNewSpeakers) = SelectNewSpeakers(fileSpeakers, dbSpeakers);
-                var notInserted = InsertSpeakersToDb(newSpeakers, beey);
-                Log.Information($"Successfuly inserted {newSpeakers.Count - notInserted.Count} new Speakers.");
-
-                var builder = new StringBuilder();
-                builder.AppendLine("Speakers already in DB:");
-                foreach (var notNewSpeaker in notNewSpeakers)
+                if (insertOnlyNew)
                 {
-                    builder.AppendLine("\t" + notNewSpeaker.Serialize().ToString());
+                    List<Speaker> notNewSpeakers;
+                    (newSpeakers, notNewSpeakers) = SelectNewSpeakers(fileSpeakers, dbSpeakers);
+                    if (notNewSpeakers.Any())
+                        Log.Verbose($"Speakers already in DB: {notNewSpeakers.Skip(1).Aggregate(notNewSpeakers.First().FullName, (s, speaker) => $"{s}, {speaker.FullName}")}");
+
+                    Log.Information($"{(newSpeakers.Any() ? "Inserting" : "Found")} {{count}} new Speakers.", newSpeakers.Count);
                 }
-                Log.Verbose(builder.ToString());
+                else
+                {
+                    newSpeakers = fileSpeakers;
+                    Log.Information("Inserting Speakers.");
+                }
+                var notInserted = InsertSpeakersToDb(newSpeakers, beey);
+
+                if (newSpeakers.Any())
+                    Log.Information("Successfuly inserted {count} new Speakers.", newSpeakers.Count - notInserted.Count);
 
                 if (notInserted.Any())
-                {
-                    Log.Warning($"{notInserted.Count} Speakers failed to be inserted.");
-
-                    builder.Clear().AppendLine();
-                    foreach (var speaker in notInserted)
-                    {
-                        builder.AppendLine("\t" + speaker.Serialize().ToString());
-                    }
-                    Log.Verbose(builder.ToString());
-                }
-
-                if (checkAndRemoveDuplicitiesInDb)
-                {
-                    dbSpeakers = GetSpeakers(beey);
-                    Log.Information("Searching for duplicit Speakers in DB.");
-                    var dbDuplicities = FindDuplicities(dbSpeakers);
-                    Log.Information($"Found {dbDuplicities.Count} Speakers with duplicities.");
-
-                    if (dbDuplicities.Any())
-                    {
-                        Log.Information("Removing duplicit Speakers.");
-                        var removed = RemoveDuplicitiesFromDb(dbDuplicities, beey);
-
-                        if (removed.Any())
-                        {
-                            var msg = new StringBuilder().AppendLine();
-
-                            int allDuplicities = 0;
-                            int removedDuplicities = 0;
-                            foreach (var speaker in removed)
-                            {
-                                if (speaker.Value.Success.Any() || speaker.Value.Fail.Any())
-                                {
-                                    allDuplicities += speaker.Value.Success.Count + speaker.Value.Fail.Count;
-                                    removedDuplicities += speaker.Value.Success.Count;
-                                    msg.AppendLine($"{speaker.Key}: {speaker.Value.Success.Count} duplicit Speakers, removed {speaker.Value.Success.Count} out of {speaker.Value.Fail.Count + speaker.Value.Success.Count}.");
-                                }
-                            }
-                            Log.Information($"Successfuly removed {removedDuplicities} duplicitites.");
-                            Log.Error($"Failed to remove {allDuplicities - removedDuplicities} duplicities.");
-
-                            Log.Verbose(msg.ToString());
-                        }
-                    }
-                }
+                    Log.Warning("{count} Speakers failed to be inserted.", notInserted.Count);
             }
-            Log.Information("Update finished.");
+            Log.Information("Process finished.");
         }
 
         static (int totalCount, List<Speaker> failed) UpdateDb(List<Speaker> newSpeakers, BeeyClient beey)
@@ -107,26 +126,31 @@ namespace SpeakerDbUpdater
             return (newSpeakers.Count(), notInserted);
         }
 
-        static Dictionary<string, (List<string> Success, List<string> Fail)> RemoveDuplicitiesFromDb(List<IEnumerable<Speaker>> dbDuplicitites, BeeyClient beey)
+        static Dictionary<string, (string FullName, List<string> Success, List<string> Fail)> RemoveDuplicitiesFromDb(List<(Speaker speaker, IEnumerable<Speaker> duplicities)> dbDuplicities, BeeyClient beey)
         {
-            var removedSpeakersIds = new Dictionary<string, (List<string> Success, List<string> Fail)>();
-            foreach (var duplicity in dbDuplicitites)
+            var removedSpeakersIds = new Dictionary<string, (string FullName, List<string> Success, List<string> Fail)>();
+            foreach (var duplicity in dbDuplicities)
             {
-                var firstSpeaker = duplicity.First();
-                var duplicitSpeakersToDelete = duplicity.Skip(1);
-                foreach (var speaker in duplicitSpeakersToDelete)
+                Log.Information("Speaker {name} ({dbId})", duplicity.speaker.FullName, duplicity.speaker.DBID);
+                (string FullName, List<string> Success, List<string> Fail) removed
+                    = (duplicity.speaker.FullName, new List<string>(), new List<string>());
+                foreach (var speaker in duplicity.duplicities)
                 {
-                    removedSpeakersIds.Add(firstSpeaker.DBID, (new List<string>(), new List<string>()));
-
-                    if (beey.DeleteSpeakerAsync(firstSpeaker.DBID).TryAsync().Result)
+                    if (beey.DeleteSpeakerAsync(speaker.DBID).TryAsync().Result)
                     {
-                        removedSpeakersIds[firstSpeaker.DBID].Success.Add(speaker.DBID);
+                        removed.Success.Add(speaker.DBID);
                     }
                     else
                     {
-                        removedSpeakersIds[speaker.DBID].Fail.Add(speaker.DBID);
+                        removed.Fail.Add(speaker.DBID);
                     }
                 }
+                removedSpeakersIds.Add(duplicity.speaker.DBID, removed);
+
+                if (removed.Success.Any())
+                    Log.Information("\tRemoved {count} - {aggregate}.", removed.Success.Count, removed.Success.Aggregate((s1, s2) => $"{s1}, {s2}"));
+                if (removed.Fail.Any())
+                    Log.Error("\tFailed to remove {count} - {aggregate}.", removed.Fail.Count, removed.Fail.Aggregate((s1, s2) => $"{s1}, {s2}"));
             }
 
             return removedSpeakersIds;
@@ -152,10 +176,11 @@ namespace SpeakerDbUpdater
                 try
                 {
                     newSpeaker = beey.CreateSpeakerAsync(speaker).Result;
+                    Log.Verbose("{speaker} inserted.", newSpeaker.FullName);
                 }
                 catch (Exception)
                 {
-                    // do nothing
+                    Log.Error("{speaker} could not be inserted.", speaker.FullName);
                 }
 
                 if (newSpeaker == null)
@@ -169,14 +194,10 @@ namespace SpeakerDbUpdater
 
         static (List<Speaker> newSpeakers, List<Speaker> notNewSpeakers) SelectNewSpeakers(List<Speaker> speakersToAdd, List<Speaker> currentSpeakers)
         {
-            var speakersToAddDict = speakersToAdd.ToDictionary(s => s.FullName);
+            var newSpeakers = speakersToAdd.Except(currentSpeakers, (CustomEqualityComparer<Speaker>)IsDuplicit);
+            var notNewSpeakers = speakersToAdd.Except(newSpeakers);
 
-            var newSpeakers = speakersToAddDict.Keys
-                .Except(currentSpeakers.Select(s => s.FullName));
-            var notNewSpeakers = speakersToAddDict.Keys.Except(newSpeakers);
-
-            return (newSpeakers.Select(s => speakersToAddDict[s]).ToList(),
-                notNewSpeakers.Select(s => speakersToAddDict[s]).ToList());
+            return (newSpeakers.ToList(), notNewSpeakers.ToList());
         }
 
         static List<Speaker> GetSpeakers(BeeyClient beey)
@@ -223,32 +244,36 @@ namespace SpeakerDbUpdater
         /// <returns></returns>
         private static bool IsDuplicit(Speaker speaker1, Speaker speaker2)
         {
-            bool result = speaker1.FullName == speaker2.FullName;
-            result = result
-                && speaker1.Attributes.Select(a => a.Value)
-                    .Intersect(speaker2.Attributes.Select(a => a.Value))
-                    .Any();
+            bool result = speaker1.FullName == speaker2.FullName
+                && (!speaker1.Attributes.Any()
+                    || !speaker2.Attributes.Any()
+                    || speaker1.Attributes
+                        .Select(a => a.Value)
+                        .Intersect(speaker2.Attributes.Select(a => a.Value))
+                        .Any()
+                    );
 
             return result;
+
+            
         }
 
         /// <summary>
         /// Finds speakers with duplicitites only among suspected speakers.
         /// </summary>
         /// <param name="speakers"></param>
-        /// <param name="suspectedWithDuplicities"></param>
         /// <returns></returns>
-        static List<IEnumerable<Speaker>> FindDuplicities(List<Speaker> speakers)
+        static List<(Speaker, IEnumerable<Speaker>)> FindDuplicities(List<Speaker> speakers)
         {
             var uniqueSpeakers = speakers.Distinct((CustomEqualityComparer<Speaker>)IsDuplicit);
-            var speakersWithoutUnique = speakers.Except(uniqueSpeakers);
-            var result = new List<IEnumerable<Speaker>>();
+            var speakersWithoutUnique = speakers.Except(uniqueSpeakers).ToList();
+            var result = new List<(Speaker, IEnumerable<Speaker>)>();
             foreach (var speaker in uniqueSpeakers)
             {
-                var duplicits = speakersWithoutUnique.Where(s => IsDuplicit(speaker, s)).ToList();
-                if (duplicits.Count > 1)
+                var duplicits = speakersWithoutUnique.Where(s => IsDuplicit(speaker, s));
+                if (duplicits.Any())
                 {
-                    result.Add(duplicits);
+                    result.Add((speaker, duplicits));
                 }
             }
 
