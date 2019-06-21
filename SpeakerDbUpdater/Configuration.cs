@@ -11,7 +11,7 @@ namespace SpeakerDbUpdater
         public static SpeakerDbUpdaterConfiguration SpeakerDbUpdater
             => config.GetSection("SpeakerDbUpdater").Get<SpeakerDbUpdaterConfiguration>();
 
-        public static void Load(string[]? args = null)
+        public static void Load()
         {            
             config = new ConfigurationBuilder()
                   .SetBasePath(Directory.GetCurrentDirectory())

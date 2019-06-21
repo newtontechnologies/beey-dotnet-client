@@ -15,7 +15,7 @@ namespace SpeakerDbUpdater
     {
         static async Task<int> Main(string[] args)
         {
-            Configuration.Load(args);
+            Configuration.Load();
             if (Configuration.SpeakerDbUpdater.Url == null
                 || Configuration.SpeakerDbUpdater.Login == null
                 || Configuration.SpeakerDbUpdater.Password == null
