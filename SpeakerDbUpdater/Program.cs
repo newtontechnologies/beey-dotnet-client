@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using TranscriptionCore;
 
@@ -12,8 +13,18 @@ namespace SpeakerDbUpdater
 {
     class Program
     {
-        static async Task Main(string[] args)
+        static async Task<int> Main(string[] args)
         {
+            Configuration.Load(args);
+            if (Configuration.SpeakerDbUpdater.Url == null
+                || Configuration.SpeakerDbUpdater.Login == null
+                || Configuration.SpeakerDbUpdater.Password == null
+                || (Configuration.SpeakerDbUpdater.UpdateDb && Configuration.SpeakerDbUpdater.IniPath == null))
+            {
+                Log.Fatal("Missing settings: Url, Login, Password or IniFile");
+                return -1;
+            }
+
             var now = DateTime.Now.ToString("yyyy-MM-dd_hh-mm-ss");
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
@@ -23,26 +34,22 @@ namespace SpeakerDbUpdater
                 .WriteTo.File($"{now}_beey_verbose.log")
                 .CreateLogger();
 
-            string url = "http://localhost:61497";
-            string login = "milos.kudelka@newtontech.cz";
-            string password = "OVPgod";
-            string speakerFile = @"c:\Users\milos.kudelka\Downloads\Production\tvr_add.ini";
-            bool updateFromFile = true;
-            bool insertOnlyNew = true;
-            bool removeDuplicities = true;
+            var beey = new BeeyClient(Configuration.SpeakerDbUpdater.Url);
+            await beey.LoginAsync(Configuration.SpeakerDbUpdater.Login, Configuration.SpeakerDbUpdater.Password);
 
-            var beey = new BeeyClient(url);
-            await beey.LoginAsync(login, password);
-
-            if (updateFromFile)
+            if (Configuration.SpeakerDbUpdater.UpdateDb)
             {
-                UpdateDbFromFile(speakerFile, insertOnlyNew, beey);
+                UpdateDbFromFile(Configuration.SpeakerDbUpdater.IniPath!, Configuration.SpeakerDbUpdater.InsertOnlyNew, beey);
             }
 
-            if (removeDuplicities)
+            Thread.Sleep(2000);
+
+            if (Configuration.SpeakerDbUpdater.RemoveDuplicities)
             {
                 RemoveDuplicities(beey);
             }
+
+            return 0;
         }
 
         private static void RemoveDuplicities(BeeyClient beey)
@@ -96,6 +103,11 @@ namespace SpeakerDbUpdater
 
                 if (insertOnlyNew)
                 {
+                    var fileSpeakersCount = fileSpeakers.Count();
+                    fileSpeakers = fileSpeakers.Distinct((CustomEqualityComparer<Speaker>)IsDuplicit).ToList();
+                    if (fileSpeakersCount != fileSpeakers.Count)
+                        Log.Warning("Only {count} out of {originalCount} distinct Speakers in {file}.", fileSpeakers.Count, fileSpeakersCount, speakerFile);
+
                     List<Speaker> notNewSpeakers;
                     (newSpeakers, notNewSpeakers) = SelectNewSpeakers(fileSpeakers, dbSpeakers);
                     if (notNewSpeakers.Any())
