@@ -104,10 +104,15 @@ namespace SpeakerDbUpdater
 
                 if (insertOnlyNew)
                 {
-                    var fileSpeakersCount = fileSpeakers.Count();
-                    fileSpeakers = fileSpeakers.Distinct((CustomEqualityComparer<Speaker>)IsDuplicit).ToList();
-                    if (fileSpeakersCount != fileSpeakers.Count)
-                        Log.Warning("Only {count} out of {originalCount} distinct Speakers in {file}.", fileSpeakers.Count, fileSpeakersCount, speakerFile);
+                    var distinctFileSpeakers = fileSpeakers.Distinct((CustomEqualityComparer<Speaker>)IsDuplicit).ToList();
+                    if (distinctFileSpeakers.Count != fileSpeakers.Count)
+                    {
+                        Log.Warning("Only {count} out of {originalCount} distinct Speakers in {file}.", distinctFileSpeakers.Count, fileSpeakers.Count, speakerFile);
+                        var duplicitSpeakers = fileSpeakers.Except(distinctFileSpeakers);
+                        Log.Warning($"Duplicit speakers: {duplicitSpeakers.Skip(1).Aggregate(duplicitSpeakers.First().FullName, (s, speaker) => $"{s}, {speaker.FullName}")}");
+                    }
+
+                    fileSpeakers = distinctFileSpeakers;
 
                     List<Speaker> notNewSpeakers;
                     (newSpeakers, notNewSpeakers) = SelectNewSpeakers(fileSpeakers, dbSpeakers);
