@@ -60,7 +60,7 @@ namespace XUnitTests
         [Fact, TestPriority(5)]
         public async Task GetUserAsync()
         {
-            Assert.NotNull(await api.GetAsync(createdUserId, default));
+            await api.GetAsync(createdUserId, default);
         }
 
         [Fact, TestPriority(6)]
@@ -73,7 +73,6 @@ namespace XUnitTests
             await api.UpdateAsync(user, default);
 
             user = await api.GetAsync(createdUserId, default);
-            Assert.NotNull(user);
             Assert.Equal(creditMinutes, user.CreditMinutes);
         }
 

@@ -13,8 +13,8 @@ namespace XUnitTests
     {
         static readonly SpeakerApi api = new SpeakerApi(Configuration.BeeyUrl);
 
-        const string testFirstName = "Milošek";
-        const string testSurname = "KudìlkaTýpek";
+        const string testFirstName = "Miloš";
+        const string testSurname = "Kudìlka";
 
         const string changedFirstName = "ASDF__ASDF";
         const TranscriptionCore.Speaker.Sexes testSex = TranscriptionCore.Speaker.Sexes.Male;
@@ -57,7 +57,7 @@ namespace XUnitTests
         [Fact, TestPriority(5)]
         public async Task GetSpeakerAsync()
         {
-            Assert.NotNull(await api.GetAsync(createdSpeakerId, default));
+            await api.GetAsync(createdSpeakerId, default);
         }
 
         [Fact, TestPriority(6)]
@@ -69,7 +69,6 @@ namespace XUnitTests
             await api.UpdateAsync(speaker, default);
 
             speaker = await api.GetAsync(createdSpeakerId, default);
-            Assert.NotNull(speaker);
             Assert.Equal(changedFirstName, speaker.FirstName);
         }
 

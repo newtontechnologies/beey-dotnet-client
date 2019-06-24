@@ -111,7 +111,6 @@ namespace XUnitTests
         public async Task GetProjectAsync()
         {
             var created = await projectApi.GetAsync(createdProjectId, default);
-            Assert.NotNull(created);
         }
 
         [Fact, TestPriority(6)]
@@ -167,7 +166,6 @@ namespace XUnitTests
             var project = await projectApi.GetAsync(createdProjectId, default);
             Assert.NotNull(project!.OriginalTrsxId);
             var stream = await filesApi.DownloadTrsxAsync(createdProjectId, project!.OriginalTrsxId ?? throw new Exception(), default);
-            Assert.NotNull(stream);
 
             byte[] trsx;
             using (var ms = new System.IO.MemoryStream())
@@ -191,7 +189,6 @@ namespace XUnitTests
             var project = await projectApi.GetAsync(createdProjectId, default);
             Assert.NotNull(project!.RecordingId);
             var stream = await filesApi.DownloadFileAsync(createdProjectId, project!.RecordingId ?? throw new Exception(), default);
-            Assert.NotNull(stream);
 
             byte[] file;
             using (var ms = new System.IO.MemoryStream())
@@ -220,7 +217,6 @@ namespace XUnitTests
             var project = await projectApi.GetAsync(createdProjectId, default);
             Assert.NotNull(project!.RecordingId);
             var stream = await filesApi.DownloadFileAsync(createdProjectId, project!.RecordingId ?? throw new Exception(), default);
-            Assert.NotNull(stream);
 
             byte[] file;
             using (var ms = new System.IO.MemoryStream())

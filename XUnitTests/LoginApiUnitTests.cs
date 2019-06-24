@@ -16,7 +16,7 @@ namespace XUnitTests
         public async Task LoginAsync()
         {
             LoginApi api = new LoginApi(Configuration.BeeyUrl);
-            Assert.NotNull(await api.LoginAsync(Configuration.Email, Configuration.Password, default));
+            await api.LoginAsync(Configuration.Email, Configuration.Password, default);
         }
 
         [Fact, TestPriority(2)]
