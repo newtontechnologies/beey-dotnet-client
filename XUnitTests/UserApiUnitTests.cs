@@ -40,10 +40,9 @@ namespace XUnitTests
         [Fact, TestPriority(3)]
         public async Task ListUsersAsync()
         {
-            var listing = await api.ListAsync(100, 0, default).TryAsync();
-            Assert.True(listing);
+            var listing = await api.ListAsync(100, 0, default);
 
-            var testUser = listing.Value.List.Where(u => u.Email == testEmail).FirstOrDefault();
+            var testUser = listing.List.Where(u => u.Email == testEmail).FirstOrDefault();
             if (testUser != null)
             {
                 await api.DeleteAsync(testUser.Id, default);
