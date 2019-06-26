@@ -63,7 +63,8 @@ namespace Beey.Api.Rest
                 string errMsg = $"Server error: {response.StatusCode.ToString()} ({(int)response.StatusCode}){Environment.NewLine}{serverError}";
 
                 Logger.Log(Logging.LogLevel.Error, () => errMsg);
-                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                if (response.StatusCode == HttpStatusCode.Unauthorized
+                    || response.StatusCode == HttpStatusCode.Forbidden)
                 {
                     throw new UnauthorizedAccessException(errMsg);
                 }
@@ -90,7 +91,8 @@ namespace Beey.Api.Rest
                 string errMsg = $"Server error: {response.StatusCode.ToString()}({(int)response.StatusCode}){Environment.NewLine}{serverError}";
 
                 Logger.Log(Logging.LogLevel.Error, () => errMsg);
-                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                if (response.StatusCode == HttpStatusCode.Unauthorized
+                    || response.StatusCode == HttpStatusCode.Forbidden)
                 {
                     throw new UnauthorizedAccessException(errMsg);
                 }
