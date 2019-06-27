@@ -1,5 +1,6 @@
 ﻿using Beey.DataExchangeModel.Auth;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -42,7 +43,7 @@ namespace Beey.Api.Rest
                 .AddHeader("Authorization", token.Token)
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            HandleResponse(result, _ => new object());
+            HandleResponse(result, _ => true);
         }
 
         public async Task ChangePasswordAsync(LoginToken token, string oldPassword, string newPassword,
@@ -54,7 +55,7 @@ namespace Beey.Api.Rest
                 .AddParameters(("password", oldPassword), ("newPassword", newPassword))
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            HandleResponse(result, _ => new object());
+            HandleResponse(result, _ => true);
         }
 
         public async Task<LoginToken> RegisterAndLoginAsync(string email, string password,
@@ -67,6 +68,29 @@ namespace Beey.Api.Rest
 
             return await HandleResponseAsync(result, async (r, c) => await LoginAsync(email, password, c),
                 cancellationToken);
+        }
+
+        public async Task<JObject> GetUserSettingsAsync(LoginToken token,
+            CancellationToken cancellationToken)
+        {
+            var result = await CreateBuilder()
+                .AddUrlSegment("UserSettings")
+                .AddHeader("Authorization", token.Token)
+                .ExecuteAsync(HttpMethod.GET, cancellationToken);
+
+            return HandleResponse(result, r => JObject.Parse(r.GetStringContent()));
+        }
+
+        public async Task PostUserSettings(LoginToken token, JObject settings,
+            CancellationToken cancellationToken)
+        {
+            var result = await CreateBuilder()
+                .AddUrlSegment("UserSettings")
+                .AddHeader("Authorization", token.Token)
+                .SetBody(settings.ToString())
+                .ExecuteAsync(HttpMethod.POST, cancellationToken);
+
+            HandleResponse(result, _ => true);
         }
     }
 }

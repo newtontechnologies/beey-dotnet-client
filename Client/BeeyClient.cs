@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Beey.Api.Rest;
 using Beey.Api.WebSockets;
 using Beey.Api.Rest.Admin;
+using Newtonsoft.Json.Linq;
 
 namespace Beey.Client
 {
@@ -91,6 +92,37 @@ namespace Beey.Client
             LoginToken = null;
             userEmail = null;
             userPassword = null;
+        }
+
+        public async Task<JObject> GetUserSettingsAsync(CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<JObject>();
+            return await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                return await LoginApi.GetUserSettingsAsync(LoginToken!, cancellationToken);
+            }, CreatePollyContext(cancellationToken), cancellationToken);
+        }
+
+        public async Task PostUserSettingsAsync(string settings,
+            CancellationToken cancellationToken = default)
+        {
+            JObject jSettings = JObject.Parse(settings);
+            await PostUserSettingsAsync(jSettings, cancellationToken);
+        }
+
+        public async Task PostUserSettingsAsync(JObject settings,
+        CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
+            await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                await LoginApi.PostUserSettings(LoginToken!, settings, cancellationToken);
+                return true;
+            }, CreatePollyContext(cancellationToken), cancellationToken);
         }
 
         private void RequireAuthorization()

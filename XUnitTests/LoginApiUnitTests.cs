@@ -1,4 +1,7 @@
 ﻿using Beey.Api.Rest;
+using Beey.DataExchangeModel.Auth;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,33 +10,50 @@ using Xunit;
 
 namespace XUnitTests
 {
+    [CollectionDefinition("1 - Login Collection")]
+    public class LoginCollectionDefinition { }
+
+
     [Collection("1 - Login Collection")]
     public class LoginApiUnitTests
     {
         private const string testPassword = "ASDF___ASDF";
+        private static JObject testSettings;
+        private static LoginApi api;
+        private static LoginToken token;
 
         [Fact, TestPriority(1)]
         public async Task LoginAsync()
         {
-            LoginApi api = new LoginApi(Configuration.BeeyUrl);
-            await api.LoginAsync(Configuration.Email, Configuration.Password, default);
+            api = new LoginApi(Configuration.BeeyUrl);
+            token = await api.LoginAsync(Configuration.Email, Configuration.Password, default);
         }
 
         [Fact, TestPriority(2)]
         public async Task ChangePasswordAsync()
         {
-            LoginApi api = new LoginApi(Configuration.BeeyUrl);
-            var token = await api.LoginAsync(Configuration.Email, Configuration.Password, default);
-
             await api.ChangePasswordAsync(token, Configuration.Password, testPassword, default);
             await api.ChangePasswordAsync(token, testPassword, Configuration.Password, default);
         }
 
         [Fact, TestPriority(3)]
+        public async Task PostUserSettingsAsync()
+        {
+            testSettings = JObject.Parse($"{{ Name: \"Value_{DateTime.Now}\" }}");
+            await api.PostUserSettings(token, testSettings, default);
+        }
+
+        [Fact, TestPriority(4)]
+        public async Task GetUserSettings()
+        {
+            var jSettings = await api.GetUserSettingsAsync(token, default);
+
+            Assert.Equal(testSettings, jSettings);
+        }
+
+        [Fact, TestPriority(5)]
         public async Task LogoutAsync()
         {
-            LoginApi api = new LoginApi(Configuration.BeeyUrl);
-            var token = await api.LoginAsync(Configuration.Email, Configuration.Password, default);
             await api.LogoutAsync(token, default);
         }
     }
