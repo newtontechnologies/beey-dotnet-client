@@ -43,9 +43,9 @@ namespace Beey.Api.WebSockets
                 .OpenConnectionAsync(c);
 
                 await ws.SendAsync(Encoding.UTF8.GetBytes(search), WebSocketMessageType.Text, true, cancellationToken);
-                var result = await ws.ReceiveAsync(buffer, c);
+                var result = await ws.ReceiveMessageAsync(buffer, c);
 
-                return Encoding.UTF8.GetString(buffer, 0, result.Count);
+                return Encoding.UTF8.GetString(buffer, 0, result.bytes);
             }, cancellationToken);
 
             return res;
@@ -62,9 +62,9 @@ namespace Beey.Api.WebSockets
                         .OpenConnectionAsync(c);
 
                 await ws.SendAsync(Encoding.UTF8.GetBytes(text), WebSocketMessageType.Text, true, cancellationToken);
-                var result = await ws.ReceiveAsync(buffer, c);
+                var result = await ws.ReceiveMessageAsync(buffer, c);
 
-                return Encoding.UTF8.GetString(buffer, 0, result.Count);
+                return Encoding.UTF8.GetString(buffer, 0, result.bytes);
 
             }, cancellationToken);
             return res;
@@ -91,8 +91,8 @@ namespace Beey.Api.WebSockets
 
                 using (data)
                 {
-                    var res = await ws.ReceiveAsync(buffer, c);
-                    var fi = JsonConvert.DeserializeObject<FileStateInfo>(Encoding.UTF8.GetString(buffer));
+                    var (bytes, res) = await ws.ReceiveMessageAsync(buffer, c);
+                    var fi = JsonConvert.DeserializeObject<FileStateInfo>(Encoding.UTF8.GetString(buffer, 0, bytes));
                     if (fi.BufferSize > buffer.Length)
                         buffer = new byte[fi.BufferSize];
 
@@ -148,15 +148,15 @@ namespace Beey.Api.WebSockets
 
             static async IAsyncEnumerable<string> receive(ClientWebSocket ws, CancellationToken c)
             {
-                WebSocketReceiveResult res;
+                (int bytes, ValueWebSocketReceiveResult result) res;
                 do
                 {
                     byte[] buffer = new byte[32 * 1024];
                     //TODO: receive async can receive only partial message...
                     //TODO: close handshake
-                    res = await ws.ReceiveAsync(buffer, c);
-                    yield return Encoding.UTF8.GetString(buffer, 0, res.Count);
-                } while (res.Count > 0 || res.CloseStatus == null);
+                    res = await ws.ReceiveMessageAsync(buffer, c);
+                    yield return Encoding.UTF8.GetString(buffer, 0, res.bytes);
+                } while (res.bytes > 0 || res.result.MessageType != WebSocketMessageType.Close);
             }
 
 
