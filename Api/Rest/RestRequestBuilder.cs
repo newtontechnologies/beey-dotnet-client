@@ -55,7 +55,7 @@ namespace Beey.Api.Rest
             return this;
         }
 
-        public RestRequestBuilder AddParameter(string name, string value)
+        public RestRequestBuilder AddParameter(string name, string? value)
         {
             if (value != null)
             {
@@ -63,9 +63,9 @@ namespace Beey.Api.Rest
             }
             return this;
         }
-        public RestRequestBuilder AddParameter(string name, object value) => AddParameter(name, value.ToString());
+        public RestRequestBuilder AddParameter(string name, object? value) => AddParameter(name, value?.ToString());
 
-        public RestRequestBuilder AddParameters(params (string name, string value)[] pars)
+        public RestRequestBuilder AddParameters(params (string name, string? value)[] pars)
         {
             foreach (var p in pars)
                 AddParameter(p.name, p.value);
@@ -73,7 +73,7 @@ namespace Beey.Api.Rest
             return this;
         }
 
-        public RestRequestBuilder AddParameters(params (string name, object value)[] pars)
+        public RestRequestBuilder AddParameters(params (string name, object? value)[] pars)
         {
             foreach (var p in pars)
                 AddParameter(p.name, p.value);

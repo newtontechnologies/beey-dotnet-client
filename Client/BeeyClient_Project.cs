@@ -103,17 +103,19 @@ namespace Beey.Client
         }
 
         public async Task<Listing<Project>> ListProjectsAsync(int count, int skip = 0,
-            ProjectApi.OrderOn orderOn = ProjectApi.OrderOn.None, bool ascending = true,
+            ProjectApi.OrderOn orderOn = ProjectApi.OrderOn.None,
+            bool ascending = true, DateTime? from = null, DateTime? to = null,
             CancellationToken cancellationToken = default)
         {
-            var listing = await ListProjectAccessesAsync(count, skip, orderOn, ascending, cancellationToken);
+            var listing = await ListProjectAccessesAsync(count, skip, orderOn, ascending, from, to, cancellationToken);
 
             return new Listing<Project>(listing.TotalCount, listing.ListedCount,
                 listing.List.Select(p => p.Project).ToArray());
         }
 
         public async Task<Listing<ProjectAccess>> ListProjectAccessesAsync(int count, int skip = 0,
-            ProjectApi.OrderOn orderOn = ProjectApi.OrderOn.None, bool ascending = true,
+            ProjectApi.OrderOn orderOn = ProjectApi.OrderOn.None,
+            bool ascending = true, DateTime? from = null, DateTime? to = null,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
@@ -121,7 +123,7 @@ namespace Beey.Client
             var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<ProjectAccess>>();
             var listing = (await policy.ExecuteAsync(async (c) =>
             {
-                return await ProjectApi.ListProjectsAsync(count, skip, orderOn, ascending, c);
+                return await ProjectApi.ListProjectsAsync(count, skip, orderOn, ascending, from, to, c);
             }, cancellationToken));
 
             return listing;

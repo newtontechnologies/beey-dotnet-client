@@ -15,7 +15,7 @@ namespace XUnitTests
 
     [Collection("3 - Project Collection")]
     public class ProjectApiUnitTests
-    { 
+    {
         private const string testName = "test";
         private const string testPath = "test/path";
         private const string changedName = "ASDF__ASDF";
@@ -56,11 +56,13 @@ namespace XUnitTests
         [InlineData(ProjectApi.OrderOn.Updated, false)]
         public async Task ListProjectsBy(ProjectApi.OrderOn orderOn, bool ascending)
         {
-            var listing = await projectApi.ListProjectsAsync(100, 0, orderOn, ascending, default);
+            var listing = await projectApi.ListProjectsAsync(100, 0, orderOn, ascending, null, null, default);
 
             List<int> ordered;
 
             Func<(ProjectAccess p, int i), DateTimeOffset?> orderFunc;
+            Func<(ProjectAccess p, int i), bool> fromFunc = _ => true;
+            Func<(ProjectAccess p, int i), bool> toFunc = _ => true;
             switch (orderOn)
             {
                 case ProjectApi.OrderOn.Created:
@@ -75,12 +77,16 @@ namespace XUnitTests
             if (ascending)
             {
                 ordered = listing.List.Select((p, i) => (p, i))
+                    .Where(fromFunc)
+                    .Where(toFunc)
                     .OrderBy(orderFunc)
                     .Select(t => t.i).ToList();
             }
             else
             {
                 ordered = listing.List.Select((p, i) => (p, i))
+                    .Where(fromFunc)
+                    .Where(toFunc)
                     .OrderByDescending(orderFunc)
                     .Select(p => p.i).ToList();
             }
@@ -98,10 +104,36 @@ namespace XUnitTests
             createdProjectId = project.Id;
         }
 
-        [Fact, TestPriority(4)]
-        public async Task ListProjectsAsync()
+        [Flags]
+        public enum ListProjectsType { From, To }
+        [Theory, TestPriority(4)]
+        [InlineData(ListProjectsType.From)]
+        [InlineData(ListProjectsType.To)]
+        public async Task ListProjectsAsync(ListProjectsType listProjectsType)
         {
-            var listing = await projectApi.ListProjectsAsync(10, 0, ProjectApi.OrderOn.Created, true, default);
+            DateTime? from = null;
+            DateTime? to = null;
+            if ((listProjectsType & ListProjectsType.From) == ListProjectsType.From)
+            {
+                from = DateTime.Now.AddMinutes(-1);
+            }
+            else if ((listProjectsType & ListProjectsType.To) == ListProjectsType.To)
+            {
+                to = DateTime.Now;
+            }
+
+            var listing = await projectApi.ListProjectsAsync(10, 0, ProjectApi.OrderOn.Created, true, from, to, default);
+
+            if ((listProjectsType & ListProjectsType.From) == ListProjectsType.From)
+            {
+                Assert.Equal(1, listing.ListedCount);
+            }
+            else if ((listProjectsType & ListProjectsType.To) == ListProjectsType.To)
+            {
+                Assert.Equal(0, listing.ListedCount);
+                return;
+            }
+
             var created = listing.List.Where(p => p.Project.Id == createdProjectId);
             Assert.Single(created);
             createdProjectAccessId = created.First().Id;

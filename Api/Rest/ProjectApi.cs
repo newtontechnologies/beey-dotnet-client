@@ -122,7 +122,7 @@ namespace Beey.Api.Rest
         }
 
         public async Task<Listing<ProjectAccess>> ListProjectsAsync(int count, int skip,
-            OrderOn orderOn, bool ascending,
+            OrderOn orderOn, bool ascending, DateTime? from, DateTime? to,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
@@ -132,6 +132,8 @@ namespace Beey.Api.Rest
                 .AddParameter("count", count)
                 .AddParameter("orderOn", GetOrderOn(orderOn))
                 .AddParameter("orderBy", ascending ? "ascending" : "descending")
+                .AddParameter("from", from?.ToString())
+                .AddParameter("to", to?.ToString())
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<ProjectAccess>>(r.GetStringContent()));
