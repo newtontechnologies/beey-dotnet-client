@@ -26,6 +26,7 @@ namespace XUnitTests
         private static byte[] testFile;
 
         private static int createdProjectId;
+        private static long createdProjectAccessToken;
         private static int createdProjectAccessId;
 
         public ProjectApiUnitTests(LoginFixture fixture)
@@ -70,7 +71,7 @@ namespace XUnitTests
                     break;
                 case ProjectApi.OrderOn.Updated:
                 default:
-                    orderFunc = t => t.p.Updated;
+                    orderFunc = t => t.p.Project.Updated;
                     break;
             }
 
@@ -102,6 +103,7 @@ namespace XUnitTests
         {
             var project = await projectApi.CreateAsync($"{testName}_{DateTime.Now.ToShortTimeString()}", testPath, default);
             createdProjectId = project.Id;
+            createdProjectAccessToken = project.AccessToken;
         }
 
         [Flags]
@@ -154,24 +156,33 @@ namespace XUnitTests
             await projectApi.UpdateAsync(created, default);
 
             created = await projectApi.GetAsync(createdProjectId, default);
+            createdProjectAccessToken = created.AccessToken;
             Assert.Equal(changedName, created!.Name);
         }
 
-        [Fact, TestPriority(7)]
-        public async Task UpdateProjectPropertyAsync()
+        [Theory, TestPriority(7)]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task UpdateProjectPropertyAsync(bool useAccessToken)
         {
-            var created = await projectApi.GetAsync(createdProjectId, default);
+            var res = await projectApi.UpdateAsync(createdProjectId,
+                useAccessToken ? createdProjectAccessToken : -1,
+                new Dictionary<string, object>() { { "Name", testName } }, default).TryAsync();
 
-            await projectApi.UpdateAsync(created.Id, new Dictionary<string, object>() { { "Name", testName } }, default);
+            Assert.Equal(useAccessToken, res);
 
-            created = await projectApi.GetAsync(createdProjectId, default);
-            Assert.Equal(testName, created!.Name);
+            if (useAccessToken)
+            {
+                var created = await projectApi.GetAsync(createdProjectId, default);
+                createdProjectAccessToken = created.AccessToken;
+                Assert.Equal(testName, created!.Name);
+            }
         }
 
         [Fact, TestPriority(8)]
         public async Task ShareProjectAsync()
         {
-            await projectApi.ShareProjectAsync(createdProjectId, "martin.podloucky@newtontech.cz", default);
+            createdProjectAccessToken = (await projectApi.ShareProjectAsync(createdProjectId, createdProjectAccessToken, "martin.podloucky@newtontech.cz", default)).AccessToken;
         }
 
         [Fact, TestPriority(9)]
@@ -187,7 +198,7 @@ namespace XUnitTests
         [Fact, TestPriority(10)]
         public async Task UploadTrsxAsync()
         {
-            await projectApi.UploadTrsxAsync(createdProjectId, "test.trsx", testFile, default);
+            createdProjectAccessToken = (await projectApi.UploadTrsxAsync(createdProjectId, createdProjectAccessToken, "test.trsx", testFile, default)).AccessToken;
         }
 
         // FilesApi
@@ -212,7 +223,8 @@ namespace XUnitTests
         [Fact, TestPriority(12)]
         public async Task UploadFileAsync()
         {
-            await filesApi.UploadFileAsync(createdProjectId, "test.mp3", testFile, "cz", false, default);
+            await filesApi.UploadFileAsync(createdProjectId, createdProjectAccessToken, "test.mp3", testFile, "cz", false, default);
+            createdProjectAccessToken = (await projectApi.GetAsync(createdProjectId, default)).AccessToken;
         }
 
         [Fact, TestPriority(13)]
@@ -238,8 +250,10 @@ namespace XUnitTests
             testFile[0] = 255;
             using (var ms = new System.IO.MemoryStream(testFile))
             {
-                await wsApi.UploadStreamAsync(createdProjectId, "test2.mp3", ms, testFile.Length, "cz", false, default);
+                await wsApi.UploadStreamAsync(createdProjectId, createdProjectAccessToken, "test2.mp3", ms, testFile.Length, "cz", false, default);
             }
+
+            createdProjectAccessToken = (await projectApi.GetAsync(createdProjectId, default)).AccessToken;
         }
 
         [Fact, TestPriority(15)]

@@ -38,13 +38,14 @@ namespace Beey.Api.Rest
             return HandleResponse(result, _ => result.Content);
         }
 
-        public async Task UploadFileAsync(int projectId, string fileName, System.IO.Stream fileContent,
+        public async Task UploadFileAsync(int projectId, long accessToken, string fileName, System.IO.Stream fileContent,
             string language, bool transcribe,
             CancellationToken cancellationToken)
         {
             var builder = CreateBuilder()
                .AddUrlSegment("Recognize")
                .AddParameter("projectId", projectId.ToString())
+               .AddParameter("accessToken", accessToken.ToString())
                .AddParameter("lang", language)
                .AddParameter("transcribe", transcribe.ToString().ToLower());
 
@@ -54,7 +55,7 @@ namespace Beey.Api.Rest
 
             HandleResponse(result, _ => true);
         }
-        public async Task UploadFileAsync(int projectId, string fileName, byte[] fileContent,
+        public async Task UploadFileAsync(int projectId, long accessToken, string fileName, byte[] fileContent,
             string language, bool transcribe,
             CancellationToken cancellationToken)
         {
@@ -66,11 +67,11 @@ namespace Beey.Api.Rest
                 throw;
             }
 
-            try { await UploadFileAsync(projectId, fileName, memoryStream, language, transcribe, cancellationToken); }
+            try { await UploadFileAsync(projectId, accessToken, fileName, memoryStream, language, transcribe, cancellationToken); }
             catch (Exception) { throw; }
             finally { memoryStream.Close(); }
         }
-        public async Task UploadFileAsync(int projectId, System.IO.FileInfo fileInfo,
+        public async Task UploadFileAsync(int projectId, long accessToken, System.IO.FileInfo fileInfo,
             string language, bool transcribe,
             CancellationToken cancellationToken)
         {
@@ -82,7 +83,7 @@ namespace Beey.Api.Rest
                 throw;
             }
 
-            try { await UploadFileAsync(projectId, fileInfo.Name, fileStream, language, transcribe, cancellationToken); }
+            try { await UploadFileAsync(projectId, accessToken, fileInfo.Name, fileStream, language, transcribe, cancellationToken); }
             catch (Exception) { throw; }
             finally { fileStream.Close(); }
         }

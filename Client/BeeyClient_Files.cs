@@ -18,7 +18,7 @@ namespace Beey.Client
             }, cancellationToken));
         }
 
-        public async Task UploadFileAsync(int projectId, string fileName, byte[] fileContent,
+        public async Task UploadFileAsync(int projectId, long accessToken, string fileName, byte[] fileContent,
             string language = "cz", bool transcribe = true,
             CancellationToken cancellationToken = default)
         {
@@ -27,12 +27,12 @@ namespace Beey.Client
             var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
             await policy.ExecuteAsync(async (c) =>
             {
-                await FilesApi.UploadFileAsync(projectId, fileName, fileContent, language, transcribe, cancellationToken);
+                await FilesApi.UploadFileAsync(projectId, accessToken, fileName, fileContent, language, transcribe, cancellationToken);
                 return true;
             }, cancellationToken);
         }
 
-        public async Task UploadFileAsync(int projectId, string fileName, System.IO.Stream fileContent,
+        public async Task UploadFileAsync(int projectId, long accessToken, string fileName, System.IO.Stream fileContent,
             string language = "cz", bool transcribe = true,
             CancellationToken cancellationToken = default)
         {
@@ -41,12 +41,12 @@ namespace Beey.Client
             var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
             await policy.ExecuteAsync(async (c) =>
             {
-                await FilesApi.UploadFileAsync(projectId, fileName, fileContent, language, transcribe, cancellationToken);
+                await FilesApi.UploadFileAsync(projectId, accessToken, fileName, fileContent, language, transcribe, cancellationToken);
                 return true;
             }, cancellationToken);
         }
 
-        public async Task UploadFileAsync(int projectId, System.IO.FileInfo fileInfo,
+        public async Task UploadFileAsync(int projectId,long accessToken, System.IO.FileInfo fileInfo,
             string language = "cz", bool transcribe = true,
             CancellationToken cancellationToken = default)
         {
@@ -55,7 +55,7 @@ namespace Beey.Client
             var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
             await policy.ExecuteAsync(async (c) =>
             {
-                await FilesApi.UploadFileAsync(projectId, fileInfo, language, transcribe, cancellationToken);
+                await FilesApi.UploadFileAsync(projectId, accessToken, fileInfo, language, transcribe, cancellationToken);
                 return true;
             }, cancellationToken);
         }

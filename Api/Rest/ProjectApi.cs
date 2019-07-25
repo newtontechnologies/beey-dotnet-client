@@ -56,7 +56,7 @@ namespace Beey.Api.Rest
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
         }
 
-        public async Task UpdateAsync(Project project,
+        public async Task<Project> UpdateAsync(Project project,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
@@ -64,15 +64,19 @@ namespace Beey.Api.Rest
                 .SetBody(JsonConvert.SerializeObject(project), "application/json")
                 .ExecuteAsync(HttpMethod.PUT, cancellationToken);
 
-            HandleResponse(result, _ => true);
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
         }
 
-        public async Task UpdateAsync(int id, Dictionary<string, object> properties,
+        public async Task<Project> UpdateAsync(int id, long accessToken, Dictionary<string, object> properties,
            CancellationToken cancellationToken)
         {
             if (!properties.ContainsKey("Id") && !properties.ContainsKey("id"))
             {
                 properties.Add("Id", id);
+            }
+            if (!properties.ContainsKey("AccessToken") && !properties.ContainsKey("accessToken"))
+            {
+                properties.Add("AccessToken", accessToken);
             }
 
             var result = await CreateBuilder()
@@ -80,7 +84,7 @@ namespace Beey.Api.Rest
                 .SetBody(JsonConvert.SerializeObject(properties), "application/json")
                 .ExecuteAsync(HttpMethod.PUT, cancellationToken);
 
-            HandleResponse(result, _ => true);
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
         }
 
         public async Task<bool> DeleteAsync(int id,
@@ -139,7 +143,7 @@ namespace Beey.Api.Rest
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<ProjectAccess>>(r.GetStringContent()));
         }
 
-        public async Task UploadTrsxAsync(int id, string fileName, byte[] trsx,
+        public async Task<Project> UploadTrsxAsync(int id, long accessToken, string fileName, byte[] trsx,
             CancellationToken cancellationToken)
         {
             System.IO.MemoryStream memoryStream;
@@ -150,33 +154,35 @@ namespace Beey.Api.Rest
                 throw;
             }
 
-            try { await UploadTrsxAsync(id, fileName, memoryStream, cancellationToken); }
+            try { return await UploadTrsxAsync(id, accessToken, fileName, memoryStream, cancellationToken); }
             catch (Exception) { throw; }
             finally { memoryStream.Close(); }
         }
 
-        public async Task UploadTrsxAsync(int id, string fileName, System.IO.Stream trsx,
+        public async Task<Project> UploadTrsxAsync(int id, long accessToken, string fileName, System.IO.Stream trsx,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                .AddUrlSegment("Trsx")
                .AddParameter("id", id.ToString())
+               .AddParameter("accessToken", accessToken.ToString())
                .AddFile(System.IO.Path.GetFileName(fileName), trsx)
                .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            HandleResponse(result, _ => true);
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
         }
 
-        public async Task ShareProjectAsync(int id, string email,
+        public async Task<Project> ShareProjectAsync(int id, long accessToken, string email,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("Share")
                 .AddParameter("id", id.ToString())
                 .AddParameter("shareTo", email)
+                .AddParameter("accessToken", accessToken)
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            HandleResponse(result, _ => true);
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
         }
 
         public async Task<Listing<ProjectAccess>> ListProjectSharing(int id,

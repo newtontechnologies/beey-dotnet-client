@@ -70,7 +70,7 @@ namespace Beey.Api.WebSockets
             return res;
         }
 
-        public async Task UploadStreamAsync(int projectId, string dataName, Stream data, long? dataLength, string language, bool transcribe, CancellationToken cancellationToken)
+        public async Task UploadStreamAsync(int projectId, long accessToken, string dataName, Stream data, long? dataLength, string language, bool transcribe, CancellationToken cancellationToken)
         {
             var policy = RetryPolicies.CreateAsyncNetworkPolicy<bool>(logger);
             bool res = await policy.ExecuteAsync(async (c) =>
@@ -78,6 +78,7 @@ namespace Beey.Api.WebSockets
                 var ws = await CreateBuilder()
                        .AddUrlSegment("Upload")
                        .AddParameter("id", projectId.ToString())
+                       .AddParameter("accessToken", accessToken.ToString())
                        .AddParameter("lang", language)
                        .AddParameter("transcribe", transcribe.ToString().ToLower())
                        .OpenConnectionAsync(c);
