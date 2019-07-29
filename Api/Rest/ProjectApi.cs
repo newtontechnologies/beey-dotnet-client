@@ -19,7 +19,7 @@ namespace Beey.Api.Rest
     /// 3b) returns null if everything is ok, but backend returned error.
     ///     Description of the error is then in the properties LastError and LastHttpStatusCode.
     /// </summary>
-    public class ProjectApi : BaseAuthApi<ProjectApi>
+    public partial class ProjectApi : BaseAuthApi<ProjectApi>
     {
         public ProjectApi(string url) : base(url)
         {

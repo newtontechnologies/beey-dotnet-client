@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Newtonsoft.Json.Linq;
 
 namespace XUnitTests
 {
@@ -19,6 +20,7 @@ namespace XUnitTests
         private const string testName = "test";
         private const string testPath = "test/path";
         private const string changedName = "ASDF__ASDF";
+        private const string testTag = "Tag zbrusu nov";
         private static readonly ProjectApi projectApi = new ProjectApi(Configuration.BeeyUrl);
         private static readonly FilesApi filesApi = new FilesApi(Configuration.BeeyUrl);
         private static readonly WebSocketsApi wsApi = new WebSocketsApi(Configuration.BeeyUrl);
@@ -276,6 +278,33 @@ namespace XUnitTests
         }
 
         [Fact, TestPriority(16)]
+        public async Task GetTagsAsync()
+        {
+            Assert.True(await projectApi.GetTagsAsync(createdProjectId, default).TryAsync());
+        }
+
+        [Fact, TestPriority(17)]
+
+        public async Task AddTagAsync()
+        {
+            var project = await projectApi.AddTagAsync(createdProjectId, createdProjectAccessToken, testTag, default);
+            createdProjectAccessToken = project.AccessToken;
+
+            Assert.Contains(project.Tags, t => t.Value<string>() == testTag);
+            Assert.Contains(JArray.Parse(await projectApi.GetTagsAsync(createdProjectId, default)), t => t.Value<string>() == testTag);
+        }
+
+        [Fact, TestPriority(18)]
+        public async Task RemoveTagAsync()
+        {
+            var project = await projectApi.RemoveTagAsync(createdProjectId, createdProjectAccessToken, testTag, default);
+            createdProjectAccessToken = project.AccessToken;
+
+            Assert.DoesNotContain(project.Tags, t => t.Value<string>() == testTag);
+            Assert.DoesNotContain(JArray.Parse(await projectApi.GetTagsAsync(createdProjectId, default)), t => t.Value<string>() == testTag);
+        }
+
+        [Fact, TestPriority(19)]
         public async Task DeleteProjectAsync()
         {
             Assert.True(await projectApi.DeleteAsync(createdProjectId, default));
