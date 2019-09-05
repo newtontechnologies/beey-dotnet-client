@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Beey.Api.Rest;
+using Beey.DataExchangeModel.Projects;
 
 namespace Beey.Client
 {
@@ -18,45 +19,42 @@ namespace Beey.Client
             }, cancellationToken));
         }
 
-        public async Task UploadFileAsync(int projectId, long accessToken, string fileName, byte[] fileContent,
+        public async Task<Project> UploadFileAsync(int projectId, long accessToken, string fileName, byte[] fileContent,
             string language = "cz", bool transcribe = true,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
-            await policy.ExecuteAsync(async (c) =>
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+            return await policy.ExecuteAsync(async (c) =>
             {
-                await FilesApi.UploadFileAsync(projectId, accessToken, fileName, fileContent, language, transcribe, cancellationToken);
-                return true;
+                return await FilesApi.UploadFileAsync(projectId, accessToken, fileName, fileContent, language, transcribe, cancellationToken);
             }, cancellationToken);
         }
 
-        public async Task UploadFileAsync(int projectId, long accessToken, string fileName, System.IO.Stream fileContent,
+        public async Task<Project> UploadFileAsync(int projectId, long accessToken, string fileName, System.IO.Stream fileContent,
             string language = "cz", bool transcribe = true,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
-            await policy.ExecuteAsync(async (c) =>
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+            return await policy.ExecuteAsync(async (c) =>
             {
-                await FilesApi.UploadFileAsync(projectId, accessToken, fileName, fileContent, language, transcribe, cancellationToken);
-                return true;
+                return await FilesApi.UploadFileAsync(projectId, accessToken, fileName, fileContent, language, transcribe, cancellationToken);
             }, cancellationToken);
         }
 
-        public async Task UploadFileAsync(int projectId,long accessToken, System.IO.FileInfo fileInfo,
+        public async Task<Project> UploadFileAsync(int projectId,long accessToken, System.IO.FileInfo fileInfo,
             string language = "cz", bool transcribe = true,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
-            await policy.ExecuteAsync(async (c) =>
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+            return await policy.ExecuteAsync(async (c) =>
             {
-                await FilesApi.UploadFileAsync(projectId, accessToken, fileInfo, language, transcribe, cancellationToken);
-                return true;
+                return await FilesApi.UploadFileAsync(projectId, accessToken, fileInfo, language, transcribe, cancellationToken);
             }, cancellationToken);
         }
 

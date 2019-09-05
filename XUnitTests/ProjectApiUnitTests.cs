@@ -225,8 +225,7 @@ namespace XUnitTests
         [Fact, TestPriority(12)]
         public async Task UploadFileAsync()
         {
-            await filesApi.UploadFileAsync(createdProjectId, createdProjectAccessToken, "test.mp3", testFile, "cz", false, default);
-            createdProjectAccessToken = (await projectApi.GetAsync(createdProjectId, default)).AccessToken;
+            createdProjectAccessToken = (await filesApi.UploadFileAsync(createdProjectId, createdProjectAccessToken, "test.mp3", testFile, "cz", false, default)).AccessToken;
         }
 
         [Fact, TestPriority(13)]
