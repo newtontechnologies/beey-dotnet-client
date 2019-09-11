@@ -58,6 +58,18 @@ namespace Beey.Client
             }, cancellationToken);
         }
 
+        public async Task<Project> TranscribeProjectAsync(int projectId, long accessToken, string language = "cz",
+            CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+            return await policy.ExecuteAsync(async (c) =>
+            {
+                return await FilesApi.TranscribeProjectAsync(projectId, accessToken, language, cancellationToken);
+            }, cancellationToken);
+        }
+
         public async Task<System.IO.Stream> DownloadFileAsync(int projectId, int recordingId,
             CancellationToken cancellationToken = default)
         {

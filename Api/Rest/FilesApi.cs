@@ -88,6 +88,19 @@ namespace Beey.Api.Rest
             finally { fileStream.Close(); }
         }
 
+        public async Task<Project> TranscribeProjectAsync(int projectId, long accessToken, string language,
+            CancellationToken cancellationToken)
+        {
+            var result = await CreateBuilder()
+               .AddUrlSegment("Transcribe")
+               .AddParameter("projectId", projectId.ToString())
+               .AddParameter("accessToken", accessToken.ToString())
+               .AddParameter("lang", language)
+               .ExecuteAsync(HttpMethod.POST, cancellationToken);
+
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
+        }
+
         public async Task<System.IO.Stream> DownloadFileAsync(int projectId, int recordingId,
             CancellationToken cancellationToken)
         {

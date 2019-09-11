@@ -228,6 +228,13 @@ namespace XUnitTests
             createdProjectAccessToken = (await filesApi.UploadFileAsync(createdProjectId, createdProjectAccessToken, "test.mp3", testFile, "cz", false, default)).AccessToken;
         }
 
+        [Fact, TestPriority(12.5)]
+        public async Task TranscribeUploadedFileAsync()
+        {
+            createdProjectAccessToken = (await filesApi.TranscribeProjectAsync(createdProjectId, createdProjectAccessToken, "cz", default)).AccessToken;
+            await Task.Delay(5000);
+        }
+
         [Fact, TestPriority(13)]
         public async Task DownloadFileAsync()
         {
