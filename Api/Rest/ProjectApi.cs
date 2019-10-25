@@ -136,8 +136,8 @@ namespace Beey.Api.Rest
                 .AddParameter("count", count)
                 .AddParameter("orderOn", GetOrderOn(orderOn))
                 .AddParameter("orderBy", ascending ? "ascending" : "descending")
-                .AddParameter("from", from?.ToString())
-                .AddParameter("to", to?.ToString())
+                .AddParameter("from", from?.ToString("o"))
+                .AddParameter("to", to?.ToString("o"))
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<ProjectAccess>>(r.GetStringContent()));
