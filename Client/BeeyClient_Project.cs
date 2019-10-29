@@ -157,16 +157,15 @@ namespace Beey.Client
             }, cancellationToken);
         }
 
-        public async Task ShareProjectAsync(int id, string email, long accessToken,
+        public async Task<Project> ShareProjectAsync(int id, string email, long accessToken,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
-            await policy.ExecuteAsync(async (c) =>
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+            return await policy.ExecuteAsync(async (c) =>
             {
-                await ProjectApi.ShareProjectAsync(id, accessToken, email, c);
-                return true;
+                return await ProjectApi.ShareProjectAsync(id, accessToken, email, c);
             }, cancellationToken);
         }
 

@@ -7,12 +7,12 @@ namespace Beey.Client
 {
     public partial class BeeyClient
     {
-        public async Task<System.IO.Stream?> DownloadTrsxAsync(int projectId, int trsxId,
+        public async Task<System.IO.Stream> DownloadTrsxAsync(int projectId, int trsxId,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<System.IO.Stream?>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<System.IO.Stream>();
             return (await policy.ExecuteAsync(async (c) =>
             {
                 return await FilesApi.DownloadTrsxAsync(projectId, trsxId, c);
