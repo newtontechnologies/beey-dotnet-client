@@ -14,6 +14,9 @@ namespace DemoApp
     {
         static async Task Main(string[] args)
         {
+            var a = AppDomain.CurrentDomain.BaseDirectory;
+            a = Path.Combine(a, "..", "..", "..");
+
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .Enrich.FromLogContext()

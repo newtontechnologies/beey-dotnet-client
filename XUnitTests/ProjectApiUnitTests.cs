@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using Newtonsoft.Json.Linq;
+using System.IO;
 
 namespace XUnitTests
 {
@@ -25,7 +26,8 @@ namespace XUnitTests
         private static readonly FilesApi filesApi = new FilesApi(Configuration.BeeyUrl);
         private static readonly WebSocketsApi wsApi = new WebSocketsApi(Configuration.BeeyUrl);
 
-        private static byte[] testFile;
+        private static byte[] testDummyFile;
+        private static readonly string testMp3FilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../../../Files", "test01.mp3");
 
         private static int createdProjectId;
         private static long createdProjectAccessToken;
@@ -37,10 +39,10 @@ namespace XUnitTests
             filesApi.Token = fixture.Token;
             wsApi.Token = fixture.Token;
 
-            testFile = new byte[256];
+            testDummyFile = new byte[256];
             for (int i = 0; i < 256; i++)
             {
-                testFile[i] = (byte)i;
+                testDummyFile[i] = (byte)i;
             }
         }
 
@@ -200,7 +202,7 @@ namespace XUnitTests
         [Fact, TestPriority(10)]
         public async Task UploadTrsxAsync()
         {
-            createdProjectAccessToken = (await projectApi.UploadTrsxAsync(createdProjectId, createdProjectAccessToken, "test.trsx", testFile, default)).AccessToken;
+            createdProjectAccessToken = (await projectApi.UploadTrsxAsync(createdProjectId, createdProjectAccessToken, "test.trsx", testDummyFile, default)).AccessToken;
         }
 
         // FilesApi
@@ -219,20 +221,44 @@ namespace XUnitTests
                 trsx = ms.ToArray();
             }
 
-            Assert.Equal(testFile, trsx);
+            Assert.Equal(testDummyFile, trsx);
         }
 
         [Fact, TestPriority(12)]
         public async Task UploadFileAsync()
         {
-            createdProjectAccessToken = (await filesApi.UploadFileAsync(createdProjectId, createdProjectAccessToken, "test.mp3", testFile, "cz", false, default)).AccessToken;
+            createdProjectAccessToken =
+                (await filesApi.UploadFileAsync(createdProjectId,
+                    createdProjectAccessToken,
+                    new System.IO.FileInfo(testMp3FilePath),
+                    "cz", false, default)).AccessToken;
         }
 
-        [Fact, TestPriority(12.5)]
+        [Fact, TestPriority(12.1)]
+        public async Task GetProjectProgressStateAsync()
+        {
+            while (await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
+            {
+                // wait
+            }
+        }
+
+        [Fact, TestPriority(12.2)]
         public async Task TranscribeUploadedFileAsync()
         {
             createdProjectAccessToken = (await filesApi.TranscribeProjectAsync(createdProjectId, createdProjectAccessToken, "cz", default)).AccessToken;
-            await Task.Delay(5000);
+        }
+
+        [Fact, TestPriority(12.3)]
+        public async Task GetProjectProgressMessagesAsync()
+        {
+            var messages = await projectApi.GetProgressMessagesAsync(createdProjectId, default);
+        }
+
+        [Fact, TestPriority(12.4)]
+        public async Task StopProjectTranscriptionAsync()
+        {
+            await projectApi.StopAsync(createdProjectId, default);
         }
 
         [Fact, TestPriority(13)]
@@ -249,16 +275,19 @@ namespace XUnitTests
                 file = ms.ToArray();
             }
 
-            Assert.Equal(testFile, file);
+            // backend converts the file to other format and we cannot check, whether it is the same,
+            // so just check, if there is something
+            // TODO: make better test
+            Assert.True(file.Length > 0);
         }
 
         [Fact, TestPriority(14)]
         public async Task UploadFileWebSocketsAsync()
         {
-            testFile[0] = 255;
-            using (var ms = new System.IO.MemoryStream(testFile))
+            testDummyFile[0] = 255;
+            using (var ms = new System.IO.MemoryStream(testDummyFile))
             {
-                await wsApi.UploadStreamAsync(createdProjectId, createdProjectAccessToken, "test2.mp3", ms, testFile.Length, "cz", false, default);
+                await wsApi.UploadStreamAsync(createdProjectId, createdProjectAccessToken, "test2.mp3", ms, testDummyFile.Length, "cz", false, default);
             }
 
             createdProjectAccessToken = (await projectApi.GetAsync(createdProjectId, default)).AccessToken;
@@ -267,7 +296,7 @@ namespace XUnitTests
         [Fact, TestPriority(15)]
         public async Task DownloadWebSocketFileAsync()
         {
-            testFile[0] = 255;
+            testDummyFile[0] = 255;
             var project = await projectApi.GetAsync(createdProjectId, default);
             Assert.NotNull(project!.RecordingId);
             var stream = await filesApi.DownloadFileAsync(createdProjectId, project!.RecordingId ?? throw new Exception(), default);
@@ -279,8 +308,8 @@ namespace XUnitTests
                 file = ms.ToArray();
             }
 
-            var res = file.SequenceEqual(testFile);
-            Assert.Equal(testFile, file);
+            var res = file.SequenceEqual(testDummyFile);
+            Assert.Equal(testDummyFile, file);
         }
 
         [Fact, TestPriority(16)]
