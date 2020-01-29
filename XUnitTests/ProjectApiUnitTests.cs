@@ -287,7 +287,7 @@ namespace XUnitTests
             testDummyFile[0] = 255;
             using (var ms = new System.IO.MemoryStream(testDummyFile))
             {
-                await wsApi.UploadStreamAsync(createdProjectId, createdProjectAccessToken, "test2.mp3", ms, testDummyFile.Length, "cz", false, default);
+                await wsApi.UploadStreamAsync(createdProjectId, "test2.mp3", ms, testDummyFile.Length, "cz", false, default);
             }
 
             createdProjectAccessToken = (await projectApi.GetAsync(createdProjectId, default)).AccessToken;
