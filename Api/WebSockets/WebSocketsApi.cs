@@ -135,7 +135,14 @@ namespace Beey.Api.WebSockets
                             }
                         }
                     }
-                    await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "file sent", c);
+
+                    //initiate close handshake
+                    await ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "file sent", c);
+                    //wait for close from server
+                    (bytes, res) = await ws.ReceiveMessageAsync(buffer, c);
+                    if (res.MessageType != WebSocketMessageType.Close)
+                        logger.Log(Logging.LogLevel.Warn, () => "data received after Websocket close handshake was intitiated");
+
                 }
 
                 return true;
@@ -148,14 +155,19 @@ namespace Beey.Api.WebSockets
 
             static async IAsyncEnumerable<string> receive(ClientWebSocket ws, CancellationToken c)
             {
+                byte[] buffer = new byte[32 * 1024];
                 (int bytes, ValueWebSocketReceiveResult result) res;
                 do
                 {
-                    byte[] buffer = new byte[32 * 1024];
                     //TODO: receive async can receive only partial message...
-                    //TODO: close handshake
                     res = await ws.ReceiveMessageAsync(buffer, c);
-                    yield return Encoding.UTF8.GetString(buffer, 0, res.bytes);
+                    if (res.result.MessageType != WebSocketMessageType.Close)
+                        yield return Encoding.UTF8.GetString(buffer, 0, res.bytes);
+
+                    if (c.IsCancellationRequested)
+                    {
+                        await ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", default);
+                    }
                 } while (res.bytes > 0 || res.result.MessageType != WebSocketMessageType.Close);
             }
 
@@ -164,7 +176,7 @@ namespace Beey.Api.WebSockets
             {
                 var ws = await CreateBuilder()
                        .AddUrlSegment("LiveUpdate")
-                       .AddParameter("id", projectId.ToString())
+                       .AddParameter("projectid", projectId.ToString())
                        .OpenConnectionAsync(c);
                 return receive(ws, c);
             }, cancellationToken);
