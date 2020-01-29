@@ -1,5 +1,5 @@
-﻿using Beey.DataExchangeModel.Projects;
-using BeeyUI;
+﻿using Beey.Client;
+using Beey.DataExchangeModel.Projects;
 using M3U8Parser;
 using Nanogrid.Utils;
 using Serilog;
