@@ -1,6 +1,6 @@
-﻿using Beey.DataExchangeModel.Files;
+﻿using Beey.Client;
+using Beey.DataExchangeModel.Files;
 using Beey.DataExchangeModel.Projects;
-using Beey.Client;
 using Newtonsoft.Json;
 using Serilog;
 using System;
@@ -79,7 +79,7 @@ namespace StreamPusher
         public static async Task<long> UploadStream(Stream data, BeeyClient beey, Project proj, Stream backup)
         {
             using LoggingStream ls = new LoggingStream(data);
-            await beey.UploadStreamAsync(proj.Id, proj.AccessToken, "icecast.mp3", ls, null, "cz", true, breaker.Token);
+            await beey.UploadStreamAsync(proj.Id, "icecast.mp3", ls, null, "cz", true, breaker.Token);
 
             return ls.TotalRead;
         }
