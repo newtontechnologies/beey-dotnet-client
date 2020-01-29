@@ -59,21 +59,21 @@ namespace M3U8StreamPusher
             _logger.Information("logged in");
 
             var now = DateTime.Now;
-            using var msw = new StreamWriter(File.Create("sejm_"+ start.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss") + ".msgs"));
+            using var msw = new StreamWriter(File.Create("sejm_" + start.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss") + ".msgs"));
 
             var projectname = $"sejm {start}; {length}";
             var p = await beey.CreateProjectAsync(new ParamsProjectInit() { Name = projectname, CustomPath = projectname });
-            
+
 
             _logger.Information("Created project {name} {@project}", projectname, p);
 
             var watchdog = Listener(beey, p, msw);
             _logger.Information("upload started");
-            var written = await UploadTracks(tracks, beey, p);
+            await UploadTracks(tracks, beey, p);
 
-            _logger.Information("Upload stopped, bytes written: {written}", written);
-
-            _logger.Information("upload finished");
+            _logger.Information("waiting for transcription to finish");
+            await watchdog;
+            _logger.Information("transcription finished");
 
         }
 
@@ -81,22 +81,27 @@ namespace M3U8StreamPusher
         {
 
             BufferingStream bs = new BufferingStream(512 * 1024, outdumpfilename: $"_sejm_{start:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss}.ts");
-            using LoggingStream ls = new LoggingStream(bs);
-            var writer = WriteTracks(data, ls);
-            var upload = beey.UploadStreamAsync(proj.Id, "sejm", ls, null, "pl-PL", true, breaker.Token);
+            var writer = WriteTracks(data, bs);
+            var upload = beey.UploadStreamAsync(proj.Id, "sejm", bs, null, "pl-PL", true, breaker.Token);
 
             await Task.WhenAll(writer, upload);
-            return ls.TotalRead;
+            return bs.Length;
         }
 
-        private static async Task WriteTracks(IAsyncEnumerable<TrackData> data, LoggingStream ls)
+        private static async Task WriteTracks(IAsyncEnumerable<TrackData> data, BufferingStream bs)
         {
             HttpClient downloader = new HttpClient();
+            int cnt = 0;
             await foreach (var t in data)
             {
+                _logger.Information("downloading segment:{cnt} {uri}", cnt, t.getUri());
                 var s = await downloader.GetStreamAsync(t.getUri());
-                await s.CopyToAsync(ls);
+                await s.CopyToAsync(bs);
+                cnt++;
             }
+
+            bs.CompleteWrite();
+
         }
 
         static readonly CancellationTokenSource breaker = new CancellationTokenSource();
@@ -111,6 +116,12 @@ namespace M3U8StreamPusher
                     await writer.WriteLineAsync(s);
                     if (!s.Contains("FileOffset") && s.Length > 5)
                         breaker.CancelAfter(TimeSpan.FromMinutes(1));
+
+                    if (s.Contains("RecognitionMsg") && !s.Contains("Started"))
+                    {
+                        _logger.Information("transcription ended on server with message {message}", s);
+                        breaker.Cancel();
+                    }
                 }
             }
             catch
