@@ -90,7 +90,9 @@ namespace M3U8StreamPusher
             _logger.Information("logged in");
 
             var now = DateTime.Now;
-            //using var msw = new StreamWriter(File.Create("sejm_" + Start.Value.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss") + ".msgs"));
+            StreamWriter msw = null;
+            if (Configuration.LogMessages)
+                msw = new StreamWriter(File.Create("sejm_" + Start.Value.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss") + ".msgs"));
 
             var projectname = $"sejm {Start}; {Length}";
             var p = await beey.CreateProjectAsync(new ParamsProjectInit() { Name = projectname, CustomPath = projectname });
@@ -98,7 +100,7 @@ namespace M3U8StreamPusher
 
             _logger.Information("Created project {name} {@project}", projectname, p);
 
-            var watchdog = Listener(beey, p, null);//msw);
+            var watchdog = Listener(beey, p, msw);
             _logger.Information("upload started");
             await UploadTracks(tracks, beey, p);
 
@@ -236,8 +238,7 @@ namespace M3U8StreamPusher
 
         public static async Task<long> UploadTracks(IAsyncEnumerable<TrackData> data, BeeyClient beey, Project proj)
         {
-            BufferingStream bs = new BufferingStream(512 * 1024);
-            //BufferingStream bs = new BufferingStream(512 * 1024, outdumpfilename: $"_sejm_{Start:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss}.ts");
+            BufferingStream bs = new BufferingStream(512 * 1024, outdumpfilename: Configuration.LogUpload ? $"_sejm_{Start:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss}.ts" : null);
             var writer = WriteTracks(data, bs);
             var upload = beey.UploadStreamAsync(proj.Id, "sejm", bs, null, Configuration.TranscriptionLocale, true, breaker.Token);
 

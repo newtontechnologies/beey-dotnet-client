@@ -10,5 +10,9 @@ namespace M3U8StreamPusher
         public string Password { get; set; }
         public string URL { get; set; }
         public string TranscriptionLocale { get; set; }
+
+        public bool LogMessages { get; set; }
+
+        public bool LogUpload { get; set; }
     }
 }
