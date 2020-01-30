@@ -59,8 +59,10 @@ namespace M3U8StreamPusher
             }
 
             var url = await ExtractMediaUrl(pageurl, Length, Start);
+            if (url is null)
+                return;
 
-            _logger.Information("starting download with start:{start:}, length:{duration}", Start, Length);
+            _logger.Information("starting download with start:{start}, length:{duration}", Start, Length);
 
             ManifestLoader loader = new ManifestLoader();
 
@@ -100,31 +102,58 @@ namespace M3U8StreamPusher
 
             var doc = new HtmlDocument();
             doc.LoadHtml(s);
+            var archid = new Uri(pageurl).Fragment?.Trim()?.Trim('#');
+            var data = FindLiveStreamData(doc);
+            if (data is null)
+                data = FindArchivedStreamData(doc, archid);
+            
 
-            var scripts = doc.DocumentNode.SelectNodes("//script");
-            var pars = scripts.Where(s => s.InnerText.Substring(0, Math.Max(0, Math.Min(s.InnerText.Length - 1, 100))).Contains(@"var params = {""db"":"));
-            var urlscript = pars.FirstOrDefault()?.InnerText;
-
-            if (string.IsNullOrWhiteSpace(urlscript))
+            if (data is null)
             {
-                _logger.Fatal("Cannot extract media url from given sejm url");
+                _logger.Fatal("There are no usable streams in given URL");
                 return null;
             }
-            Regex jsonextractor = new Regex("{.*}");
-
-            var m = jsonextractor.Match(urlscript);
-            if (!m.Success)
-            {
-                _logger.Fatal("Cannot extract media url from given sejm url");
-                return null;
-            }
-
-            var data = JObject.Parse(m.Value);
 
             var baseurl = data["params"]["file"].Value<string>();
+            var startms = DateTime.UnixEpoch.ToUniversalTime() + TimeSpan.FromMilliseconds(data["startMilis"].Value<long>());
+
+
+
+            var dstart = data["start"].ToObject<DateTime>();
+
+            var timezoneOffset = dstart - startms;
+
+            _logger.Information("Stream start found {start:o}{offset}", dstart, timezoneOffset.TotalHours.ToString("+#;-#;"));
+            if (!start.HasValue)
+            {
+                Program.Start = start = startms;
+                _logger.Information("Stream start loaded from page: {start:o}", start.Value.ToLocalTime());
+            }
+            var dstops = data["params"]["stop"].Value<string>();
+
+            TimeSpan totallength = TimeSpan.MaxValue;
+            if (DateTime.TryParse(dstops, out var dstop))
+            {
+                totallength = dstop - dstart;
+                _logger.Information("Stream total length found: {length}", totallength);
+            }
+
+            if (!length.HasValue && totallength != TimeSpan.MaxValue)
+            {
+                Program.Length = totallength;
+                _logger.Information("Stream length loaded from page: {start:o}", start.Value.ToLocalTime());
+            }
+
+
             baseurl = baseurl.Replace("/nvr/", "/livehls/") + "/playlist.m3u8";
 
-            var parser = new PlaylistParser(await downloader.GetStreamAsync(baseurl), Format.EXT_M3U, M3U8Parser.Encoding.UTF_8, ParsingMode.LENIENT);
+
+            var startts = startms - Epoch;
+            baseurl = $"{baseurl}?startTime={(long)(startts).TotalMilliseconds}";
+
+
+            var manifest = await downloader.GetStreamAsync(baseurl);
+            var parser = new PlaylistParser(manifest, Format.EXT_M3U, M3U8Parser.Encoding.UTF_8, ParsingMode.LENIENT);
             Playlist playlist = parser.parse();
 
             if (playlist.hasMasterPlaylist())
@@ -133,25 +162,63 @@ namespace M3U8StreamPusher
                 var streams = mp.getPlaylists();
 
                 var stream = streams.FirstOrDefault()?.getUri();
-                _logger.Information("Found {count} media streams on page, selecting {stream}", streams.Count, stream);
+                _logger.Information("Found {count} media streams, selecting {stream}", streams.Count, stream);
 
-                if (!start.HasValue)
-                {
-                    var startms = data["startMilis"].Value<long>();
-                    Program.Start = start = DateTime.UnixEpoch.ToUniversalTime() + TimeSpan.FromMilliseconds(startms);
-                    _logger.Information("Stream start loaded from page: {start:o}", start.Value.ToLocalTime());
-                }
+                startts = Program.Start.Value - Epoch;
+                var dataurl = $"{stream}&startTime={(long)startts.TotalMilliseconds}";
 
-                var startts = start.Value - Epoch;
-                var dataurl = $"{stream}&startTime={(long)(startts).TotalMilliseconds}";
-
-                if (length.HasValue)
-                    dataurl = $"{dataurl}&stopTime={(long)(startts + length.Value).TotalMilliseconds}";
+                if (Program.Length.HasValue)
+                    dataurl = $"{dataurl}&stopTime={(long)(startts + Program.Length.Value).TotalMilliseconds}";
 
                 return dataurl;
             }
 
             return null;
+        }
+
+        private static JObject FindArchivedStreamData(HtmlDocument doc, string archid)
+        {
+            _logger.Information("Searching for archived stream in given URL");
+            var details = doc.DocumentNode.SelectNodes("//div[@class='transDetails']");
+            var datacont = details.FirstOrDefault(d => d.InnerHtml.Contains(archid));
+            var datas = datacont.SelectSingleNode("span[@class='json hidden']")?.InnerText?.Trim();
+
+            if (string.IsNullOrWhiteSpace(datas))
+            {
+                _logger.Information("Canot extract archive stream from given url");
+                return null;
+            }
+
+            var data = JObject.Parse(datas);
+            _logger.Information("archived stream information found");
+            return data;
+        }
+
+        private static JObject FindLiveStreamData(HtmlDocument doc)
+        {
+            _logger.Information("Searching for livestream in given URL");
+            var scripts = doc.DocumentNode.SelectNodes("//script");
+            var pars = scripts.Where(s => s.InnerText.Contains(@"var params = {""db"":"));
+            var urlscript = pars.FirstOrDefault()?.InnerText;
+
+
+            if (string.IsNullOrWhiteSpace(urlscript))
+            {
+                _logger.Information("Cannot extract stream media script url");
+                return null;
+            }
+            Regex jsonextractor = new Regex("{.*}");
+
+            var m = jsonextractor.Match(urlscript);
+            if (!m.Success)
+            {
+                _logger.Information("Cannot extract stream media data");
+                return null;
+            }
+
+            var data = JObject.Parse(m.Value);
+            _logger.Information("Livestream information found");
+            return data;
         }
 
         public static async Task<long> UploadTracks(IAsyncEnumerable<TrackData> data, BeeyClient beey, Project proj)
