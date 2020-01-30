@@ -2,6 +2,7 @@
 using Beey.DataExchangeModel.Projects;
 using HtmlAgilityPack;
 using M3U8Parser;
+using Microsoft.Extensions.Configuration;
 using Nanogrid.Utils;
 using Newtonsoft.Json.Linq;
 using Serilog;
@@ -15,6 +16,7 @@ using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 namespace M3U8StreamPusher
 {
@@ -24,6 +26,9 @@ namespace M3U8StreamPusher
         static readonly ILogger _logger = Log.ForContext<Program>();
         static DateTime? Start;
         static TimeSpan? Length;
+
+        public static BeeyConfiguration Configuration { get; private set; }
+
         static async Task Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
@@ -36,6 +41,14 @@ namespace M3U8StreamPusher
             Console.WriteLine("argument 0 url with video player on sejm page 'http://www.sejm.gov.pl/Sejm9.nsf/transmisje.xsp?unid=933AA220B56F8D07C12584F8004A1ED0'");
             Console.WriteLine("argument 1 (optional) Length (Timespan) in ISO 8601 format ('2019-11-19T11:45:04+1 01:15:36')");
             Console.WriteLine("argument 2 (optional) Start datetime in ISO 8601 format ('02:45:15')");
+            //public static FileSourceConfiguration? FileSources => Root?.GetSection("FileSources").Get<FileSourceConfiguration>();
+            //private static IChangeToken? _changeToken;
+            var conf = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddXmlFile("Settings.xml", optional: false)
+                .Build();
+
+            Configuration = conf.GetSection("Beey").Get<BeeyConfiguration>();
 
             if (args.Length < 1 || args.Length > 3)
             {
@@ -68,16 +81,16 @@ namespace M3U8StreamPusher
 
             var tracks = loader.DownloadTracks(url, Length);
 
-            var beeyurl = @"http://localhost:61497";
-            var login = @"ladislav.seps@newtontech.cz";
-            var pass = "OVPgod";
+            var beeyurl = Configuration.URL;
+            var login = Configuration.Login;
+            var pass = Configuration.Password;
             _logger.Information("logging into beey");
             var beey = new BeeyClient(beeyurl);
             await beey.LoginAsync(login, pass);
             _logger.Information("logged in");
 
             var now = DateTime.Now;
-            using var msw = new StreamWriter(File.Create("sejm_" + Start.Value.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss") + ".msgs"));
+            //using var msw = new StreamWriter(File.Create("sejm_" + Start.Value.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss") + ".msgs"));
 
             var projectname = $"sejm {Start}; {Length}";
             var p = await beey.CreateProjectAsync(new ParamsProjectInit() { Name = projectname, CustomPath = projectname });
@@ -85,7 +98,7 @@ namespace M3U8StreamPusher
 
             _logger.Information("Created project {name} {@project}", projectname, p);
 
-            var watchdog = Listener(beey, p, msw);
+            var watchdog = Listener(beey, p, null);//msw);
             _logger.Information("upload started");
             await UploadTracks(tracks, beey, p);
 
@@ -106,7 +119,7 @@ namespace M3U8StreamPusher
             var data = FindLiveStreamData(doc);
             if (data is null)
                 data = FindArchivedStreamData(doc, archid);
-            
+
 
             if (data is null)
             {
@@ -223,10 +236,10 @@ namespace M3U8StreamPusher
 
         public static async Task<long> UploadTracks(IAsyncEnumerable<TrackData> data, BeeyClient beey, Project proj)
         {
-
-            BufferingStream bs = new BufferingStream(512 * 1024, outdumpfilename: $"_sejm_{Start:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss}.ts");
+            BufferingStream bs = new BufferingStream(512 * 1024);
+            //BufferingStream bs = new BufferingStream(512 * 1024, outdumpfilename: $"_sejm_{Start:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss}.ts");
             var writer = WriteTracks(data, bs);
-            var upload = beey.UploadStreamAsync(proj.Id, "sejm", bs, null, "pl-PL", true, breaker.Token);
+            var upload = beey.UploadStreamAsync(proj.Id, "sejm", bs, null, Configuration.TranscriptionLocale, true, breaker.Token);
 
             await Task.WhenAll(writer, upload);
             return bs.Length;
@@ -257,7 +270,9 @@ namespace M3U8StreamPusher
                 breaker.CancelAfter(TimeSpan.FromMinutes(1));
                 await foreach (var s in messages)
                 {
-                    await writer.WriteLineAsync(s);
+                    if (writer != null)
+                        await writer.WriteLineAsync(s);
+
                     if (!s.Contains("FileOffset") && s.Length > 5)
                         breaker.CancelAfter(TimeSpan.FromMinutes(1));
 
