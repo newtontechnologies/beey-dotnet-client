@@ -39,7 +39,7 @@ namespace M3U8StreamPusher
                 .CreateLogger();
 
             Console.WriteLine("argument 0 url with video player on sejm page 'http://www.sejm.gov.pl/Sejm9.nsf/transmisje.xsp?unid=933AA220B56F8D07C12584F8004A1ED0'");
-            Console.WriteLine("argument 1 (optional) Length (Timespan) in ISO 8601 format ('2019-11-19T11:45:04+1 01:15:36')");
+            Console.WriteLine("argument 1 (optional) Length (Timespan) in ISO 8601 format ('2019-11-19T11:45:04+1')");
             Console.WriteLine("argument 2 (optional) Start datetime in ISO 8601 format ('02:45:15')");
             //public static FileSourceConfiguration? FileSources => Root?.GetSection("FileSources").Get<FileSourceConfiguration>();
             //private static IChangeToken? _changeToken;
