@@ -1,7 +1,9 @@
 ﻿using Beey.Client;
 using Beey.DataExchangeModel.Projects;
+using HtmlAgilityPack;
 using M3U8Parser;
 using Nanogrid.Utils;
+using Newtonsoft.Json.Linq;
 using Serilog;
 using StreamPusher;
 using System;
@@ -10,6 +12,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,9 +20,10 @@ namespace M3U8StreamPusher
 {
     class Program
     {
+        static readonly DateTime Epoch = new DateTime(2001, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         static readonly ILogger _logger = Log.ForContext<Program>();
-        static DateTime start;
-        static TimeSpan length;
+        static DateTime? Start;
+        static TimeSpan? Length;
         static async Task Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
@@ -29,26 +33,38 @@ namespace M3U8StreamPusher
                 .WriteTo.File("pusher.log")
                 .CreateLogger();
 
-            Console.WriteLine("arguments: Start datetime in ISO 8601 format, Length (Timespan) in ISO 8601 format ('2019-11-19T11:45:04+1 01:15:36')");
+            Console.WriteLine("argument 0 url with video player on sejm page 'http://www.sejm.gov.pl/Sejm9.nsf/transmisje.xsp?unid=933AA220B56F8D07C12584F8004A1ED0'");
+            Console.WriteLine("argument 1 (optional) Length (Timespan) in ISO 8601 format ('2019-11-19T11:45:04+1 01:15:36')");
+            Console.WriteLine("argument 2 (optional) Start datetime in ISO 8601 format ('02:45:15')");
 
-            if (args.Length != 2)
+            if (args.Length < 1 || args.Length > 3)
             {
                 _logger.Error("wrong number of arguments");
                 return;
             }
 
+            var pageurl = args[0];
 
-            start = DateTime.Parse(args[0]);
-            length = TimeSpan.Parse(args[1]);
-            _logger.Information("starting download with start:{start}, length:{duration}", start, length);
+            _logger.Information("Parsing page {page} for media streams", pageurl);
+            if (args.Length > 1)
+            {
+                Length = TimeSpan.Parse(args[1]);
+                _logger.Information("Maximum of {length} will be transcribed", Length);
+            }
 
-            //var t1 = TimeSpan.FromMilliseconds(595853104017);
-            //var t2 = TimeSpan.FromMilliseconds(595861240000);            
-            //var dataurl = @"http://r.dcs.redcdn.pl/livehls/o2/sejm/ENC27/live.livx/playlist.m3u8?bitrate=1028000&audioId=1&videoId=4&startTime=595853104017&stopTime=595861240000";
+            if (args.Length > 2)
+            {
+                Start = DateTime.Parse(args[2]);
+                _logger.Information("Start time {start} will be requested as stream start", Start);
+            }
+
+            var url = await ExtractMediaUrl(pageurl, Length, Start);
+
+            _logger.Information("starting download with start:{start:}, length:{duration}", Start, Length);
 
             ManifestLoader loader = new ManifestLoader();
 
-            var tracks = loader.DownloadTracks(start, length);
+            var tracks = loader.DownloadTracks(url, Length);
 
             var beeyurl = @"http://localhost:61497";
             var login = @"ladislav.seps@newtontech.cz";
@@ -59,9 +75,9 @@ namespace M3U8StreamPusher
             _logger.Information("logged in");
 
             var now = DateTime.Now;
-            using var msw = new StreamWriter(File.Create("sejm_" + start.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss") + ".msgs"));
+            using var msw = new StreamWriter(File.Create("sejm_" + Start.Value.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss") + ".msgs"));
 
-            var projectname = $"sejm {start}; {length}";
+            var projectname = $"sejm {Start}; {Length}";
             var p = await beey.CreateProjectAsync(new ParamsProjectInit() { Name = projectname, CustomPath = projectname });
 
 
@@ -77,10 +93,71 @@ namespace M3U8StreamPusher
 
         }
 
+        private static async Task<string> ExtractMediaUrl(string pageurl, TimeSpan? length, DateTime? start)
+        {
+            HttpClient downloader = new HttpClient();
+            var s = await downloader.GetStringAsync(pageurl);
+
+            var doc = new HtmlDocument();
+            doc.LoadHtml(s);
+
+            var scripts = doc.DocumentNode.SelectNodes("//script");
+            var pars = scripts.Where(s => s.InnerText.Substring(0, Math.Max(0, Math.Min(s.InnerText.Length - 1, 100))).Contains(@"var params = {""db"":"));
+            var urlscript = pars.FirstOrDefault()?.InnerText;
+
+            if (string.IsNullOrWhiteSpace(urlscript))
+            {
+                _logger.Fatal("Cannot extract media url from given sejm url");
+                return null;
+            }
+            Regex jsonextractor = new Regex("{.*}");
+
+            var m = jsonextractor.Match(urlscript);
+            if (!m.Success)
+            {
+                _logger.Fatal("Cannot extract media url from given sejm url");
+                return null;
+            }
+
+            var data = JObject.Parse(m.Value);
+
+            var baseurl = data["params"]["file"].Value<string>();
+            baseurl = baseurl.Replace("/nvr/", "/livehls/") + "/playlist.m3u8";
+
+            var parser = new PlaylistParser(await downloader.GetStreamAsync(baseurl), Format.EXT_M3U, M3U8Parser.Encoding.UTF_8, ParsingMode.LENIENT);
+            Playlist playlist = parser.parse();
+
+            if (playlist.hasMasterPlaylist())
+            {
+                var mp = playlist.getMasterPlaylist();
+                var streams = mp.getPlaylists();
+
+                var stream = streams.FirstOrDefault()?.getUri();
+                _logger.Information("Found {count} media streams on page, selecting {stream}", streams.Count, stream);
+
+                if (!start.HasValue)
+                {
+                    var startms = data["startMilis"].Value<long>();
+                    Program.Start = start = DateTime.UnixEpoch.ToUniversalTime() + TimeSpan.FromMilliseconds(startms);
+                    _logger.Information("Stream start loaded from page: {start:o}", start.Value.ToLocalTime());
+                }
+
+                var startts = start.Value - Epoch;
+                var dataurl = $"{stream}&startTime={(long)(startts).TotalMilliseconds}";
+
+                if (length.HasValue)
+                    dataurl = $"{dataurl}&stopTime={(long)(startts + length.Value).TotalMilliseconds}";
+
+                return dataurl;
+            }
+
+            return null;
+        }
+
         public static async Task<long> UploadTracks(IAsyncEnumerable<TrackData> data, BeeyClient beey, Project proj)
         {
 
-            BufferingStream bs = new BufferingStream(512 * 1024, outdumpfilename: $"_sejm_{start:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss}.ts");
+            BufferingStream bs = new BufferingStream(512 * 1024, outdumpfilename: $"_sejm_{Start:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss}.ts");
             var writer = WriteTracks(data, bs);
             var upload = beey.UploadStreamAsync(proj.Id, "sejm", bs, null, "pl-PL", true, breaker.Token);
 

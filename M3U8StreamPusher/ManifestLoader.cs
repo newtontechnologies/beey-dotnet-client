@@ -2,6 +2,7 @@
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -16,22 +17,31 @@ namespace M3U8StreamPusher
         HashSet<string> processed = new HashSet<string>();
         DateTime lastnew = DateTime.Now;
         int waitcnt = 0;
-        public async IAsyncEnumerable<TrackData> DownloadTracks(DateTime start, TimeSpan length)
+        public async IAsyncEnumerable<TrackData> DownloadTracks(string dataurl, TimeSpan? length)
         {
-            var t1 = start - Epoch;
-            var t2 = t1 + length;
-            var dataurl = $"http://r.dcs.redcdn.pl/livehls/o2/sejm/ENC27/live.livx/playlist.m3u8?bitrate=1028000&audioId=1&videoId=4&startTime={(long)t1.TotalMilliseconds}&stopTime={(long)t2.TotalMilliseconds}";
-
+            if (length is null)
+                length = TimeSpan.MaxValue;
             _logger.Information("manifest: {url}", dataurl);
 
             while (true)
             {
 
-                HttpClient downloader = new HttpClient();
-                var data = await downloader.GetStreamAsync(dataurl);
-                var parser = new PlaylistParser(data, Format.EXT_M3U, M3U8Parser.Encoding.UTF_8, ParsingMode.LENIENT);
+                Stream data = null;
+                try
+                {
+                    HttpClient downloader = new HttpClient();
+                    data = await downloader.GetStreamAsync(dataurl);
+                }
+                catch (Exception e)
+                {
+                    _logger.Fatal(e, "Manifest download failed, waiting 30s to retry");
+                    await Task.Delay(TimeSpan.FromSeconds(30));
+                    continue;
+                }
 
+                var parser = new PlaylistParser(data, Format.EXT_M3U, M3U8Parser.Encoding.UTF_8, ParsingMode.LENIENT);
                 Playlist playlist = parser.parse();
+
 
                 if (playlist.hasMasterPlaylist() || !playlist.hasMediaPlaylist() || playlist.getMediaPlaylist().getUnknownTags().Count != 1 || playlist.getMediaPlaylist().getUnknownTags().First() != $"#EXT-X-INDEPENDENT-SEGMENTS")
                 {
