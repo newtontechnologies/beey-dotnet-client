@@ -92,7 +92,7 @@ namespace M3U8StreamPusher
             var now = DateTime.Now;
             StreamWriter msw = null;
             if (Configuration.LogMessages)
-                msw = new StreamWriter(File.Create("sejm_" + Start.Value.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss") + ".msgs"));
+                msw = new StreamWriter(File.Create("sejm_" + Start.Value.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss") + ".msgs")) { AutoFlush = true };
 
             var projectname = $"sejm {Start}; {Length}";
             var p = await beey.CreateProjectAsync(new ParamsProjectInit() { Name = projectname, CustomPath = projectname });
@@ -101,6 +101,7 @@ namespace M3U8StreamPusher
             _logger.Information("Created project {name} {@project}", projectname, p);
 
             var watchdog = Listener(beey, p, msw);
+            await Task.Delay(TimeSpan.FromSeconds(2));
             _logger.Information("upload started");
             await UploadTracks(tracks, beey, p);
 
@@ -267,7 +268,10 @@ namespace M3U8StreamPusher
         {
             try
             {
+                _logger.Information("Opening websocket to listen to beey messages");
                 var messages = await beey.ListenToMessages(proj.Id, breaker.Token);
+
+                _logger.Information("Listening connected");
                 breaker.CancelAfter(TimeSpan.FromMinutes(1));
                 await foreach (var s in messages)
                 {
@@ -284,9 +288,9 @@ namespace M3U8StreamPusher
                     }
                 }
             }
-            catch
+            catch (Exception e)
             {
-
+                _logger.Error(e, "Listening to beey messages failed");
             }
             breaker.Cancel();
         }
