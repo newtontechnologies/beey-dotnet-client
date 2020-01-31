@@ -14,5 +14,6 @@ namespace M3U8StreamPusher
         public bool LogMessages { get; set; }
 
         public bool LogUpload { get; set; }
+        public bool MessageEcho { get; set; }
     }
 }

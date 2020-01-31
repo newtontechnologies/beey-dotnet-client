@@ -3,5 +3,6 @@
   <Beey Login="ladislav.seps@newtontech.cz" Password="OVPgod" URL="http://localhost:61497" TranscriptionLocale="pl-PL">
     <LogMessages>true</LogMessages>
     <LogUpload>true</LogUpload>
+    <MessageEcho>true</MessageEcho>
    </Beey>
 </Configuration>

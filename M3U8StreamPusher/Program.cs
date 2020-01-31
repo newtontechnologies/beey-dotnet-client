@@ -275,6 +275,8 @@ namespace M3U8StreamPusher
                 breaker.CancelAfter(TimeSpan.FromMinutes(1));
                 await foreach (var s in messages)
                 {
+                    if (Configuration.MessageEcho)
+                        Console.WriteLine(s);
                     if (writer != null)
                         await writer.WriteLineAsync(s);
 
