@@ -86,9 +86,11 @@ namespace M3U8StreamPusher
 
             _logger.Information("starting download with start:{start}, length:{duration}", Start, Length);
 
+            Console.CancelKeyPress += Console_CancelKeyPress;
+
             ManifestLoader loader = new ManifestLoader();
 
-            var tracks = loader.DownloadTracks(url, Length, Skip);
+            var tracks = loader.DownloadTracks(url, Length, Skip, ctrlc.Token);
 
             var beeyurl = Configuration.URL;
             var login = Configuration.Login;
@@ -118,6 +120,16 @@ namespace M3U8StreamPusher
             await watchdog;
             _logger.Information("transcription finished");
 
+        }
+
+        static CancellationTokenSource ctrlc = new CancellationTokenSource();
+        private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            if (ctrlc.IsCancellationRequested)
+                return;
+            e.Cancel= true;
+            _logger.Warning("User intiatiated exit.. Upload will stop. You can kill the application with another press of Ctrl+C");
+            ctrlc.Cancel();
         }
 
         private static async Task<string> ExtractMediaUrl(string pageurl, TimeSpan? length, DateTime? start)
@@ -270,10 +282,13 @@ namespace M3U8StreamPusher
                 var s = await downloader.GetStreamAsync(t.getUri());
                 await s.CopyToAsync(bs);
                 cnt++;
+
+                if (ctrlc.IsCancellationRequested)
+                    break;
             }
 
             bs.CompleteWrite();
-
+            _logger.Information("Allwriting done");
         }
 
         static readonly CancellationTokenSource breaker = new CancellationTokenSource();

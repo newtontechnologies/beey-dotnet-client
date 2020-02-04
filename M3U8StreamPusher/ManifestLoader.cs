@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace M3U8StreamPusher
@@ -17,7 +18,7 @@ namespace M3U8StreamPusher
         HashSet<string> processed = new HashSet<string>();
         DateTime lastnew = DateTime.Now;
         int waitcnt = 0;
-        public async IAsyncEnumerable<TrackData> DownloadTracks(string dataurl, TimeSpan? length, TimeSpan? Skip = null)
+        public async IAsyncEnumerable<TrackData> DownloadTracks(string dataurl, TimeSpan? length, TimeSpan? Skip = null, CancellationToken breaker = default)
         {
             if (length is null || length == TimeSpan.Zero)
                 length = TimeSpan.MaxValue;
@@ -25,9 +26,8 @@ namespace M3U8StreamPusher
             var skip = Skip ?? TimeSpan.Zero;
             var skipped = 0;
 
-            while (true)
+            while (!breaker.IsCancellationRequested)
             {
-
                 Stream data = null;
                 try
                 {
@@ -71,7 +71,11 @@ namespace M3U8StreamPusher
                                 _logger.Information("Skipped {cnt} segments, starting transcription", skipped);
                         }
                         else
+                        {
                             yield return t;
+                            if (breaker.IsCancellationRequested)
+                                yield break;
+                        }
                         anynew = true;
                     }
                 }
