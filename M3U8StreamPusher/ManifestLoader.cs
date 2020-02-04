@@ -17,11 +17,13 @@ namespace M3U8StreamPusher
         HashSet<string> processed = new HashSet<string>();
         DateTime lastnew = DateTime.Now;
         int waitcnt = 0;
-        public async IAsyncEnumerable<TrackData> DownloadTracks(string dataurl, TimeSpan? length)
+        public async IAsyncEnumerable<TrackData> DownloadTracks(string dataurl, TimeSpan? length, TimeSpan? Skip = null)
         {
-            if (length is null)
+            if (length is null || length == TimeSpan.Zero)
                 length = TimeSpan.MaxValue;
             _logger.Information("manifest: {url}", dataurl);
+            var skip = Skip ?? TimeSpan.Zero;
+            var skipped = 0;
 
             while (true)
             {
@@ -52,15 +54,24 @@ namespace M3U8StreamPusher
 
                 var media = playlist.getMediaPlaylist();
                 var tracks = media.getTracks();
-
                 bool anynew = false;
+                if (skip > TimeSpan.Zero)
+                    _logger.Information("Skipping first {skip} in manifest", skip);
                 foreach (var t in tracks)
                 {
                     var uri = t.getUri();
                     if (!processed.Contains(uri))
                     {
                         processed.Add(uri);
-                        yield return t;
+                        if (skip > TimeSpan.Zero)
+                        {
+                            skip -= TimeSpan.FromSeconds(t.getTrackInfo().duration);
+                            skipped++;
+                            if (skip < TimeSpan.Zero)
+                                _logger.Information("Skipped {cnt} segments, starting transcription", skipped);
+                        }
+                        else
+                            yield return t;
                         anynew = true;
                     }
                 }

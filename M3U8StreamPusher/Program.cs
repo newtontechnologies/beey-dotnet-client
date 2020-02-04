@@ -26,6 +26,7 @@ namespace M3U8StreamPusher
         static readonly ILogger _logger = Log.ForContext<Program>();
         static DateTime? Start;
         static TimeSpan? Length;
+        static TimeSpan? Skip;
 
         public static BeeyConfiguration Configuration { get; private set; }
 
@@ -41,6 +42,8 @@ namespace M3U8StreamPusher
             Console.WriteLine("argument 0 url with video player on sejm page 'http://www.sejm.gov.pl/Sejm9.nsf/transmisje.xsp?unid=933AA220B56F8D07C12584F8004A1ED0'");
             Console.WriteLine("argument 1 (optional) Length (Timespan) in ISO 8601 format ('2019-11-19T11:45:04+1')");
             Console.WriteLine("argument 2 (optional) Start datetime in ISO 8601 format ('02:45:15')");
+            Console.WriteLine("argument 4 (optional) Skip first X minutes in manifest ISO 8601 format ('01:00:00')");
+
             //public static FileSourceConfiguration? FileSources => Root?.GetSection("FileSources").Get<FileSourceConfiguration>();
             //private static IChangeToken? _changeToken;
             var conf = new ConfigurationBuilder()
@@ -50,7 +53,7 @@ namespace M3U8StreamPusher
 
             Configuration = conf.GetSection("Beey").Get<BeeyConfiguration>();
 
-            if (args.Length < 1 || args.Length > 3)
+            if (args.Length < 1 || args.Length > 4)
             {
                 _logger.Error("wrong number of arguments");
                 return;
@@ -71,6 +74,12 @@ namespace M3U8StreamPusher
                 _logger.Information("Start time {start} will be requested as stream start", Start);
             }
 
+            if (args.Length > 3)
+            {
+                Skip = TimeSpan.Parse(args[3]);
+                _logger.Information("{skip} will be transcribed", Skip);
+            }
+
             var url = await ExtractMediaUrl(pageurl, Length, Start);
             if (url is null)
                 return;
@@ -79,7 +88,7 @@ namespace M3U8StreamPusher
 
             ManifestLoader loader = new ManifestLoader();
 
-            var tracks = loader.DownloadTracks(url, Length);
+            var tracks = loader.DownloadTracks(url, Length, Skip);
 
             var beeyurl = Configuration.URL;
             var login = Configuration.Login;
@@ -181,9 +190,13 @@ namespace M3U8StreamPusher
                 _logger.Information("Found {count} media streams, selecting {stream}", streams.Count, stream);
 
                 startts = Program.Start.Value - Epoch;
-                var dataurl = $"{stream}&startTime={(long)startts.TotalMilliseconds}";
+                string dataurl;
+                if (!stream.Contains("startTime="))
+                    dataurl = $"{stream}&startTime={(long)startts.TotalMilliseconds}";
+                else
+                    dataurl = stream;
 
-                if (Program.Length.HasValue)
+                if (Program.Length.HasValue && Program.Length > TimeSpan.Zero)
                     dataurl = $"{dataurl}&stopTime={(long)(startts + Program.Length.Value).TotalMilliseconds}";
 
                 return dataurl;
@@ -281,7 +294,7 @@ namespace M3U8StreamPusher
                         await writer.WriteLineAsync(s);
 
                     if (!s.Contains("FileOffset") && s.Length > 5)
-                        breaker.CancelAfter(TimeSpan.FromMinutes(1));
+                        breaker.CancelAfter(TimeSpan.FromMinutes(3));
 
                     if (s.Contains("RecognitionMsg") && !s.Contains("Started"))
                     {
