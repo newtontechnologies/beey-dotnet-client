@@ -98,7 +98,7 @@ namespace M3U8StreamPusher
 
                 if (!anynew)
                 {
-                    _logger.Information("Manifest on server was not updated for {delay}, manifest have {lengt} of {requested}", TimeSpan.FromMilliseconds(waitcnt * (waitcnt + 1) / 2), reallength, length);
+                    _logger.Information("Manifest on server was not updated for {delay}, manifest have {lengt} of {requested}", TimeSpan.FromSeconds(waitcnt * (waitcnt + 1) / 2), reallength, length);
                     waitcnt++;
                     var wait = TimeSpan.FromSeconds(waitcnt);
                     _logger.Information("Waiting {wait}", wait);
