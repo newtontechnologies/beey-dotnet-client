@@ -55,10 +55,15 @@ namespace M3U8StreamPusher
                 var media = playlist.getMediaPlaylist();
                 var tracks = media.getTracks();
                 bool anynew = false;
+
+                TimeSpan sent = TimeSpan.Zero;
+
                 if (skip > TimeSpan.Zero)
                     _logger.Information("Skipping first {skip} in manifest", skip);
                 foreach (var t in tracks)
                 {
+                    if (breaker.IsCancellationRequested)
+                        yield break;
                     var uri = t.getUri();
                     if (!processed.Contains(uri))
                     {
@@ -73,22 +78,20 @@ namespace M3U8StreamPusher
                         else
                         {
                             yield return t;
-                            if (breaker.IsCancellationRequested)
+                            sent += TimeSpan.FromSeconds(t.getTrackInfo().duration);
+
+                            if (sent >= length)
+                            {
+                                _logger.Information("Manifest downloaded sucessfully with {lengt} of media file", sent);
                                 yield break;
+                            }
                         }
                         anynew = true;
                     }
+                    if (breaker.IsCancellationRequested)
+                        yield break;
                 }
 
-
-                var reallength = TimeSpan.FromSeconds(tracks.Select(t => t.getTrackInfo().duration).Sum());
-                bool haveeverything = reallength + TimeSpan.FromSeconds(0.5) >= length;
-
-                if (haveeverything)
-                {
-                    _logger.Information("Manifest downloaded sucessfully with {lengt} of media file", reallength);
-                    yield break;
-                }
 
                 if (waitcnt > 10)
                 {
@@ -98,7 +101,7 @@ namespace M3U8StreamPusher
 
                 if (!anynew)
                 {
-                    _logger.Information("Manifest on server was not updated for {delay}, manifest have {lengt} of {requested}", TimeSpan.FromSeconds(waitcnt * (waitcnt + 1) / 2), reallength, length);
+                    _logger.Information("Manifest on server was not updated for {delay}, manifest have {lengt} of {requested}", TimeSpan.FromSeconds(waitcnt * (waitcnt + 1) / 2), sent, length);
                     waitcnt++;
                     var wait = TimeSpan.FromSeconds(waitcnt);
                     _logger.Information("Waiting {wait}", wait);
