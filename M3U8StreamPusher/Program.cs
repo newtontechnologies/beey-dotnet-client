@@ -29,6 +29,7 @@ namespace M3U8StreamPusher
         static TimeSpan? Skip;
 
         public static BeeyConfiguration Configuration { get; private set; }
+        public static bool Finished { get; private set; }
 
         static async Task Main(string[] args)
         {
@@ -310,13 +311,15 @@ namespace M3U8StreamPusher
                     if (s.Contains("RecognitionMsg") && !s.Contains("Started"))
                     {
                         _logger.Information("transcription ended on server with message {message}", s);
+                        Finished = true;
                         breaker.Cancel();
                     }
                 }
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Listening to beey messages failed");
+                if(e is TaskCanceledException && !Finished)
+                    _logger.Error(e, "Listening to beey messages failed");
             }
             breaker.Cancel();
         }

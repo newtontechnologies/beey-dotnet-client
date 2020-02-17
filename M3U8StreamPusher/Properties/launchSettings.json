@@ -2,7 +2,7 @@
   "profiles": {
     "M3U8StreamPusher": {
       "commandName": "Project",
-      "commandLineArgs": "http://www.sejm.gov.pl/Sejm9.nsf/transmisje_arch.xsp?unid=0E77B4F66510753EC125850A002868C1"
+      "commandLineArgs": "http://www.sejm.gov.pl/Sejm9.nsf/transmisje_arch.xsp?unid=0E77B4F66510753EC125850A002868C1 00:01:00"
     }
   }
 }
