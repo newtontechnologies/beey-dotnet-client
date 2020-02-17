@@ -300,7 +300,6 @@ namespace M3U8StreamPusher
                 var messages = await beey.ListenToMessages(proj.Id, breaker.Token);
 
                 _logger.Information("Listening connected");
-                breaker.CancelAfter(TimeSpan.FromMinutes(1));
                 await foreach (var s in messages)
                 {
                     if (Configuration.MessageEcho)
