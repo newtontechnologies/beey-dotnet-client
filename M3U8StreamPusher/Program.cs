@@ -308,9 +308,6 @@ namespace M3U8StreamPusher
                     if (writer != null)
                         await writer.WriteLineAsync(s);
 
-                    if (!s.Contains("FileOffset") && s.Length > 5)
-                        breaker.CancelAfter(TimeSpan.FromMinutes(3));
-
                     if (s.Contains("RecognitionMsg") && !s.Contains("Started"))
                     {
                         _logger.Information("transcription ended on server with message {message}", s);
