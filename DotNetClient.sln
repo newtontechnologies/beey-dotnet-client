@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpeakerDbUpdater", "Speaker
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M3U8StreamPusher", "M3U8StreamPusher\M3U8StreamPusher.csproj", "{6E620EDD-8C24-4E5E-8C1A-00C5D7280F81}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "open-m3u8", "open-m3u8\src\open-m3u8.csproj", "{5EC4B832-817C-4DFC-BC51-4D90859644D3}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		DataExchangeModel\Beey.DataExchangeModel.projitems*{306cefb5-a8c2-4577-8332-13827a9ec870}*SharedItemsImports = 13
@@ -96,6 +98,14 @@ Global
 		{6E620EDD-8C24-4E5E-8C1A-00C5D7280F81}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6E620EDD-8C24-4E5E-8C1A-00C5D7280F81}.Release|x86.ActiveCfg = Release|Any CPU
 		{6E620EDD-8C24-4E5E-8C1A-00C5D7280F81}.Release|x86.Build.0 = Release|Any CPU
+		{5EC4B832-817C-4DFC-BC51-4D90859644D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EC4B832-817C-4DFC-BC51-4D90859644D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EC4B832-817C-4DFC-BC51-4D90859644D3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5EC4B832-817C-4DFC-BC51-4D90859644D3}.Debug|x86.Build.0 = Debug|Any CPU
+		{5EC4B832-817C-4DFC-BC51-4D90859644D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EC4B832-817C-4DFC-BC51-4D90859644D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EC4B832-817C-4DFC-BC51-4D90859644D3}.Release|x86.ActiveCfg = Release|Any CPU
+		{5EC4B832-817C-4DFC-BC51-4D90859644D3}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
