@@ -78,7 +78,7 @@ namespace M3U8StreamPusher
             if (args.Length > 3)
             {
                 Skip = TimeSpan.Parse(args[3]);
-                _logger.Information("{skip} will be transcribed", Skip);
+                _logger.Information("{skip} will be skipped", Skip);
             }
 
             var url = await ExtractMediaUrl(pageurl, Length, Start);
@@ -128,7 +128,7 @@ namespace M3U8StreamPusher
         {
             if (ctrlc.IsCancellationRequested)
                 return;
-            e.Cancel= true;
+            e.Cancel = true;
             _logger.Warning("User intiatiated exit.. Upload will stop. You can kill the application with another press of Ctrl+C");
             ctrlc.Cancel();
         }
@@ -277,11 +277,21 @@ namespace M3U8StreamPusher
         {
             HttpClient downloader = new HttpClient();
             int cnt = 0;
+
             await foreach (var t in data)
             {
                 _logger.Information("downloading segment:{cnt} {uri}", cnt, t.getUri());
                 var s = await downloader.GetStreamAsync(t.getUri());
-                await s.CopyToAsync(bs);
+                try
+                {
+                    await s.CopyToAsync(bs);
+                }
+                catch (TaskCanceledException)
+                {
+                    _logger.Information("Data stream writing was cancelled during write.");
+                    return;
+                }
+
                 cnt++;
 
                 if (ctrlc.IsCancellationRequested)
@@ -297,6 +307,11 @@ namespace M3U8StreamPusher
         {
             try
             {
+                if (writer != null)
+                {
+                    await writer.WriteAsync('[');
+                    await writer.WriteLineAsync();
+                }
                 _logger.Information("Opening websocket to listen to beey messages");
                 var messages = await beey.ListenToMessages(proj.Id, breaker.Token);
 
@@ -306,7 +321,11 @@ namespace M3U8StreamPusher
                     if (Configuration.MessageEcho)
                         Console.WriteLine(s);
                     if (writer != null)
-                        await writer.WriteLineAsync(s);
+                    {
+                        await writer.WriteAsync(s);
+                        await writer.WriteAsync(',');
+                        await writer.WriteLineAsync();
+                    }
 
                     if (s.Contains("RecognitionMsg") && !s.Contains("Started"))
                     {
@@ -318,10 +337,24 @@ namespace M3U8StreamPusher
             }
             catch (Exception e)
             {
-                if(e is TaskCanceledException && !Finished)
+                if (e is TaskCanceledException && !Finished)
                     _logger.Error(e, "Listening to beey messages failed");
             }
-            breaker.Cancel();
+            finally
+            {
+                if (writer != null)
+                {
+                    await writer.WriteLineAsync();
+                    await writer.WriteAsync(']');
+                    writer.Close();
+                }
+
+                if (!breaker.IsCancellationRequested)
+                {
+                    _logger.Error("Beey message pipe was unexpectedly closed, closing upload");
+                    breaker.Cancel();
+                }
+            }
         }
     }
 }
