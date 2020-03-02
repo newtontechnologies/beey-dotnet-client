@@ -30,14 +30,14 @@ namespace M3U8StreamPusher
 
         public static BeeyConfiguration Configuration { get; private set; }
         public static bool Finished { get; private set; }
-
+        static readonly DateTime ProgramStarted = DateTime.UtcNow;
         static async Task Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
-                .WriteTo.File("pusher.log")
+                .WriteTo.File($"pusher{ProgramStarted:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss}.log")
                 .CreateLogger();
 
             Console.WriteLine("argument 0 url with video player on sejm page 'http://www.sejm.gov.pl/Sejm9.nsf/transmisje.xsp?unid=933AA220B56F8D07C12584F8004A1ED0'");
@@ -103,8 +103,8 @@ namespace M3U8StreamPusher
 
             var now = DateTime.Now;
             StreamWriter msw = null;
-            if (Configuration.LogMessages)
-                msw = new StreamWriter(File.Create("sejm_" + Start.Value.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss") + ".msgs")) { AutoFlush = true };
+            if (Configuration.LogMessages)//Start.Value.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss")
+                msw = new StreamWriter(File.Create($"pusher{ProgramStarted:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss}.msgs")) { AutoFlush = true };
 
             var projectname = $"sejm {Start}; {Length}";
             var p = await beey.CreateProjectAsync(new ParamsProjectInit() { Name = projectname, CustomPath = projectname });
@@ -265,7 +265,7 @@ namespace M3U8StreamPusher
 
         public static async Task<long> UploadTracks(IAsyncEnumerable<TrackData> data, BeeyClient beey, Project proj)
         {
-            BufferingStream bs = new BufferingStream(512 * 1024, outdumpfilename: Configuration.LogUpload ? $"_sejm_{Start:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss}.ts" : null);
+            BufferingStream bs = new BufferingStream(512 * 1024, outdumpfilename: Configuration.LogUpload ? $"pusher{ProgramStarted:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss}.ts" : null);
             var writer = WriteTracks(data, bs);
             var upload = beey.UploadStreamAsync(proj.Id, "sejm", bs, null, Configuration.TranscriptionLocale, true, breaker.Token);
 
@@ -327,12 +327,19 @@ namespace M3U8StreamPusher
                         await writer.WriteLineAsync();
                     }
 
+                    if (s.Contains("Failed"))
+                    {
+                        _logger.Error("server reported processing error {message}", s);
+                    }
+
                     if (s.Contains("RecognitionMsg") && !s.Contains("Started"))
                     {
                         _logger.Information("transcription ended on server with message {message}", s);
                         Finished = true;
                         breaker.Cancel();
                     }
+
+
                 }
             }
             catch (Exception e)
