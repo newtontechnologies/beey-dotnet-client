@@ -23,7 +23,7 @@ namespace M3U8StreamPusher
     class Program
     {
         static readonly DateTime Epoch = new DateTime(2001, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        static readonly ILogger _logger = Log.ForContext<Program>();
+        static ILogger _logger;
         static DateTime? Start;
         static TimeSpan? Length;
         static TimeSpan? Skip;
@@ -39,6 +39,8 @@ namespace M3U8StreamPusher
                 .WriteTo.Console()
                 .WriteTo.File($"pusher{ProgramStarted:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss}.log")
                 .CreateLogger();
+
+            _logger = Log.ForContext<Program>();
 
             Console.WriteLine("argument 0 url with video player on sejm page 'http://www.sejm.gov.pl/Sejm9.nsf/transmisje.xsp?unid=933AA220B56F8D07C12584F8004A1ED0'");
             Console.WriteLine("argument 1 (optional) Length (Timespan) in ISO 8601 format ('2019-11-19T11:45:04+1')");
@@ -263,10 +265,29 @@ namespace M3U8StreamPusher
             return data;
         }
 
+
         public static async Task<long> UploadTracks(IAsyncEnumerable<TrackData> data, BeeyClient beey, Project proj)
         {
             BufferingStream bs = new BufferingStream(512 * 1024, outdumpfilename: Configuration.LogUpload ? $"pusher{ProgramStarted:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss}.ts" : null);
-            var writer = WriteTracks(data, bs);
+
+            var enumerator = data.GetAsyncEnumerator();
+            var haveData = await enumerator.MoveNextAsync();
+
+            if (!haveData)
+            {
+                _logger.Error("caanot load any trackdata to upload");
+                return 0;
+            }
+
+            async IAsyncEnumerable<TrackData> dgen()
+            {
+                do
+                {
+                    yield return enumerator.Current;
+                } while (await enumerator.MoveNextAsync());
+            }
+
+            var writer = WriteTracks(dgen(), bs);
             var upload = beey.UploadStreamAsync(proj.Id, "sejm", bs, null, Configuration.TranscriptionLocale, true, breaker.Token);
 
             await Task.WhenAll(writer, upload);
