@@ -144,7 +144,7 @@ namespace Beey.Api.Rest
         }
 
         public async Task<Project> UploadTrsxAsync(int id, long accessToken, string fileName, byte[] trsx,
-            CancellationToken cancellationToken)
+            bool isOriginalTrsx, CancellationToken cancellationToken)
         {
             System.IO.MemoryStream memoryStream;
             try { memoryStream = new System.IO.MemoryStream(trsx); }
@@ -154,18 +154,19 @@ namespace Beey.Api.Rest
                 throw;
             }
 
-            try { return await UploadTrsxAsync(id, accessToken, fileName, memoryStream, cancellationToken); }
+            try { return await UploadTrsxAsync(id, accessToken, fileName, memoryStream, isOriginalTrsx, cancellationToken); }
             catch (Exception) { throw; }
             finally { memoryStream.Close(); }
         }
 
         public async Task<Project> UploadTrsxAsync(int id, long accessToken, string fileName, System.IO.Stream trsx,
-            CancellationToken cancellationToken)
+            bool isOriginalTrsx, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                .AddUrlSegment("Trsx")
                .AddParameter("id", id.ToString())
                .AddParameter("accessToken", accessToken.ToString())
+               .AddParameter("isOriginalTrsx", isOriginalTrsx)
                .AddFile(System.IO.Path.GetFileName(fileName), trsx)
                .ExecuteAsync(HttpMethod.POST, cancellationToken);
 

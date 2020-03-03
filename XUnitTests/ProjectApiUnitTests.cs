@@ -202,7 +202,7 @@ namespace XUnitTests
         [Fact, TestPriority(10)]
         public async Task UploadTrsxAsync()
         {
-            createdProjectAccessToken = (await projectApi.UploadTrsxAsync(createdProjectId, createdProjectAccessToken, "test.trsx", testDummyFile, default)).AccessToken;
+            createdProjectAccessToken = (await projectApi.UploadTrsxAsync(createdProjectId, createdProjectAccessToken, "test.trsx", testDummyFile, true, default)).AccessToken;
         }
 
         // FilesApi
