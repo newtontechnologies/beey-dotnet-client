@@ -117,9 +117,9 @@ namespace M3U8StreamPusher
             var watchdog = Listener(beey, p, msw);
             await Task.Delay(TimeSpan.FromSeconds(2));
             _logger.Information("upload started");
-            await UploadTracks(tracks, beey, p);
+            var len = await UploadTracks(tracks, beey, p);
 
-            _logger.Information("waiting for transcription to finish");
+            _logger.Information("uploaded {length} bytes waiting for transcription to finish", len);
             await watchdog;
             _logger.Information("transcription finished");
 
@@ -275,7 +275,7 @@ namespace M3U8StreamPusher
 
             if (!haveData)
             {
-                _logger.Error("caanot load any trackdata to upload");
+                _logger.Error("cannot load any trackdata to upload");
                 return 0;
             }
 
