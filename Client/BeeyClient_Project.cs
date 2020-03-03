@@ -184,26 +184,26 @@ namespace Beey.Client
         }
 
         public async Task<Project> UploadTrsxAsync(int projectId, long accessToken, string fileName, byte[] trsx,
-            CancellationToken cancellationToken = default)
+           bool isOriginalTrsx = false, CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
             var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
             return await policy.ExecuteAsync(async (c) =>
             {
-                return await ProjectApi.UploadTrsxAsync(projectId, accessToken, fileName, trsx, c);
+                return await ProjectApi.UploadTrsxAsync(projectId, accessToken, fileName, trsx, isOriginalTrsx, c);
             }, cancellationToken);
         }
 
         public async Task<Project> UploadTrsxAsync(int projectId, long accessToken, string fileName, System.IO.Stream trsx,
-            CancellationToken cancellationToken = default)
+            bool isOriginalTrsx = false, CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
             var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
             return await policy.ExecuteAsync(async (c) =>
             {
-                return await ProjectApi.UploadTrsxAsync(projectId, accessToken, fileName, trsx, c);
+                return await ProjectApi.UploadTrsxAsync(projectId, accessToken, fileName, trsx, isOriginalTrsx, c);
             }, cancellationToken);
         }
     }
