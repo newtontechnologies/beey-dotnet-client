@@ -25,6 +25,7 @@ namespace M3U8StreamPusher
             _logger.Information("manifest: {url}", dataurl);
             var skip = Skip ?? TimeSpan.Zero;
             var skipped = 0;
+            TimeSpan sent = TimeSpan.Zero;
 
             while (!breaker.IsCancellationRequested)
             {
@@ -55,8 +56,6 @@ namespace M3U8StreamPusher
                 var media = playlist.getMediaPlaylist();
                 var tracks = media.getTracks();
                 bool anynew = false;
-
-                TimeSpan sent = TimeSpan.Zero;
 
                 if (skip > TimeSpan.Zero)
                     _logger.Information("Skipping first {skip} in manifest", skip);

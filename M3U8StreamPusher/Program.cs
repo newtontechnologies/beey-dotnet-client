@@ -211,7 +211,7 @@ namespace M3U8StreamPusher
                 else
                     dataurl = stream;
 
-                if (Program.Length.HasValue && Program.Length > TimeSpan.Zero)
+                if (Program.Skip is null && Program.Length.HasValue && Program.Length > TimeSpan.Zero)
                     dataurl = $"{dataurl}&stopTime={(long)(startts + Program.Length.Value).TotalMilliseconds}";
 
                 return dataurl;
