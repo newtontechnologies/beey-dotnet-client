@@ -23,11 +23,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M3U8StreamPusher", "M3U8Str
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "open-m3u8", "open-m3u8\src\open-m3u8.csproj", "{5EC4B832-817C-4DFC-BC51-4D90859644D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectMerger", "ProjectJoiner\ProjectMerger.csproj", "{F7FE56D6-3C85-4845-8D39-5BBF99C5FA46}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProjectMerger", "ProjectMerger\ProjectMerger.csproj", "{F7FE56D6-3C85-4845-8D39-5BBF99C5FA46}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		DataExchangeModel\Beey.DataExchangeModel.projitems*{306cefb5-a8c2-4577-8332-13827a9ec870}*SharedItemsImports = 13
+		DataExchangeModel\Beey.DataExchangeModel.projitems*{328f4e0d-ef46-409f-a2cc-d7025294757f}*SharedItemsImports = 5
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
