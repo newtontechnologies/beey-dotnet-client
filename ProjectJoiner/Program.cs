@@ -30,11 +30,26 @@ namespace ProjectJoiner
                 .WriteTo.Console()
                 .CreateLogger();
 
+            if (args.Length < 2 || args.Length > 3)
+            {
+                Log.Fatal("Usage: projectId1 projectId2 [ISO language]");
+                return -1;
+            }
+
+            if (!int.TryParse(args[0], out int projectId1)
+                || !int.TryParse(args[1], out int projectId2))
+            {
+                Log.Fatal("Invalid ids {id1} {id2}", args[0], args[1]);
+                return -1;
+            }
+
+            string language = args.Length > 2
+                ? args[2]
+                : "cs-CZ";
+
+            // can be useful
             var cts = new CancellationTokenSource();
 
-            string language = "cs-CZ";
-            int projectId1 = 2717;
-            int projectId2 = 2718;
             var beey = new BeeyClient(Configuration.ProjectJoiner.Url);
             Log.Information("Logging in");
             await beey.LoginAsync(Configuration.ProjectJoiner.Login, Configuration.ProjectJoiner.Password, cts.Token);
@@ -51,7 +66,7 @@ namespace ProjectJoiner
             if ((project1.OriginalTrsxId == null && project1.CurrentTrsxId == null)
                 || (project2.OriginalTrsxId == null && project2.CurrentTrsxId == null))
             {
-                Log.Fatal("At least one of the projects does not contain trsx.");
+                Log.Fatal("At least one of the projects does not contain any trsx.");
                 return -1;
             }
 
@@ -64,7 +79,6 @@ namespace ProjectJoiner
             try
             {
                 await Task.WhenAll(recordingTask1, recordingTask2, trsxTask1, trsxTask2);
-                Log.Information("Done");
             }
             catch (Exception ex)
             {
@@ -73,118 +87,47 @@ namespace ProjectJoiner
             }
 
             string resultPath = "result.mp4";
-            Task<FileStream>? mergeAudioTask = null;
+            MemoryStream? mergedTrsx = null;
+            FileStream? mergedFile = null;
+
+            Log.Information("Merging files");
             try
             {
-                using (var joinedTrsx = new MemoryStream())
-                {
-                    Log.Information("Merging files");
-                    mergeAudioTask = MergeAudioFilesAsync(resultPath, await recordingTask1, "audio1.file", await recordingTask2, "audio2.file", cts.Token);
-                    MergeTrsxFiles(joinedTrsx, await trsxTask1, await trsxTask2);
-                    using (var joinedFile = await mergeAudioTask)
-                    {
-                        Log.Information("Creating project");
-                        var joinedProj = await beey.CreateProjectAsync(project1.Name + " + " + project2.Name, "", cts.Token);
-                        joinedProj = await beey.UploadTrsxAsync(joinedProj.Id, joinedProj.AccessToken, "joined.trsx", joinedTrsx, true, cts.Token);
-                        await beey.UploadStreamAsync(joinedProj.Id, joinedFile.Name, joinedFile, joinedFile.Length, language, false, cts.Token);
-                    }
-                }
-                Log.Information("Finished successfuly");
+                var mergeAudioTask = MergeAudioFilesAsync(resultPath, await recordingTask1, "audio1.file", await recordingTask2, "audio2.file", cts.Token);
+                mergedTrsx = MergeTrsxFiles(await trsxTask1, await trsxTask2);
+                mergedFile = await mergeAudioTask;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log.Fatal(ex, "Error when merging files.");
+                if (File.Exists(resultPath))
+                    File.Delete(resultPath);
+                return -1;
+            }
+
+            Log.Information("Creating project");
+            try
+            {
+                string mergedProjectName = project1.Name + " + " + project2.Name;
+                var mergedProj = await beey.CreateProjectAsync(mergedProjectName, "", cts.Token);
+                mergedProj = await beey.UploadTrsxAsync(mergedProj.Id, mergedProj.AccessToken, "merged.trsx", mergedTrsx, true, cts.Token);
+                await beey.UploadStreamAsync(mergedProj.Id, mergedFile.Name, mergedFile, mergedFile.Length, language, false, cts.Token);
+            }
+            catch (Exception ex)
+            {
+                mergedTrsx?.Dispose();
+                mergedFile?.Dispose();
+                Log.Fatal(ex, "Error when creating project.");
                 return -1;
             }
             finally
             {
-                if (mergeAudioTask != null)
-                {
-                    try
-                    {
-                        (await mergeAudioTask)?.Dispose();
-                    }
-                    catch { }
-                }
-
                 if (File.Exists(resultPath))
-                {
                     File.Delete(resultPath);
-                }
             }
 
+            Log.Information("Done");
             return 0;
-        }
-
-        private static bool SkipEmpty(IEnumerator<TranscriptionParagraph> enumerator)
-        {
-            var blink = TimeSpan.FromMilliseconds(100);
-            bool result = true;
-            while (result = enumerator.MoveNext())
-            {
-                var noises = enumerator.Current.Children.Where(ch => ch.InnerText.Contains("n::")).ToList();
-                foreach (var noise in noises)
-                {
-                    enumerator.Current.Children.Remove(noise);
-                }
-
-                if (enumerator.Current.Children.Count == 0) { continue; }
-
-                enumerator.Current.Begin = enumerator.Current.Children.First().Begin;
-                enumerator.Current.End = enumerator.Current.Children.Last().End;
-
-                if (enumerator.Current.Length > blink) { break; }
-            }
-
-            return result;
-        }
-        private static TimeSpan GetBeforeEnd(TranscriptionElement element)
-            => element.End - TimeSpan.FromMilliseconds(1);
-        private static void MergeTrsxFiles(Stream result, Stream stream1, Stream stream2)
-        {
-            var trsx1 = Transcription.Deserialize(stream1);
-            var trsx2 = Transcription.Deserialize(stream2);
-            var mergedTrsx = new Transcription();
-
-            var enumerator1 = trsx1.EnumerateParagraphs().GetEnumerator();
-            var enumerator2 = trsx2.EnumerateParagraphs().GetEnumerator();
-            var first = (Enumerator: enumerator1, CanRead: SkipEmpty(enumerator1));
-            var second = (Enumerator: enumerator2, CanRead: SkipEmpty(enumerator2));
-            while (first.CanRead || second.CanRead)
-            {
-                if (!first.CanRead)
-                {
-                    mergedTrsx.Add(second.Enumerator.Current);
-                    second.CanRead = SkipEmpty(second.Enumerator);
-                }
-                else if (!second.CanRead)
-                {
-                    mergedTrsx.Add(first.Enumerator.Current);
-                    first.CanRead = SkipEmpty(first.Enumerator);
-                }
-                else
-                {
-                    ref var earlier = ref first;
-                    ref var later = ref second;
-
-                    if (first.Enumerator.Current.Begin > second.Enumerator.Current.Begin)
-                    {
-                        earlier = ref second;
-                        later = ref first;
-                    }
-
-                    if (earlier.Enumerator.Current.End > later.Enumerator.Current.Begin)
-                    {
-                        var half = (earlier.Enumerator.Current.End - later.Enumerator.Current.Begin) / 2;
-                        earlier.Enumerator.Current.End -= half;
-                        later.Enumerator.Current.Begin += half;
-                    }
-                    mergedTrsx.Add(earlier.Enumerator.Current);
-                    earlier.CanRead = SkipEmpty(earlier.Enumerator);
-                }
-            }
-
-            mergedTrsx.Serialize(result);
-            result.Seek(0, SeekOrigin.Begin);
         }
 
         private static async Task<FileStream> MergeAudioFilesAsync(string resultPath, Stream stream1, string filePath1,
@@ -240,6 +183,7 @@ namespace ProjectJoiner
 
                 if (!ffmpeg.HasExited)
                 {
+                    Log.Fatal("FFmpeg got stuck.");
                     throw new Exception("FFmpeg got stuck.");
                 }
                 else if (ffmpeg.ExitCode != 0)
@@ -252,11 +196,6 @@ namespace ProjectJoiner
                     return File.OpenRead(resultPath);
                 }
             }
-            catch (Exception ex)
-            {
-                Log.Fatal(ex, "Error when merging.");
-                throw;
-            }
             finally
             {
                 Log.Information("Cleaning up");
@@ -267,5 +206,80 @@ namespace ProjectJoiner
                 File.Delete(filePath2);
             }
         }
+
+        private static MemoryStream MergeTrsxFiles(Stream stream1, Stream stream2)
+        {
+            var trsx1 = Transcription.Deserialize(stream1);
+            var trsx2 = Transcription.Deserialize(stream2);
+            var mergedTrsx = new Transcription();
+
+            var enumerator1 = trsx1.EnumerateParagraphs().GetEnumerator();
+            var enumerator2 = trsx2.EnumerateParagraphs().GetEnumerator();
+            var first = (Enumerator: enumerator1, CanRead: SkipEmpty(enumerator1));
+            var second = (Enumerator: enumerator2, CanRead: SkipEmpty(enumerator2));
+            while (first.CanRead || second.CanRead)
+            {
+                if (!first.CanRead)
+                {
+                    mergedTrsx.Add(second.Enumerator.Current);
+                    second.CanRead = SkipEmpty(second.Enumerator);
+                }
+                else if (!second.CanRead)
+                {
+                    mergedTrsx.Add(first.Enumerator.Current);
+                    first.CanRead = SkipEmpty(first.Enumerator);
+                }
+                else
+                {
+                    ref var earlier = ref first;
+                    ref var later = ref second;
+
+                    if (first.Enumerator.Current.Begin > second.Enumerator.Current.Begin)
+                    {
+                        earlier = ref second;
+                        later = ref first;
+                    }
+
+                    if (earlier.Enumerator.Current.End > later.Enumerator.Current.Begin)
+                    {
+                        var half = (earlier.Enumerator.Current.End - later.Enumerator.Current.Begin) / 2;
+                        earlier.Enumerator.Current.End -= half;
+                        later.Enumerator.Current.Begin += half;
+                    }
+                    mergedTrsx.Add(earlier.Enumerator.Current);
+                    earlier.CanRead = SkipEmpty(earlier.Enumerator);
+                }
+            }
+
+            var result = new MemoryStream();
+            mergedTrsx.Serialize(result);
+            result.Seek(0, SeekOrigin.Begin);
+            return result;
+        }
+
+        private static bool SkipEmpty(IEnumerator<TranscriptionParagraph> enumerator)
+        {
+            var blink = TimeSpan.FromMilliseconds(100);
+            bool result = true;
+            while (result = enumerator.MoveNext())
+            {
+                var noises = enumerator.Current.Children.Where(ch => ch.InnerText.Contains("n::")).ToList();
+                foreach (var noise in noises)
+                {
+                    enumerator.Current.Children.Remove(noise);
+                }
+
+                if (enumerator.Current.Children.Count == 0) { continue; }
+
+                enumerator.Current.Begin = enumerator.Current.Children.First().Begin;
+                enumerator.Current.End = enumerator.Current.Children.Last().End;
+
+                if (enumerator.Current.Length > blink) { break; }
+            }
+
+            return result;
+        }
+        private static TimeSpan GetBeforeEnd(TranscriptionElement element)
+            => element.End - TimeSpan.FromMilliseconds(1);
     }
 }
