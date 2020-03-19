@@ -23,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M3U8StreamPusher", "M3U8Str
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "open-m3u8", "open-m3u8\src\open-m3u8.csproj", "{5EC4B832-817C-4DFC-BC51-4D90859644D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectJoiner", "ProjectJoiner\ProjectJoiner.csproj", "{F7FE56D6-3C85-4845-8D39-5BBF99C5FA46}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectMerger", "ProjectJoiner\ProjectMerger.csproj", "{F7FE56D6-3C85-4845-8D39-5BBF99C5FA46}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution

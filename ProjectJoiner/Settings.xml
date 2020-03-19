@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 
 <Configuration>
-  <ProjectJoiner Url="http://localhost:61497"
+  <ProjectMerger Url="http://localhost:61497"
                     Login="milos.kudelka@newtontech.cz" Password="OVPgod">
     <WinFFMpeg>.\FFmpeg\ffmpeg.exe</WinFFMpeg>
     <WinFFProbe>.\FFmpeg\ffprobe.exe</WinFFProbe>
     <UnixFFMpeg>./FFmpeg/ffmpeg</UnixFFMpeg>
     <UnixFFProbe>./FFmpeg/ffprobe</UnixFFProbe>
     <MergeParams>-loglevel info -i "{0}" -i "{1}" -filter_complex amerge=inputs=2 "{2}"</MergeParams>
-  </ProjectJoiner>
+  </ProjectMerger>
 </Configuration>

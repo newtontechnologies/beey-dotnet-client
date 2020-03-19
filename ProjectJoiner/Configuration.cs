@@ -2,14 +2,14 @@
 using System;
 using System.IO;
 
-namespace ProjectJoiner
+namespace ProjectMerger
 {
     static class Configuration
     {
         private static IConfigurationRoot config;
 
-        public static ProjectJoinerConfiguration ProjectJoiner
-            => config.GetSection("ProjectJoiner").Get<ProjectJoinerConfiguration>();
+        public static ProjectMergerConfiguration ProjectMerger
+            => config.GetSection("ProjectMerger").Get<ProjectMergerConfiguration>();
 
         public static void Load()
         {
@@ -21,7 +21,7 @@ namespace ProjectJoiner
         }
     }
 
-    class ProjectJoinerConfiguration
+    class ProjectMergerConfiguration
     {
         public string? Url { get; set; }
         public string? Login { get; set; }

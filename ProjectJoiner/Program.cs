@@ -9,16 +9,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using TranscriptionCore;
 
-namespace ProjectJoiner
+namespace ProjectMerger
 {
     class Program
     {
         static async Task<int> Main(string[] args)
         {
             Configuration.Load();
-            if (Configuration.ProjectJoiner.Url == null
-                || Configuration.ProjectJoiner.Login == null
-                || Configuration.ProjectJoiner.Password == null)
+            if (Configuration.ProjectMerger.Url == null
+                || Configuration.ProjectMerger.Login == null
+                || Configuration.ProjectMerger.Password == null)
             {
                 Log.Fatal("Missing settings: Url, Login, Password");
                 return -1;
@@ -32,7 +32,7 @@ namespace ProjectJoiner
 
             if (args.Length < 2 || args.Length > 3)
             {
-                Log.Fatal("Usage: projectId1 projectId2 [ISO language]");
+                Log.Fatal("Missing arguments. Usage: projectId1 projectId2 [ISO language]");
                 return -1;
             }
 
@@ -50,9 +50,9 @@ namespace ProjectJoiner
             // can be useful
             var cts = new CancellationTokenSource();
 
-            var beey = new BeeyClient(Configuration.ProjectJoiner.Url);
+            var beey = new BeeyClient(Configuration.ProjectMerger.Url);
             Log.Information("Logging in");
-            await beey.LoginAsync(Configuration.ProjectJoiner.Login, Configuration.ProjectJoiner.Password, cts.Token);
+            await beey.LoginAsync(Configuration.ProjectMerger.Login, Configuration.ProjectMerger.Password, cts.Token);
 
             Log.Information("Downloading projects");
             var project1 = await beey.GetProjectAsync(projectId1, cts.Token);
@@ -143,15 +143,15 @@ namespace ProjectJoiner
             }
 
             Log.Information("Starting audio merge");
-            string parameters = string.Format(Configuration.ProjectJoiner.MergeParams!, filePath1, filePath2, resultPath);
-            Log.Debug("FFMpeg parameters: {ffmpeg} {parameters}", Configuration.ProjectJoiner.WinFFMpeg, parameters);
+            string parameters = string.Format(Configuration.ProjectMerger.MergeParams!, filePath1, filePath2, resultPath);
+            Log.Debug("FFMpeg parameters: {ffmpeg} {parameters}", Configuration.ProjectMerger.WinFFMpeg, parameters);
 
             Process? ffmpeg = null;
             try
             {
                 ffmpeg = Process.Start(new ProcessStartInfo
                 {
-                    FileName = Configuration.ProjectJoiner.WinFFMpeg,
+                    FileName = Configuration.ProjectMerger.WinFFMpeg,
                     Arguments = parameters,
                     RedirectStandardInput = false,
                     RedirectStandardOutput = true,
