@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 
 namespace Beey.Api.Rest
 {
-    class LexiconApi : BaseAuthApi<LexiconApi>
+    public class LexiconApi : BaseAuthApi<LexiconApi>
     {
         public LexiconApi(string url) : base(url)
         {
             EndPoint = "API/Lexicon";
         }
 
-        public async Task<TmpValidationError[]> ValidateLexiconEntry(string text, string pronunciation, string language,
+        public async Task<TmpValidationError[]> ValidateLexiconEntryAsync(string text, string pronunciation, string language,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
@@ -28,7 +28,7 @@ namespace Beey.Api.Rest
             return HandleResponse(result, r => JsonConvert.DeserializeObject<TmpValidationError[]>(r.GetStringContent()));
         }
 
-        public async Task<TmpValidationError[]> ValidateLexicon(string language,
+        public async Task<TmpValidationError[]> ValidateLexiconAsync(string language,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()

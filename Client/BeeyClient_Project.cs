@@ -8,6 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Beey.Api.Rest;
 using System.Net;
+using Beey.DataExchangeModel.Messaging;
+using Beey.DataExchangeModel.Export;
+using System.IO;
 
 namespace Beey.Client
 {
@@ -183,52 +186,72 @@ namespace Beey.Client
             return listing;
         }
 
-        public async Task<Project> UploadCurrentTrsxAsync(int projectId, long accessToken, string fileName, byte[] trsx,
-            CancellationToken cancellationToken = default)
+        public async Task ResetProjectAsync(int projectId, CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
-            return await policy.ExecuteAsync(async (c) =>
+            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
+            await policy.ExecuteAsync(async (c) =>
             {
-                return await ProjectApi.UploadCurrentTrsxAsync(projectId, accessToken, fileName, trsx, c);
+                await ProjectApi.ResetAsync(projectId, c);
+                return true;
             }, cancellationToken);
         }
 
-        public async Task<Project> UploadCurrentTrsxAsync(int projectId, long accessToken, string fileName, System.IO.Stream trsx,
-            CancellationToken cancellationToken = default)
+        public async Task<Message[]> GetMessagesAsync(int id, DateTime? from = null, CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Message[]>();
             return await policy.ExecuteAsync(async (c) =>
             {
-                return await ProjectApi.UploadCurrentTrsxAsync(projectId, accessToken, fileName, trsx, c);
+                return await ProjectApi.GetMessagesAsync(id, from, c);
             }, cancellationToken);
         }
 
-        public async Task<Project> UploadOriginalTrsxAsync(int projectId, long accessToken, string fileName, byte[] trsx,
-            CancellationToken cancellationToken = default)
+        public async Task<string> GetProjectDashConversionStateAsync(int projectId, CancellationToken cancellationToken)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<string>();
             return await policy.ExecuteAsync(async (c) =>
             {
-                return await ProjectApi.UploadOriginalTrsxAsync(projectId, accessToken, fileName, trsx, c);
+                return await ProjectApi.GetDashConversionStateAsync(projectId, c);
+            }, cancellationToken);
+        }
+        public async Task ConvertProjectToDashAsync(int projectId, CancellationToken cancellationToken)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
+            await policy.ExecuteAsync(async (c) =>
+            {
+                await ProjectApi.ConvertToDashAsync(projectId, c);
+                return true;
             }, cancellationToken);
         }
 
-        public async Task<Project> UploadOriginalTrsxAsync(int projectId, long accessToken, string fileName, System.IO.Stream trsx,
-            CancellationToken cancellationToken = default)
+        public async Task<ExportFormat[]> GetSubtitleExportFormatsAsync(CancellationToken cancellationToken)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<ExportFormat[]>();
             return await policy.ExecuteAsync(async (c) =>
             {
-                return await ProjectApi.UploadOriginalTrsxAsync(projectId, accessToken, fileName, trsx, c);
+                return await ProjectApi.GetSubtitleExportFormatsAsync(1, c);
             }, cancellationToken);
+        }
+
+        public async Task<Stream> ExportSubtitlesAsync(int projectId, int formatId,
+            CancellationToken cancellationToken)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Stream>();
+            return (await policy.ExecuteAsync(async (c) =>
+            {
+                return await ProjectApi.ExportSubtitlesAsync(projectId, formatId, c);
+            }, cancellationToken));
         }
     }
 }

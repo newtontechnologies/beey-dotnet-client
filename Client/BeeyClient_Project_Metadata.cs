@@ -51,5 +51,41 @@ namespace Beey.Client
                 return await ProjectApi.RemoveTagAsync(id, accessToken, tag, c);
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
+
+        public async Task<ProjectMetadata> GetMetadataAsync(int id, string key,
+           CancellationToken cancellationToken)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectMetadata>();
+            return await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                return await ProjectApi.GetMetadataAsync(id, key, c);
+            }, CreatePollyContext(cancellationToken), cancellationToken);
+        }
+
+        public async Task<Project> AddMetadataAsync(int id, long accessToken, string key,
+           CancellationToken cancellationToken)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+            return (await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                return await ProjectApi.AddMetadataAsync(id, accessToken, key, c);
+            }, CreatePollyContext(cancellationToken), cancellationToken));
+        }
+
+        public async Task<Project> RemoveMetadataAsync(int id, long accessToken, string key,
+           CancellationToken cancellationToken)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+            return (await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                return await ProjectApi.RemoveMetadataAsync(id, accessToken, key, c);
+            }, CreatePollyContext(cancellationToken), cancellationToken));
+        }
     }
 }

@@ -10,7 +10,7 @@ namespace Beey.Api.Rest
 {
     partial class ProjectApi : BaseAuthApi<ProjectApi>
     {
-        public async Task<ExportFormat[]> GetSubtitleExportFormats(int projectId, CancellationToken cancellationToken)
+        public async Task<ExportFormat[]> GetSubtitleExportFormatsAsync(int projectId, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                .AddUrlSegment(projectId.ToString())
@@ -20,7 +20,7 @@ namespace Beey.Api.Rest
             return HandleResponse(result, r => JsonConvert.DeserializeObject<ExportFormat[]>(r.GetStringContent()));
         }
 
-        public async Task<System.IO.Stream> ExportSubtitles(int projectId, int formatId,
+        public async Task<System.IO.Stream> ExportSubtitlesAsync(int projectId, int formatId,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()

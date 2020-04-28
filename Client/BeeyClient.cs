@@ -11,6 +11,10 @@ using Beey.Api.Rest;
 using Beey.Api.WebSockets;
 using Beey.Api.Rest.Admin;
 using Newtonsoft.Json.Linq;
+using Beey.DataExchangeModel.Projects;
+using Beey.DataExchangeModel.Lexicons;
+using System.Collections.Generic;
+using Beey.DataExchangeModel.Messaging;
 
 namespace Beey.Client
 {
@@ -27,6 +31,7 @@ namespace Beey.Client
         protected SpeakerApi SpeakerApi { get; set; }
         protected ProjectApi ProjectApi { get; set; }
         protected CurrentUserApi CurrentUserApi { get; set; }
+        protected LexiconApi LexiconApi { get; set; }
         protected WebSocketsApi WebSocketsApi { get; set; }
 
         // Admin
@@ -63,9 +68,9 @@ namespace Beey.Client
         public async Task LoginAsync(string email, string password,
             CancellationToken cancellationToken = default)
         {
+            LoginToken = await LoginApi.LoginAsync(email, password, cancellationToken);
             this.userEmail = email;
             this.userPassword = password;
-            LoginToken = await LoginApi.LoginAsync(this.userEmail, this.userPassword, cancellationToken);
 
             SpeakerApi.Token = LoginToken;
             ProjectApi.Token = LoginToken;
@@ -94,6 +99,37 @@ namespace Beey.Client
             userPassword = null;
         }
 
+        public async Task RegisterAndLoginAsync(string email, string password,
+            CancellationToken cancellationToken = default)
+        {
+            LoginToken = await LoginApi.RegisterAndLoginAsync(email, password, cancellationToken);
+            this.userEmail = email;
+            this.userPassword = password;
+
+            SpeakerApi.Token = LoginToken;
+            ProjectApi.Token = LoginToken;
+            CurrentUserApi.Token = LoginToken;
+            AdminUserApi.Token = LoginToken;
+            EmailApi.Token = LoginToken;
+            WebSocketsApi.Token = LoginToken;
+        }
+
+        public Task<string> GetContentVersionAsync(CancellationToken cancellationToken = default)
+            => LoginApi.GetContentVersionAsync(cancellationToken);
+        public Task<JObject> GetPasswordSettingsAsync(CancellationToken cancellationToken = default)
+            => LoginApi.GetPasswordSettingsAsync(cancellationToken);
+
+        public async Task<LoginToken> GetUserInfoAsync(CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<LoginToken>();
+            return await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                return await CurrentUserApi.GetUserInfoAsync(cancellationToken);
+            }, CreatePollyContext(cancellationToken), cancellationToken);
+        }
+
         public async Task<JObject> GetUserSettingsAsync(CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
@@ -113,7 +149,7 @@ namespace Beey.Client
         }
 
         public async Task PostUserSettingsAsync(JObject settings,
-        CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
@@ -122,6 +158,75 @@ namespace Beey.Client
             {
                 await CurrentUserApi.PostUserSettingsAsync(settings, cancellationToken);
                 return true;
+            }, CreatePollyContext(cancellationToken), cancellationToken);
+        }
+
+        public async Task<TranscriptionLogItem[]> GetTranscriptionLogAsync(CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<TranscriptionLogItem[]>();
+            return await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                return await CurrentUserApi.GetTranscriptionLogAsync(cancellationToken);
+            }, CreatePollyContext(cancellationToken), cancellationToken);
+        }
+
+        public async Task<LexiconEntry[]> GetUserLexAsync(string language, CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<LexiconEntry[]>();
+            return await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                return await CurrentUserApi.GetUserLexAsync(language, cancellationToken);
+            }, CreatePollyContext(cancellationToken), cancellationToken);
+        }
+
+        public async Task SetUserLexAsync(string language, IEnumerable<LexiconEntry> userLex, CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
+            await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                await CurrentUserApi.SetUserLexAsync(language, userLex, cancellationToken);
+                return true;
+            }, CreatePollyContext(cancellationToken), cancellationToken);
+        }
+
+        public async Task<Message[]> GetUserMessagesAsync(DateTime? from, CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Message[]>();
+            return await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                return await CurrentUserApi.GetUserMessagesAsync(from, cancellationToken);
+            }, CreatePollyContext(cancellationToken), cancellationToken);
+        }
+
+        public async Task<LexiconApi.TmpValidationError[]> ValidateLexiconEntryAsync(string text, string pronunciation, string language,
+            CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<LexiconApi.TmpValidationError[]>();
+            return await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                return await LexiconApi.ValidateLexiconEntryAsync(text, pronunciation, language, cancellationToken);
+            }, CreatePollyContext(cancellationToken), cancellationToken);
+        }
+
+        public async Task<LexiconApi.TmpValidationError[]> ValidateLexiconAsync(string language,
+            CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<LexiconApi.TmpValidationError[]>();
+            return await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                return await LexiconApi.ValidateLexiconAsync(language, cancellationToken);
             }, CreatePollyContext(cancellationToken), cancellationToken);
         }
 

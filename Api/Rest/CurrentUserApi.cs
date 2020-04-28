@@ -59,7 +59,6 @@ namespace Beey.Api.Rest
             HandleResponse(result);
         }
 
-
         public async Task<TranscriptionLogItem[]> GetTranscriptionLogAsync(CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
@@ -79,7 +78,7 @@ namespace Beey.Api.Rest
             return HandleResponse(result, r => JsonConvert.DeserializeObject<LexiconEntry[]>(r.GetStringContent()));
         }
 
-        public async Task SetUserLexAsync(string language, IEnumerable<LexiconEntry[]> userLex,
+        public async Task SetUserLexAsync(string language, IEnumerable<LexiconEntry> userLex,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
