@@ -5,10 +5,10 @@ using Xunit;
 
 namespace XUnitTests
 {
-    [CollectionDefinition("2 - Speaker Collection")]
+    [CollectionDefinition("3 - Speaker Collection")]
     public class SpeakerCollectionDefinition : ICollectionFixture<LoginFixture> { }
 
-    [Collection("2 - Speaker Collection")]
+    [Collection("3 - Speaker Collection")]
     public class SpeakerApiUnitTests
     {
         static readonly SpeakerApi api = new SpeakerApi(Configuration.BeeyUrl);

@@ -26,7 +26,7 @@ namespace Beey.Client
         protected LoginApi LoginApi { get; set; }
         protected SpeakerApi SpeakerApi { get; set; }
         protected ProjectApi ProjectApi { get; set; }
-        protected FilesApi FilesApi { get; set; }
+        protected CurrentUserApi CurrentUserApi { get; set; }
         protected WebSocketsApi WebSocketsApi { get; set; }
 
         // Admin
@@ -38,7 +38,7 @@ namespace Beey.Client
             LoginApi = new LoginApi(url);
             SpeakerApi = new SpeakerApi(url);
             ProjectApi = new ProjectApi(url);
-            FilesApi = new FilesApi(url);
+            CurrentUserApi = new CurrentUserApi(url);
 
             AdminUserApi = new AdminUserApi(url);
             EmailApi = new EmailApi(url);
@@ -55,7 +55,7 @@ namespace Beey.Client
             var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
             await policy.ExecuteAsync(async (ctx, c) =>
             {
-                await LoginApi.ChangePasswordAsync(LoginToken!, oldPassword, newPassword, cancellationToken);
+                await CurrentUserApi.ChangePasswordAsync(oldPassword, newPassword, cancellationToken);
                 return true;
             }, CreatePollyContext(cancellationToken), cancellationToken);
         }
@@ -69,7 +69,7 @@ namespace Beey.Client
 
             SpeakerApi.Token = LoginToken;
             ProjectApi.Token = LoginToken;
-            FilesApi.Token = LoginToken;
+            CurrentUserApi.Token = LoginToken;
             AdminUserApi.Token = LoginToken;
             EmailApi.Token = LoginToken;
             WebSocketsApi.Token = LoginToken;
@@ -84,7 +84,7 @@ namespace Beey.Client
 
             SpeakerApi.Token = null;
             ProjectApi.Token = null;
-            FilesApi.Token = null;
+            CurrentUserApi.Token = null;
             AdminUserApi.Token = null;
             EmailApi.Token = null;
             WebSocketsApi.Token = null;
@@ -101,7 +101,7 @@ namespace Beey.Client
             var policy = CreateHttpAsyncUnauthorizedPolicy<JObject>();
             return await policy.ExecuteAsync(async (ctx, c) =>
             {
-                return await LoginApi.GetUserSettingsAsync(LoginToken!, cancellationToken);
+                return await CurrentUserApi.GetUserSettingsAsync(cancellationToken);
             }, CreatePollyContext(cancellationToken), cancellationToken);
         }
 
@@ -120,7 +120,7 @@ namespace Beey.Client
             var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
             await policy.ExecuteAsync(async (ctx, c) =>
             {
-                await LoginApi.PostUserSettings(LoginToken!, settings, cancellationToken);
+                await CurrentUserApi.PostUserSettingsAsync(settings, cancellationToken);
                 return true;
             }, CreatePollyContext(cancellationToken), cancellationToken);
         }

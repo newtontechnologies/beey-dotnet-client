@@ -25,8 +25,8 @@ namespace Beey.Api.Rest
            CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
+                .AddUrlSegment(id.ToString())
                 .AddUrlSegment("Metadata/Tags")
-                .AddParameter("id", id)
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
             return HandleResponse(result, r => r.GetStringContent());
@@ -36,8 +36,8 @@ namespace Beey.Api.Rest
            CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
+                .AddUrlSegment(id.ToString())
                 .AddUrlSegment("Metadata/Tag")
-                .AddParameter("id", id)
                 .AddParameter("accessToken", accessToken)
                 .AddParameter("tag", tag)
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
@@ -49,10 +49,48 @@ namespace Beey.Api.Rest
            CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
+                .AddUrlSegment(id.ToString())
                 .AddUrlSegment("Metadata/Tag")
-                .AddParameter("id", id)
                 .AddParameter("accessToken", accessToken)
                 .AddParameter("tag", tag)
+                .ExecuteAsync(HttpMethod.DELETE, cancellationToken);
+
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
+        }
+
+        public async Task<ProjectMetadata> GetMetadataAsync(int id, string key,
+           CancellationToken cancellationToken)
+        {
+            var result = await CreateBuilder()
+                .AddUrlSegment(id.ToString())
+                .AddUrlSegment("Metadata")
+                .AddParameter("key", key)
+                .ExecuteAsync(HttpMethod.GET, cancellationToken);
+
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<ProjectMetadata>(r.GetStringContent()));
+        }
+
+        public async Task<Project> AddMetadataAsync(int id, long accessToken, string key,
+           CancellationToken cancellationToken)
+        {
+            var result = await CreateBuilder()
+                .AddUrlSegment(id.ToString())
+                .AddUrlSegment("Metadata")
+                .AddParameter("accessToken", accessToken)
+                .AddParameter("key", key)
+                .ExecuteAsync(HttpMethod.POST, cancellationToken);
+
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
+        }
+
+        public async Task<Project> RemoveMetadataAsync(int id, long accessToken, string key,
+           CancellationToken cancellationToken)
+        {
+            var result = await CreateBuilder()
+                .AddUrlSegment(id.ToString())
+                .AddUrlSegment("Metadata")
+                .AddParameter("accessToken", accessToken)
+                .AddParameter("key", key)
                 .ExecuteAsync(HttpMethod.DELETE, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));

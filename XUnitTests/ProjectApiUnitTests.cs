@@ -12,10 +12,10 @@ using System.IO;
 
 namespace XUnitTests
 {
-    [CollectionDefinition("3 - Project Collection")]
+    [CollectionDefinition("4 - Project Collection")]
     public class ProjectCollectionDefinition : ICollectionFixture<LoginFixture> { }
 
-    [Collection("3 - Project Collection")]
+    [Collection("4 - Project Collection")]
     public class ProjectApiUnitTests
     {
         private const string testName = "test";
@@ -23,7 +23,6 @@ namespace XUnitTests
         private const string changedName = "ASDF__ASDF";
         private const string testTag = "Tag zbrusu nov";
         private static readonly ProjectApi projectApi = new ProjectApi(Configuration.BeeyUrl);
-        private static readonly FilesApi filesApi = new FilesApi(Configuration.BeeyUrl);
         private static readonly WebSocketsApi wsApi = new WebSocketsApi(Configuration.BeeyUrl);
 
         private static byte[] testDummyFile;
@@ -36,7 +35,6 @@ namespace XUnitTests
         public ProjectApiUnitTests(LoginFixture fixture)
         {
             projectApi.Token = fixture.Token;
-            filesApi.Token = fixture.Token;
             wsApi.Token = fixture.Token;
 
             testDummyFile = new byte[256];
@@ -202,7 +200,7 @@ namespace XUnitTests
         [Fact, TestPriority(10)]
         public async Task UploadTrsxAsync()
         {
-            createdProjectAccessToken = (await projectApi.UploadTrsxAsync(createdProjectId, createdProjectAccessToken, "test.trsx", testDummyFile, true, default)).AccessToken;
+            createdProjectAccessToken = (await projectApi.UploadOriginalTrsxAsync(createdProjectId, createdProjectAccessToken, "test.trsx", testDummyFile, default)).AccessToken;
         }
 
         // FilesApi
@@ -212,7 +210,7 @@ namespace XUnitTests
         {
             var project = await projectApi.GetAsync(createdProjectId, default);
             Assert.NotNull(project!.OriginalTrsxId);
-            var stream = await filesApi.DownloadTrsxAsync(createdProjectId, project!.OriginalTrsxId ?? throw new Exception(), default);
+            var stream = await projectApi.DownloadOriginalTrsxAsync(createdProjectId, default);
 
             byte[] trsx;
             using (var ms = new System.IO.MemoryStream())
@@ -227,11 +225,11 @@ namespace XUnitTests
         [Fact, TestPriority(12)]
         public async Task UploadFileAsync()
         {
+            // TODO: filesize
             createdProjectAccessToken =
-                (await filesApi.UploadFileAsync(createdProjectId,
-                    createdProjectAccessToken,
-                    new System.IO.FileInfo(testMp3FilePath),
-                    "cz", false, default)).AccessToken;
+                (await projectApi.UploadMediaFileAsync(createdProjectId, -1,
+                    new FileInfo(testMp3FilePath),
+                    default)).AccessToken;
         }
 
         [Fact, TestPriority(12.1)]
@@ -246,13 +244,13 @@ namespace XUnitTests
         [Fact, TestPriority(12.2)]
         public async Task TranscribeUploadedFileAsync()
         {
-            createdProjectAccessToken = (await filesApi.TranscribeProjectAsync(createdProjectId, createdProjectAccessToken, "cz", default)).AccessToken;
+            createdProjectAccessToken = (await projectApi.TranscribeProjectAsync(createdProjectId, "cz", true, true, default)).AccessToken;
         }
 
         [Fact, TestPriority(12.3)]
         public async Task GetProjectProgressMessagesAsync()
         {
-            var messages = await projectApi.GetProgressMessagesAsync(createdProjectId, default);
+            var messages = await projectApi.GetProgressMessagesAsync(createdProjectId, null, null, null, null, default);
         }
 
         [Fact, TestPriority(12.4)]
@@ -264,9 +262,10 @@ namespace XUnitTests
         [Fact, TestPriority(13)]
         public async Task DownloadFileAsync()
         {
+            // TODO: re-implement
             var project = await projectApi.GetAsync(createdProjectId, default);
             Assert.NotNull(project!.RecordingId);
-            var stream = await filesApi.DownloadFileAsync(createdProjectId, project!.RecordingId ?? throw new Exception(), default);
+            var stream = await projectApi.DownloadAudioAsync(createdProjectId, default);
 
             byte[] file;
             using (var ms = new System.IO.MemoryStream())
@@ -299,10 +298,10 @@ namespace XUnitTests
             testDummyFile[0] = 255;
             var project = await projectApi.GetAsync(createdProjectId, default);
             Assert.NotNull(project!.RecordingId);
-            var stream = await filesApi.DownloadFileAsync(createdProjectId, project!.RecordingId ?? throw new Exception(), default);
+            var stream = await projectApi.DownloadAudioAsync(createdProjectId, default);
 
             byte[] file;
-            using (var ms = new System.IO.MemoryStream())
+            using (var ms = new MemoryStream())
             {
                 stream!.CopyTo(ms);
                 file = ms.ToArray();

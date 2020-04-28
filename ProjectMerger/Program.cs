@@ -71,10 +71,14 @@ namespace ProjectMerger
             }
 
             Log.Information("Downloading files");
-            var recordingTask1 = beey.DownloadFileAsync(project1.Id, project1.RecordingId.Value, cts.Token);
-            var recordingTask2 = beey.DownloadFileAsync(project2.Id, project2.RecordingId.Value, cts.Token);
-            var trsxTask1 = beey.DownloadTrsxAsync(project1.Id, project1.CurrentTrsxId ?? project1.OriginalTrsxId!.Value, cts.Token);
-            var trsxTask2 = beey.DownloadTrsxAsync(project2.Id, project2.CurrentTrsxId ?? project2.OriginalTrsxId!.Value, cts.Token);
+            var recordingTask1 = beey.DownloadAudioAsync(project1.Id, cts.Token);
+            var recordingTask2 = beey.DownloadAudioAsync(project2.Id, cts.Token);
+            var trsxTask1 = project1.CurrentTrsxId.HasValue
+                ? beey.DownloadCurrentTrsxAsync(project1.Id, cts.Token)
+                : beey.DownloadOriginalTrsxAsync(project1.Id, cts.Token);
+            var trsxTask2 = project2.CurrentTrsxId.HasValue
+                ? beey.DownloadCurrentTrsxAsync(project2.Id, cts.Token)
+                : beey.DownloadOriginalTrsxAsync(project2.Id, cts.Token);
 
             try
             {
@@ -110,7 +114,7 @@ namespace ProjectMerger
             {
                 string mergedProjectName = project1.Name + " + " + project2.Name;
                 var mergedProj = await beey.CreateProjectAsync(mergedProjectName, "", cts.Token);
-                mergedProj = await beey.UploadTrsxAsync(mergedProj.Id, mergedProj.AccessToken, "merged.trsx", mergedTrsx, true, cts.Token);
+                mergedProj = await beey.UploadOriginalTrsxAsync(mergedProj.Id, mergedProj.AccessToken, "merged.trsx", mergedTrsx, cts.Token);
                 await beey.UploadStreamAsync(mergedProj.Id, mergedFile.Name, mergedFile, mergedFile.Length, language, false, cts.Token);
             }
             catch (Exception ex)

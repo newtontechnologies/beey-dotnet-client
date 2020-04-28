@@ -17,8 +17,6 @@ namespace XUnitTests
     [Collection("1 - Login Collection")]
     public class LoginApiUnitTests
     {
-        private const string testPassword = "ASDF___ASDF";
-        private static JObject testSettings;
         private static LoginApi api;
         private static LoginToken token;
 
@@ -30,28 +28,6 @@ namespace XUnitTests
         }
 
         [Fact, TestPriority(2)]
-        public async Task ChangePasswordAsync()
-        {
-            await api.ChangePasswordAsync(token, Configuration.Password, testPassword, default);
-            await api.ChangePasswordAsync(token, testPassword, Configuration.Password, default);
-        }
-
-        [Fact, TestPriority(3)]
-        public async Task PostUserSettingsAsync()
-        {
-            testSettings = JObject.Parse($"{{ Name: \"Value_{DateTime.Now}\" }}");
-            await api.PostUserSettings(token, testSettings, default);
-        }
-
-        [Fact, TestPriority(4)]
-        public async Task GetUserSettings()
-        {
-            var jSettings = await api.GetUserSettingsAsync(token, default);
-
-            Assert.Equal(testSettings, jSettings);
-        }
-
-        [Fact, TestPriority(5)]
         public async Task LogoutAsync()
         {
             await api.LogoutAsync(token, default);

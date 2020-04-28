@@ -33,7 +33,7 @@ namespace Beey.Api.Rest.Admin
             
             var result = await builder.ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            HandleResponse(result, _ => true);
+            HandleResponse(result);
         }
     }
 }

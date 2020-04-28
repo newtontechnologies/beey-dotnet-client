@@ -22,7 +22,7 @@ namespace Beey.Api.Rest
     {
         public LoginApi(string url) : base(url)
         {
-            EndPoint = "API/";
+            EndPoint = "API";
         }
 
         public async Task<LoginToken> LoginAsync(string email, string password,
@@ -43,19 +43,7 @@ namespace Beey.Api.Rest
                 .AddHeader("Authorization", token.Token)
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            HandleResponse(result, _ => true);
-        }
-
-        public async Task ChangePasswordAsync(LoginToken token, string oldPassword, string newPassword,
-            CancellationToken cancellationToken)
-        {
-            var result = await CreateBuilder()
-                .AddUrlSegment("ChangePassword")
-                .AddHeader("Authorization", token.Token)
-                .AddParameters(("password", oldPassword), ("newPassword", newPassword))
-                .ExecuteAsync(HttpMethod.POST, cancellationToken);
-
-            HandleResponse(result, _ => true);
+            HandleResponse(result);
         }
 
         public async Task<LoginToken> RegisterAndLoginAsync(string email, string password,
@@ -70,27 +58,22 @@ namespace Beey.Api.Rest
                 cancellationToken);
         }
 
-        public async Task<JObject> GetUserSettingsAsync(LoginToken token,
-            CancellationToken cancellationToken)
+        public async Task<string> GetContentVersionAsync(CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
-                .AddUrlSegment("UserSettings")
-                .AddHeader("Authorization", token.Token)
+                .AddUrlSegment("ContentVersion")
+                .ExecuteAsync(HttpMethod.GET, cancellationToken);
+
+            return HandleResponse(result, r => JObject.Parse(r.GetStringContent()).GetValue("Value").Value<string>());
+        }
+
+        public async Task<JObject> GetPasswordSettingsAsync(CancellationToken cancellationToken)
+        {
+            var result = await CreateBuilder()
+                .AddUrlSegment("PasswordSettings")
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
             return HandleResponse(result, r => JObject.Parse(r.GetStringContent()));
-        }
-
-        public async Task PostUserSettings(LoginToken token, JObject settings,
-            CancellationToken cancellationToken)
-        {
-            var result = await CreateBuilder()
-                .AddUrlSegment("UserSettings")
-                .AddHeader("Authorization", token.Token)
-                .SetBody(settings.ToString())
-                .ExecuteAsync(HttpMethod.POST, cancellationToken);
-
-            HandleResponse(result, _ => true);
         }
     }
 }

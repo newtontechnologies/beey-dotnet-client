@@ -7,7 +7,7 @@ namespace Beey.Client
 {
     public partial class BeeyClient
     {
-        public async Task<System.IO.Stream> DownloadTrsxAsync(int projectId, int trsxId,
+        public async Task<System.IO.Stream> DownloadCurrentTrsxAsync(int projectId,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
@@ -15,62 +15,11 @@ namespace Beey.Client
             var policy = CreateHttpAsyncUnauthorizedPolicy<System.IO.Stream>();
             return (await policy.ExecuteAsync(async (c) =>
             {
-                return await FilesApi.DownloadTrsxAsync(projectId, trsxId, c);
+                return await ProjectApi.DownloadCurrentTrsxAsync(projectId, c);
             }, cancellationToken));
         }
 
-        public async Task<Project> UploadFileAsync(int projectId, long accessToken, string fileName, byte[] fileContent,
-            string language = "cz", bool transcribe = true,
-            CancellationToken cancellationToken = default)
-        {
-            this.RequireAuthorization();
-
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
-            return await policy.ExecuteAsync(async (c) =>
-            {
-                return await FilesApi.UploadFileAsync(projectId, accessToken, fileName, fileContent, language, transcribe, cancellationToken);
-            }, cancellationToken);
-        }
-
-        public async Task<Project> UploadFileAsync(int projectId, long accessToken, string fileName, System.IO.Stream fileContent,
-            string language = "cz", bool transcribe = true,
-            CancellationToken cancellationToken = default)
-        {
-            this.RequireAuthorization();
-
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
-            return await policy.ExecuteAsync(async (c) =>
-            {
-                return await FilesApi.UploadFileAsync(projectId, accessToken, fileName, fileContent, language, transcribe, cancellationToken);
-            }, cancellationToken);
-        }
-
-        public async Task<Project> UploadFileAsync(int projectId,long accessToken, System.IO.FileInfo fileInfo,
-            string language = "cz", bool transcribe = true,
-            CancellationToken cancellationToken = default)
-        {
-            this.RequireAuthorization();
-
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
-            return await policy.ExecuteAsync(async (c) =>
-            {
-                return await FilesApi.UploadFileAsync(projectId, accessToken, fileInfo, language, transcribe, cancellationToken);
-            }, cancellationToken);
-        }
-
-        public async Task<Project> TranscribeProjectAsync(int projectId, long accessToken, string language = "cz",
-            CancellationToken cancellationToken = default)
-        {
-            this.RequireAuthorization();
-
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
-            return await policy.ExecuteAsync(async (c) =>
-            {
-                return await FilesApi.TranscribeProjectAsync(projectId, accessToken, language, cancellationToken);
-            }, cancellationToken);
-        }
-
-        public async Task<System.IO.Stream> DownloadFileAsync(int projectId, int recordingId,
+        public async Task<System.IO.Stream> DownloadOriginalTrsxAsync(int projectId,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
@@ -78,7 +27,90 @@ namespace Beey.Client
             var policy = CreateHttpAsyncUnauthorizedPolicy<System.IO.Stream>();
             return (await policy.ExecuteAsync(async (c) =>
             {
-                return await FilesApi.DownloadFileAsync(projectId, recordingId, cancellationToken);
+                return await ProjectApi.DownloadOriginalTrsxAsync(projectId, c);
+            }, cancellationToken));
+        }
+
+        public async Task<Project> UploadMediaFileAsync(int projectId, long fileSize, string fileName, byte[] fileContent,
+            CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+            return await policy.ExecuteAsync(async (c) =>
+            {
+                return await ProjectApi.UploadMediaFileAsync(projectId, fileSize, fileName, fileContent, cancellationToken);
+            }, cancellationToken);
+        }
+
+        public async Task<Project> UploadMediaFileAsync(int projectId, long fileSize, string fileName, System.IO.Stream fileContent,
+            CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+            return await policy.ExecuteAsync(async (c) =>
+            {
+                return await ProjectApi.UploadMediaFileAsync(projectId, fileSize, fileName, fileContent, cancellationToken);
+            }, cancellationToken);
+        }
+
+        public async Task<Project> UploadMediaFileAsync(int projectId, long fileSize, System.IO.FileInfo fileInfo,
+            CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+            return await policy.ExecuteAsync(async (c) =>
+            {
+                return await ProjectApi.UploadMediaFileAsync(projectId, fileSize, fileInfo, cancellationToken);
+            }, cancellationToken);
+        }
+
+        public async Task<Project> TranscribeProjectAsync(int projectId,
+            string language = "cz", bool withPpc = true, bool saveTrsx = true,
+            CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+            return await policy.ExecuteAsync(async (c) =>
+            {
+                return await ProjectApi.TranscribeProjectAsync(projectId, language, withPpc, saveTrsx, cancellationToken);
+            }, cancellationToken);
+        }
+
+        public async Task<System.IO.Stream> DownloadAudioAsync(int projectId,
+            CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<System.IO.Stream>();
+            return (await policy.ExecuteAsync(async (c) =>
+            {
+                return await ProjectApi.DownloadAudioAsync(projectId, cancellationToken);
+            }, cancellationToken));
+        }
+        public async Task<System.IO.Stream> DownloadVideoAsync(int projectId,
+            CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<System.IO.Stream>();
+            return (await policy.ExecuteAsync(async (c) =>
+            {
+                return await ProjectApi.DownloadVideoAsync(projectId, cancellationToken);
+            }, cancellationToken));
+        }
+        public async Task<System.IO.Stream> DownloadMpdManifestAsync(int projectId,
+            CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<System.IO.Stream>();
+            return (await policy.ExecuteAsync(async (c) =>
+            {
+                return await ProjectApi.DownloadMpdManifestAsync(projectId, cancellationToken);
             }, cancellationToken));
         }
     }

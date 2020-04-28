@@ -1,5 +1,6 @@
 ﻿using Beey.DataExchangeModel;
 using Beey.DataExchangeModel.Auth;
+using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Projects;
 using Newtonsoft.Json;
 using System;
@@ -23,7 +24,7 @@ namespace Beey.Api.Rest
     {
         public ProjectApi(string url) : base(url)
         {
-            EndPoint = "API/Project/";
+            EndPoint = "API/Project";
         }
 
         public async Task<Project> CreateAsync(string name, string customPath,
@@ -50,7 +51,7 @@ namespace Beey.Api.Rest
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
-                .AddParameter("id", id.ToString())
+                .AddUrlSegment(id.ToString())
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
@@ -60,7 +61,7 @@ namespace Beey.Api.Rest
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
-                .AddParameter("id", project.Id.ToString())
+                .AddUrlSegment(project.Id.ToString())
                 .SetBody(JsonConvert.SerializeObject(project), "application/json")
                 .ExecuteAsync(HttpMethod.PUT, cancellationToken);
 
@@ -80,18 +81,17 @@ namespace Beey.Api.Rest
             }
 
             var result = await CreateBuilder()
-                .AddParameter("id", id.ToString())
+                .AddUrlSegment(id.ToString())
                 .SetBody(JsonConvert.SerializeObject(properties), "application/json")
                 .ExecuteAsync(HttpMethod.PUT, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
         }
 
-        public async Task<bool> DeleteAsync(int id,
-            CancellationToken cancellationToken)
+        public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
-                .AddParameter("id", id.ToString())
+                .AddUrlSegment(id.ToString())
                 .ExecuteAsync(HttpMethod.DELETE, cancellationToken);
 
             if (ResultNotFound(result))
@@ -102,27 +102,14 @@ namespace Beey.Api.Rest
             return HandleResponse(result, _ => true);
         }
 
-        public async Task<ProjectAccess> GetProjectAccessAsync(int id,
-            CancellationToken cancellationToken)
+        public async Task ResetAsync(int id, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
-                .AddUrlSegment("Access")
-                .AddParameter("id", id.ToString())
+                .AddUrlSegment(id.ToString())
+                .AddUrlSegment("Reset")
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<ProjectAccess>(r.GetStringContent()));
-        }
-
-        public async Task UpdateProjectAccessAsync(ProjectAccess projectAccess,
-            CancellationToken cancellationToken)
-        {
-            var result = await CreateBuilder()
-                .AddUrlSegment("Access")
-                .AddParameter("id", projectAccess.ProjectId.ToString())
-                .SetBody(JsonConvert.SerializeObject(projectAccess), "application/json")
-                .ExecuteAsync(HttpMethod.POST, cancellationToken);
-
-            HandleResponse(result, _ => true);
+            HandleResponse(result);
         }
 
         public async Task<Listing<ProjectAccess>> ListProjectsAsync(int count, int skip,
@@ -130,7 +117,6 @@ namespace Beey.Api.Rest
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
-                .AddUrlSegment("Access")
                 .AddUrlSegment("List")
                 .AddParameter("skip", skip)
                 .AddParameter("count", count)
@@ -141,62 +127,32 @@ namespace Beey.Api.Rest
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<ProjectAccess>>(r.GetStringContent()));
-        }
+        }       
 
-        public async Task<Project> UploadTrsxAsync(int id, long accessToken, string fileName, byte[] trsx,
-            bool isOriginalTrsx, CancellationToken cancellationToken)
-        {
-            System.IO.MemoryStream memoryStream;
-            try { memoryStream = new System.IO.MemoryStream(trsx); }
-            catch (Exception ex)
-            {
-                Utility.LogApiException(ex, Logger);
-                throw;
-            }
-
-            try { return await UploadTrsxAsync(id, accessToken, fileName, memoryStream, isOriginalTrsx, cancellationToken); }
-            catch (Exception) { throw; }
-            finally { memoryStream.Close(); }
-        }
-
-        public async Task<Project> UploadTrsxAsync(int id, long accessToken, string fileName, System.IO.Stream trsx,
-            bool isOriginalTrsx, CancellationToken cancellationToken)
-        {
-            var result = await CreateBuilder()
-               .AddUrlSegment("Trsx")
-               .AddParameter("id", id.ToString())
-               .AddParameter("accessToken", accessToken.ToString())
-               .AddParameter("isOriginalTrsx", isOriginalTrsx)
-               .AddFile(System.IO.Path.GetFileName(fileName), trsx)
-               .ExecuteAsync(HttpMethod.POST, cancellationToken);
-
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
-        }
-
-        public async Task<Project> ShareProjectAsync(int id, long accessToken, string email,
+        public async Task<Project> TranscribeProjectAsync(int projectId, string language, bool withPpc, bool saveTrsx,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
-                .AddUrlSegment("Share")
-                .AddParameter("id", id.ToString())
-                .AddParameter("shareTo", email)
-                .AddParameter("accessToken", accessToken)
+                .AddUrlSegment(projectId.ToString())
+                .AddUrlSegment("Transcribe")
+                .AddParameter("lang", language)
+                .AddParameter("withPPC", withPpc)
+                .AddParameter("saveTrsx", saveTrsx)
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
         }
 
-        public async Task<Listing<ProjectAccess>> ListProjectSharing(int id,
-            CancellationToken cancellationToken)
+        public async Task<Message[]> GetMessagesAsync(int id, DateTime? from, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
-                .AddUrlSegment("Share")
-                .AddParameter("id", id.ToString())
+                .AddUrlSegment(id.ToString())
+                .AddUrlSegment("MessageCache")
+                .AddParameter("from", from)
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<ProjectAccess>>(r.GetStringContent()));
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Message[]>(r.GetStringContent()));
         }
-
 
         public enum OrderOn { Created, Updated, None }
         private static string GetOrderOn(OrderOn orderOn)
