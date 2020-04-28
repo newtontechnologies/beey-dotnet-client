@@ -39,7 +39,6 @@ namespace Beey.Client
                 return await ProjectApi.CreateAsync(name, customPath, c);
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
-
         public async Task<Project> CreateProjectAsync(ParamsProjectInit init,
         CancellationToken cancellationToken = default)
         {
@@ -65,7 +64,6 @@ namespace Beey.Client
 
             return result;
         }
-
         public async Task<Project> UpdateProjectAsync(int id, long accessToken, string name, object value,
             CancellationToken cancellationToken = default)
         {
@@ -81,7 +79,6 @@ namespace Beey.Client
 
             return result;
         }
-
         public async Task<Project> UpdateProjectAsync(int id, long accessToken, Dictionary<string, object> properties,
             CancellationToken cancellationToken = default)
         {
@@ -134,7 +131,6 @@ namespace Beey.Client
 
             return listing;
         }
-
         public async Task<ProjectAccess> GetProjectAccessAsync(int id,
             CancellationToken cancellationToken = default)
         {
@@ -146,7 +142,6 @@ namespace Beey.Client
                 return await ProjectApi.GetProjectAccessAsync(id, c);
             }, cancellationToken));
         }
-
         public async Task UpdateProjectAccessAsync(int projectId, ProjectAccess projectAccess,
             CancellationToken cancellationToken = default)
         {
@@ -171,7 +166,6 @@ namespace Beey.Client
                 return await ProjectApi.ShareProjectAsync(id, accessToken, email, c);
             }, cancellationToken);
         }
-
         public async Task<Listing<ProjectAccess>> ListProjectSharingAsync(int id,
             CancellationToken cancellationToken = default)
         {
@@ -186,18 +180,6 @@ namespace Beey.Client
             return listing;
         }
 
-        public async Task ResetProjectAsync(int projectId, CancellationToken cancellationToken = default)
-        {
-            this.RequireAuthorization();
-
-            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
-            await policy.ExecuteAsync(async (c) =>
-            {
-                await ProjectApi.ResetAsync(projectId, c);
-                return true;
-            }, cancellationToken);
-        }
-
         public async Task<Message[]> GetMessagesAsync(int id, DateTime? from = null, CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
@@ -209,49 +191,28 @@ namespace Beey.Client
             }, cancellationToken);
         }
 
-        public async Task<string> GetProjectDashConversionStateAsync(int projectId, CancellationToken cancellationToken)
+        public async Task<Project> TranscribeProjectAsync(int projectId,
+            string language = "cz", bool withPpc = true, bool saveTrsx = true,
+            CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<string>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
             return await policy.ExecuteAsync(async (c) =>
             {
-                return await ProjectApi.GetDashConversionStateAsync(projectId, c);
+                return await ProjectApi.TranscribeProjectAsync(projectId, language, withPpc, saveTrsx, cancellationToken);
             }, cancellationToken);
         }
-        public async Task ConvertProjectToDashAsync(int projectId, CancellationToken cancellationToken)
+        public async Task ResetProjectAsync(int projectId, CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
             var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
             await policy.ExecuteAsync(async (c) =>
             {
-                await ProjectApi.ConvertToDashAsync(projectId, c);
+                await ProjectApi.ResetAsync(projectId, c);
                 return true;
             }, cancellationToken);
-        }
-
-        public async Task<ExportFormat[]> GetSubtitleExportFormatsAsync(CancellationToken cancellationToken)
-        {
-            this.RequireAuthorization();
-
-            var policy = CreateHttpAsyncUnauthorizedPolicy<ExportFormat[]>();
-            return await policy.ExecuteAsync(async (c) =>
-            {
-                return await ProjectApi.GetSubtitleExportFormatsAsync(1, c);
-            }, cancellationToken);
-        }
-
-        public async Task<Stream> ExportSubtitlesAsync(int projectId, int formatId,
-            CancellationToken cancellationToken)
-        {
-            this.RequireAuthorization();
-
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Stream>();
-            return (await policy.ExecuteAsync(async (c) =>
-            {
-                return await ProjectApi.ExportSubtitlesAsync(projectId, formatId, c);
-            }, cancellationToken));
         }
     }
 }

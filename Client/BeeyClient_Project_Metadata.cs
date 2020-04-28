@@ -39,7 +39,6 @@ namespace Beey.Client
                 return await ProjectApi.AddTagAsync(id, accessToken, tag, c);
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
-
         public async Task<Project> DeleteTagAsync(int id, long accessToken, string tag,
             CancellationToken cancellationToken = default)
         {
@@ -63,7 +62,6 @@ namespace Beey.Client
                 return await ProjectApi.GetMetadataAsync(id, key, c);
             }, CreatePollyContext(cancellationToken), cancellationToken);
         }
-
         public async Task<Project> AddMetadataAsync(int id, long accessToken, string key,
            CancellationToken cancellationToken)
         {
@@ -75,7 +73,6 @@ namespace Beey.Client
                 return await ProjectApi.AddMetadataAsync(id, accessToken, key, c);
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
-
         public async Task<Project> RemoveMetadataAsync(int id, long accessToken, string key,
            CancellationToken cancellationToken)
         {
