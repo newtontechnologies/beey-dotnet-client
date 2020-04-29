@@ -268,7 +268,7 @@ namespace M3U8StreamPusher
 
         public static async Task<long> UploadTracks(IAsyncEnumerable<TrackData> data, BeeyClient beey, Project proj)
         {
-            BufferingStream bs = new BufferingStream(512 * 1024, outdumpfilename: Configuration.LogUpload ? $"pusher{ProgramStarted:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss}.ts" : null);
+            using BufferingStream bs = new BufferingStream(512 * 1024, outdumpfilename: Configuration.LogUpload ? $"pusher{ProgramStarted:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss}.ts" : null);
 
             var enumerator = data.GetAsyncEnumerator();
             var haveData = await enumerator.MoveNextAsync();

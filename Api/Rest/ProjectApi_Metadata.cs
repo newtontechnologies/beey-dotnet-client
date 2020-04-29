@@ -37,7 +37,7 @@ namespace Beey.Api.Rest
         {
             var result = await CreateBuilder()
                 .AddUrlSegment(id.ToString())
-                .AddUrlSegment("Metadata/Tag")
+                .AddUrlSegment("Metadata/Tags")
                 .AddParameter("accessToken", accessToken)
                 .AddParameter("tag", tag)
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
@@ -50,7 +50,7 @@ namespace Beey.Api.Rest
         {
             var result = await CreateBuilder()
                 .AddUrlSegment(id.ToString())
-                .AddUrlSegment("Metadata/Tag")
+                .AddUrlSegment("Metadata/Tags")
                 .AddParameter("accessToken", accessToken)
                 .AddParameter("tag", tag)
                 .ExecuteAsync(HttpMethod.DELETE, cancellationToken);

@@ -9,7 +9,7 @@ using Xunit;
 namespace XUnitTests
 {
     [CollectionDefinition("2 - Current User Collection")]
-    public class CurrentUserCollectionDefinition { }
+    public class CurrentUserCollectionDefinition : ICollectionFixture<LoginFixture> { }
 
     [Collection("2 - Current User Collection")]
     public class CurrentUserApiUnitTests
