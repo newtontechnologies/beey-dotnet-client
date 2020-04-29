@@ -115,7 +115,7 @@ namespace ProjectMerger
                 string mergedProjectName = project1.Name + " + " + project2.Name;
                 var mergedProj = await beey.CreateProjectAsync(mergedProjectName, "", cts.Token);
                 mergedProj = await beey.UploadOriginalTrsxAsync(mergedProj.Id, mergedProj.AccessToken, "merged.trsx", mergedTrsx, cts.Token);
-                await beey.UploadStreamAsync(mergedProj.Id, mergedFile.Name, mergedFile, mergedFile.Length, language, false, cts.Token);
+                await beey.UploadStreamAsync(mergedProj.Id, mergedFile.Name, mergedFile, mergedFile.Length, true, cts.Token);
             }
             catch (Exception ex)
             {

@@ -288,7 +288,7 @@ namespace M3U8StreamPusher
             }
 
             var writer = WriteTracks(dgen(), bs);
-            var upload = beey.UploadStreamAsync(proj.Id, "sejm", bs, null, Configuration.TranscriptionLocale, true, breaker.Token);
+            var upload = beey.UploadStreamAsync(proj.Id, "sejm", bs, null, true, breaker.Token);
 
             await Task.WhenAll(writer, upload);
             return bs.Length;
