@@ -70,6 +70,14 @@ namespace Beey.Api.WebSockets
             return res;
         }
 
+        public Task UploadStreamAsync(int projectId, string dataName, byte[] data, long? dataLength, bool saveMedia, CancellationToken cancellationToken)
+        {
+            using (var ms = new MemoryStream(data))
+            {
+                return UploadStreamAsync(projectId, dataName, ms, dataLength, saveMedia, cancellationToken);
+            }
+        }
+
         public async Task UploadStreamAsync(int projectId, string dataName, Stream data, long? dataLength, bool saveMedia, CancellationToken cancellationToken)
         {
             var policy = RetryPolicies.CreateAsyncNetworkPolicy<bool>(logger);

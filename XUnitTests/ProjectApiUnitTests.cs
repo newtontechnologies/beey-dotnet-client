@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Newtonsoft.Json.Linq;
 using System.IO;
+using Beey.DataExchangeModel.Messaging;
 
 namespace XUnitTests
 {
@@ -22,6 +23,8 @@ namespace XUnitTests
         private const string testPath = "test/path";
         private const string changedName = "ASDF__ASDF";
         private const string testTag = "Tag zbrusu nov";
+        private const string testMetadataKey = "metadata test";
+        private const string testMetadataValue = "Příliš žluťoučký kůň úpěl ďábelské ódy.";
         private static readonly ProjectApi projectApi = new ProjectApi(Configuration.BeeyUrl);
         private static readonly WebSocketsApi wsApi = new WebSocketsApi(Configuration.BeeyUrl);
 
@@ -54,10 +57,6 @@ namespace XUnitTests
                 testTrsx = ms.ToArray();
             }
         }
-
-
-
-        // ProjectApi
 
         [Fact, TestPriority(1)]
         public async Task GetNoProjectAsync()
@@ -245,7 +244,9 @@ namespace XUnitTests
         [Fact, TestPriority(12.1)]
         public async Task GetProjectProgressStateAsync()
         {
-            while (await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
+            TryValueResult<ProjectProgress> result = null;
+            while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
+                && result.Value.TranscodingState != ProcessState.Completed)
             {
                 // wait
             }
@@ -261,6 +262,7 @@ namespace XUnitTests
         public async Task GetProjectProgressMessagesAsync()
         {
             var messages = await projectApi.GetProgressMessagesAsync(createdProjectId, null, null, null, null, default);
+            Assert.True(messages.Any());
         }
 
         [Fact, TestPriority(12.4)]
@@ -272,7 +274,6 @@ namespace XUnitTests
         [Fact, TestPriority(13)]
         public async Task DownloadFileAsync()
         {
-            // TODO: re-implement
             var project = await projectApi.GetAsync(createdProjectId, default);
             Assert.NotNull(project!.RecordingId);
             var stream = await projectApi.DownloadAudioAsync(createdProjectId, default);
@@ -293,19 +294,13 @@ namespace XUnitTests
         [Fact, TestPriority(14)]
         public async Task UploadFileWebSocketsAsync()
         {
-            testMp3[0] = 255;
-            using (var ms = new MemoryStream(testMp3))
-            {
-                await wsApi.UploadStreamAsync(createdProjectId, "test02.mp3", ms, testMp3.Length, false, default);
-            }
-
+            await wsApi.UploadStreamAsync(createdProjectId, "test02.mp3", testMp3, testMp3.Length, false, default);
             createdProjectAccessToken = (await projectApi.GetAsync(createdProjectId, default)).AccessToken;
         }
 
         [Fact, TestPriority(15)]
         public async Task DownloadWebSocketFileAsync()
         {
-            testMp3[0] = 255;
             var project = await projectApi.GetAsync(createdProjectId, default);
             Assert.NotNull(project!.RecordingId);
             var stream = await projectApi.DownloadAudioAsync(createdProjectId, default);
@@ -317,7 +312,10 @@ namespace XUnitTests
                 file = ms.ToArray();
             }
 
-            Assert.Equal(testMp3, file);
+            // backend converts the file to other format and we cannot check, whether it is the same,
+            // so just check, if there is something
+            // TODO: make better test
+            Assert.True(file.Length > 0);
         }
 
         [Fact, TestPriority(16)]
@@ -348,6 +346,37 @@ namespace XUnitTests
         }
 
         [Fact, TestPriority(19)]
+        public async Task GetMetadataAsync()
+        {
+            Assert.True(await projectApi.GetMetadataAsync(createdProjectId, "test", default).TryAsync());
+        }
+
+        [Fact, TestPriority(20)]
+
+        public async Task AddMetadataAsync()
+        {
+            var project = await projectApi.AddMetadataAsync(createdProjectId, createdProjectAccessToken,
+                testMetadataKey, testMetadataValue, default);
+            createdProjectAccessToken = project.AccessToken;
+
+            Assert.Contains(project.ProjectMetadata, t => t.Key == testMetadataKey);
+
+            var metadata = await projectApi.GetMetadataAsync(createdProjectId, testMetadataKey, default);
+            Assert.NotNull(metadata);
+            Assert.Equal(testMetadataValue, metadata.Value);
+        }
+
+        [Fact, TestPriority(21)]
+        public async Task RemoveMetadataAsync()
+        {
+            var project = await projectApi.RemoveMetadataAsync(createdProjectId, createdProjectAccessToken, testMetadataKey, default);
+            createdProjectAccessToken = project.AccessToken;
+
+            Assert.DoesNotContain(project.ProjectMetadata, t => t.Key == testMetadataKey);
+            Assert.Null(await projectApi.GetMetadataAsync(createdProjectId, testMetadataKey, default));
+        }
+
+        [Fact, TestPriority(22)]
         public async Task DeleteProjectAsync()
         {
             Assert.True(await projectApi.DeleteAsync(createdProjectId, default));

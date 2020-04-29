@@ -62,7 +62,8 @@ namespace Beey.Client
                 return await ProjectApi.GetMetadataAsync(id, key, c);
             }, CreatePollyContext(cancellationToken), cancellationToken);
         }
-        public async Task<Project> AddMetadataAsync(int id, long accessToken, string key,
+        public async Task<Project> AddMetadataAsync(int id, long accessToken,
+            string key, string value,
            CancellationToken cancellationToken)
         {
             this.RequireAuthorization();
@@ -70,7 +71,7 @@ namespace Beey.Client
             var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
-                return await ProjectApi.AddMetadataAsync(id, accessToken, key, c);
+                return await ProjectApi.AddMetadataAsync(id, accessToken, key, value, c);
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
         public async Task<Project> RemoveMetadataAsync(int id, long accessToken, string key,

@@ -70,7 +70,8 @@ namespace Beey.Api.Rest
             return HandleResponse(result, r => JsonConvert.DeserializeObject<ProjectMetadata>(r.GetStringContent()));
         }
 
-        public async Task<Project> AddMetadataAsync(int id, long accessToken, string key,
+        public async Task<Project> AddMetadataAsync(int id, long accessToken,
+            string key, string value,
            CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
@@ -78,6 +79,7 @@ namespace Beey.Api.Rest
                 .AddUrlSegment("Metadata")
                 .AddParameter("accessToken", accessToken)
                 .AddParameter("key", key)
+                .SetBody(value)
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
