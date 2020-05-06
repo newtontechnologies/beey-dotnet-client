@@ -256,92 +256,101 @@ namespace XUnitTests
         }
 
         [Fact, TestPriority(12)]
-        public async Task UploadFileAsync()
+        public async Task UploadFileAndWaitUntilTranscodedAsync()
         {
-            // TODO: filesize
-            createdProjectAccessToken =
-                (await projectApi.UploadMediaFileAsync(createdProjectId, testMp3.Length, "test01.mp3", testMp3,
-                    default)).AccessToken;
-        }
-
-        [Fact, TestPriority(12.1)]
-        public async Task GetProjectProgressStateAsync()
-        {
-            TryValueResult<ProjectProgress> result;
-            while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
-                && result.Value.TranscodingState != ProcessState.Completed)
-            {
-                // wait
-            }
-        }
+            await wsApi.UploadStreamAsync(createdProjectId, "test02.mp3", testMp3, testMp3.Length, false, default);
+            await WaitForTranscodedAsync();
+            var project = await projectApi.GetAsync(createdProjectId, default);
+            createdProjectAccessToken = project.AccessToken;
+            Assert.NotNull(project.AudioRecordingId);
+        }        
 
         [Fact, TestPriority(12.2)]
         public async Task TranscribeUploadedFileAsync()
         {
-            createdProjectAccessToken = (await projectApi.TranscribeProjectAsync(createdProjectId, "cs-cz", true, true, default)).AccessToken;
+            createdProjectAccessToken = (await projectApi.TranscribeProjectAsync(createdProjectId, "cs-CZ", true, true, default)).AccessToken;
         }
 
         [Fact, TestPriority(12.3)]
         public async Task GetProjectProgressMessagesAsync()
-        {
-            // TODO: message serialization not working correctly in backend
-            /*
+        {           
             var messages = await projectApi.GetProgressMessagesAsync(createdProjectId, null, null, null, null, default);
             Assert.True(messages.Any());
-            */
-        }
-
-        [Fact, TestPriority(12.4)]
-        public async Task StopProjectTranscriptionAsync()
-        {
-            await projectApi.StopAsync(createdProjectId, default);
         }
 
         [Fact, TestPriority(13)]
-        public async Task DownloadFileAsync()
+        public async Task CheckOriginalTrsxAsync()
         {
-            var project = await projectApi.GetAsync(createdProjectId, default);
-            Assert.NotNull(project!.AudioRecordingId);
-            var stream = await projectApi.DownloadAudioAsync(createdProjectId, default);
-
-            byte[] file;
-            using (var ms = new System.IO.MemoryStream())
+            TryValueResult<ProjectProgress> result;
+            int retryCount = 120;
+            while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
+                && ProcessState.Finished.HasFlag(result.Value.TranscriptionState)
+                && retryCount > 0)
             {
-                stream!.CopyTo(ms);
-                file = ms.ToArray();
+                await Task.Delay(1000);
+                retryCount--;
             }
+            
+            Assert.NotNull((await projectApi.GetAsync(createdProjectId, default)).OriginalTrsxId);
 
-            // backend converts the file to other format and we cannot check, whether it is the same,
-            // so just check, if there is something
-            // TODO: make better test
-            Assert.True(file.Length > 0);
+            using (var originalTrsx = await projectApi.DownloadOriginalTrsxAsync(createdProjectId, default))
+            using (var ms = new MemoryStream())
+            {
+                originalTrsx.CopyTo(ms);
+                Assert.Equal(testTrsx, ms.ToArray());
+            }
+        }
+
+        [Fact, TestPriority(13.5)]
+        public async Task ResetProjectAsync()
+        {
+            await projectApi.ResetAsync(createdProjectId, default);
+            var progress = await projectApi.GetProgressStateAsync(createdProjectId, default);
+            bool allFinished = progress.UploadState == ProcessState.Finished
+                && progress.MediaIdentificationState == ProcessState.Finished
+                && progress.TranscodingState == ProcessState.Finished
+                && progress.TranscriptionState == ProcessState.Finished
+                && progress.DiarizationState == ProcessState.Finished
+                && progress.SpeakerIdentificationState == ProcessState.Finished;
+            Assert.True(allFinished);
         }
 
         [Fact, TestPriority(14)]
-        public async Task UploadFileWebSocketsAsync()
-        {
-            await wsApi.UploadStreamAsync(createdProjectId, "test02.mp3", testMp3, testMp3.Length, false, default);
-            createdProjectAccessToken = (await projectApi.GetAsync(createdProjectId, default)).AccessToken;
+        public async Task LegacyUploadFileAndWaitUntilTranscodedAsync()
+        {            
+            _ = await projectApi.UploadMediaFileAsync(createdProjectId, testMp3.Length, "test02.mp3", testMp3, default);
+            await WaitForTranscodedAsync();
+            var project = await projectApi.GetAsync(createdProjectId, default);
+            createdProjectAccessToken = project.AccessToken;
+            Assert.NotNull(project.AudioRecordingId);
         }
 
         [Fact, TestPriority(15)]
-        public async Task DownloadWebSocketFileAsync()
+        public async Task StartTranscribingAndStopAsync()
         {
-            var project = await projectApi.GetAsync(createdProjectId, default);
-            Assert.NotNull(project!.AudioRecordingId);
-            var stream = await projectApi.DownloadAudioAsync(createdProjectId, default);
-
-            byte[] file;
-            using (var ms = new MemoryStream())
+            createdProjectAccessToken = (await projectApi.TranscribeProjectAsync(createdProjectId, "cs-CZ", true, true, default)).AccessToken;
+            TryValueResult<ProjectProgress> result;
+            int retryCount = 50;
+            while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
+                && (ProcessState.Finished.HasFlag(result.Value.TranscriptionState)
+                    || result.Value.TranscriptionState == ProcessState.None)
+                && retryCount > 0)
             {
-                stream!.CopyTo(ms);
-                file = ms.ToArray();
+                await Task.Delay(1000);
+                retryCount--;
             }
+            Assert.Equal(ProcessState.Running, result.Value.TranscriptionState);
+            await projectApi.StopAsync(createdProjectId, default);
 
-            // backend converts the file to other format and we cannot check, whether it is the same,
-            // so just check, if there is something
-            // TODO: make better test
-            Assert.True(file.Length > 0);
+            retryCount = 3;
+            while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
+                && ProcessState.Finished.HasFlag(result.Value.TranscriptionState)
+                && retryCount > 0)
+            {
+                await Task.Delay(1000);
+                retryCount--;
+            }
+            Assert.True(retryCount > 0);
         }
 
         [Fact, TestPriority(16)]
@@ -403,6 +412,21 @@ namespace XUnitTests
         public async Task DeleteProjectAsync()
         {
             Assert.True(await projectApi.DeleteAsync(createdProjectId, default));
+        }
+
+        private async Task WaitForTranscodedAsync()
+        {
+            TryValueResult<ProjectProgress> result;
+            int retryCount = 60;
+            while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
+                && !ProcessState.Finished.HasFlag(result.Value.TranscodingState)
+                && retryCount > 0)
+            {
+                // wait
+                await Task.Delay(1000);
+                retryCount--;
+            }
+            Assert.Equal(ProcessState.Completed, result.Value.TranscodingState);
         }
     }
 }

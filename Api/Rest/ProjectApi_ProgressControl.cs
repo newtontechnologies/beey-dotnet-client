@@ -3,6 +3,7 @@ using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Projects;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +35,8 @@ namespace Beey.Api.Rest
             return HandleResponse(result, r => JsonConvert.DeserializeObject<ProjectProgress>(r.GetStringContent()));
         }
 
-        public async Task<Message[]> GetProgressMessagesAsync(int id, int? count, int? skip,
+        // TODO: implement correct deserialization
+        public async Task<JObject[]> GetProgressMessagesAsync(int id, int? count, int? skip,
             int? fromId, int? toId,
             CancellationToken cancellationToken)
         {
@@ -47,7 +49,7 @@ namespace Beey.Api.Rest
                 .AddParameter("toId", toId)
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<Message[]>(r.GetStringContent()));
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<JObject[]>(r.GetStringContent()));
         }
 
         public async Task StopAsync(int id,

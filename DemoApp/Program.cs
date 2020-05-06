@@ -28,6 +28,6 @@ namespace DemoApp
 
             var beey = new BeeyClient(url);
             await beey.LoginAsync("milos.kudelka@newtontech.cz", "OVPgod");
-        }        
+        }
     }
 }
