@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Configuration>
+  <Beey Login="ladislav.seps@newtontech.cz" Password="OVPgod" URL="http://localhost:61497" TranscriptionLocale="cs-CZ">
+    <LogMessages>true</LogMessages>
+    <LogUpload>true</LogUpload>
+    <MessageEcho>true</MessageEcho>
+    <LandeckAPIURL>http://czthp24ntvr.newtonmedia.eu/api2/</LandeckAPIURL>
+    <FFmpeg>./ffmpeg.exe</FFmpeg>
+   </Beey>
+</Configuration>

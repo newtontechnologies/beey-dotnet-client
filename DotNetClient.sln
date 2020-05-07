@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "open-m3u8", "open-m3u8\src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProjectMerger", "ProjectMerger\ProjectMerger.csproj", "{F7FE56D6-3C85-4845-8D39-5BBF99C5FA46}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LandeckStreamer", "LandeckStreamer\LandeckStreamer.csproj", "{4CAB083B-9231-4058-9BC6-181218C98164}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		DataExchangeModel\Beey.DataExchangeModel.projitems*{306cefb5-a8c2-4577-8332-13827a9ec870}*SharedItemsImports = 13
@@ -117,6 +119,14 @@ Global
 		{F7FE56D6-3C85-4845-8D39-5BBF99C5FA46}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F7FE56D6-3C85-4845-8D39-5BBF99C5FA46}.Release|x86.ActiveCfg = Release|Any CPU
 		{F7FE56D6-3C85-4845-8D39-5BBF99C5FA46}.Release|x86.Build.0 = Release|Any CPU
+		{4CAB083B-9231-4058-9BC6-181218C98164}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CAB083B-9231-4058-9BC6-181218C98164}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CAB083B-9231-4058-9BC6-181218C98164}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4CAB083B-9231-4058-9BC6-181218C98164}.Debug|x86.Build.0 = Debug|Any CPU
+		{4CAB083B-9231-4058-9BC6-181218C98164}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CAB083B-9231-4058-9BC6-181218C98164}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CAB083B-9231-4058-9BC6-181218C98164}.Release|x86.ActiveCfg = Release|Any CPU
+		{4CAB083B-9231-4058-9BC6-181218C98164}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
