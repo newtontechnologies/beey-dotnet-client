@@ -117,9 +117,25 @@ namespace M3U8StreamPusher
             var watchdog = Listener(beey, p, msw);
             await Task.Delay(TimeSpan.FromSeconds(2));
             _logger.Information("upload started");
-            var len = await UploadTracks(tracks, beey, p);
+            var upload = UploadTracks(tracks, beey, p);
+            bool repeat = true;
+            while (repeat)
+            {
+                try
+                {
 
-            _logger.Information("uploaded {length} bytes waiting for transcription to finish", len);
+                    p = await beey.TranscribeProjectAsync(p.Id, p.AccessToken, Configuration.TranscriptionLocale, breaker.Token);
+                    repeat = false;
+                }
+                catch (Exception e)
+                {
+                    _logger.Warning(e,"Error when trying to transcribe, will retry");
+                }
+            }
+            _logger.Information("Transcription Started");
+            var len = await upload;
+
+           _logger.Information("uploaded {length} bytes waiting for transcription to finish", len);
             await watchdog;
             _logger.Information("transcription finished");
 
