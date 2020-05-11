@@ -9,16 +9,16 @@ using Xunit;
 namespace XUnitTests
 {
     [CollectionDefinition("2 - Current User Collection")]
-    public class CurrentUserCollectionDefinition : ICollectionFixture<LoginFixture> { }
+    public class C2_CurrentUserCollectionDefinition : ICollectionFixture<LoginFixture> { }
 
     [Collection("2 - Current User Collection")]
-    public class CurrentUserApiUnitTests
+    public class C2_CurrentUserApiUnitTests
     {
         private const string testPassword = "ASDF___ASDF";
         private static JObject testSettings;
         private static readonly CurrentUserApi api = new CurrentUserApi(Configuration.BeeyUrl);
 
-        public CurrentUserApiUnitTests(LoginFixture fixture)
+        public C2_CurrentUserApiUnitTests(LoginFixture fixture)
         {
             api.Token = fixture.Token;
         }

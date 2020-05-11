@@ -10,14 +10,15 @@ using Xunit;
 using Newtonsoft.Json.Linq;
 using System.IO;
 using Beey.DataExchangeModel.Messaging;
+using System.Diagnostics;
 
 namespace XUnitTests
 {
-    [CollectionDefinition("4 - Project Collection")]
-    public class ProjectCollectionDefinition : ICollectionFixture<LoginFixture> { }
+    [CollectionDefinition("6 - Project Collection")]
+    public class C6_ProjectCollectionDefinition : ICollectionFixture<LoginFixture> { }
 
-    [Collection("4 - Project Collection")]
-    public class ProjectApiUnitTests
+    [Collection("6 - Project Collection")]
+    public class C6_ProjectApiUnitTests
     {
         private const string testName = "test";
         private const string testPath = "test/path";
@@ -37,7 +38,7 @@ namespace XUnitTests
         private static long createdProjectAccessToken;
         private static int createdProjectAccessId;
 
-        public ProjectApiUnitTests(LoginFixture fixture)
+        public C6_ProjectApiUnitTests(LoginFixture fixture)
         {
             projectApi.Token = fixture.Token;
             wsApi.Token = fixture.Token;
@@ -59,7 +60,7 @@ namespace XUnitTests
         }
 
         [Fact, TestPriority(1)]
-        public async Task GetNoProjectAsync()
+        public async Task T01_GetNoProjectAsync()
         {
             Assert.False(await projectApi.GetAsync(-1, default).TryAsync());
         }
@@ -69,7 +70,7 @@ namespace XUnitTests
         [InlineData(ProjectApi.OrderOn.Created, false)]
         [InlineData(ProjectApi.OrderOn.Updated, true)]
         [InlineData(ProjectApi.OrderOn.Updated, false)]
-        public async Task ListProjectsBy(ProjectApi.OrderOn orderOn, bool ascending)
+        public async Task T02_ListProjectsBy(ProjectApi.OrderOn orderOn, bool ascending)
         {
             var listing = await projectApi.ListProjectsAsync(100, 0, orderOn, ascending, null, null, default);
 
@@ -113,7 +114,7 @@ namespace XUnitTests
         }
 
         [Fact, TestPriority(3)]
-        public async Task CreateProjectAsync()
+        public async Task T03_CreateProjectAsync()
         {
             var project = await projectApi.CreateAsync($"{testName}_{DateTime.Now.ToShortTimeString()}", testPath, default);
             createdProjectId = project.Id;
@@ -125,13 +126,13 @@ namespace XUnitTests
         [Theory, TestPriority(4)]
         [InlineData(ListProjectsType.From)]
         [InlineData(ListProjectsType.To)]
-        public async Task ListProjectsAsync(ListProjectsType listProjectsType)
+        public async Task T04_ListProjectsAsync(ListProjectsType listProjectsType)
         {
             DateTime? from = null;
             DateTime? to = null;
             if ((listProjectsType & ListProjectsType.From) == ListProjectsType.From)
             {
-                from = DateTime.Now.AddMinutes(-1);
+                from = DateTime.Now.AddSeconds(-20);
             }
             else if ((listProjectsType & ListProjectsType.To) == ListProjectsType.To)
             {
@@ -156,13 +157,13 @@ namespace XUnitTests
         }
 
         [Fact, TestPriority(5)]
-        public async Task GetProjectAsync()
+        public async Task T05_GetProjectAsync()
         {
             var created = await projectApi.GetAsync(createdProjectId, default);
         }
 
         [Fact, TestPriority(6)]
-        public async Task UpdateProjectAsync()
+        public async Task T06_UpdateProjectAsync()
         {
             var created = await projectApi.GetAsync(createdProjectId, default);
 
@@ -177,7 +178,7 @@ namespace XUnitTests
         [Theory, TestPriority(7)]
         [InlineData(false)]
         [InlineData(true)]
-        public async Task UpdateProjectPropertyAsync(bool useAccessToken)
+        public async Task T07_UpdateProjectPropertyAsync(bool useAccessToken)
         {
             var res = await projectApi.UpdateAsync(createdProjectId,
                 useAccessToken ? createdProjectAccessToken : -1,
@@ -194,13 +195,13 @@ namespace XUnitTests
         }
 
         [Fact, TestPriority(8)]
-        public async Task ShareProjectAsync()
+        public async Task T08_ShareProjectAsync()
         {
             createdProjectAccessToken = (await projectApi.ShareProjectAsync(createdProjectId, createdProjectAccessToken, "martin.podloucky@newtontech.cz", default)).AccessToken;
         }
 
         [Fact, TestPriority(9)]
-        public async Task ListProjectSharingAsync()
+        public async Task T09_ListProjectSharingAsync()
         {
             var listing = await projectApi.ListProjectSharing(createdProjectId, default);
             Assert.Equal(2, listing.TotalCount);
@@ -209,14 +210,149 @@ namespace XUnitTests
             Assert.Equal("martin.podloucky@newtontech.cz", sharing.FirstOrDefault()?.User.Email);
         }
 
-        [Fact, TestPriority(10)]
-        public async Task UploadOriginalTrsxAsync()
+        [Fact, TestPriority(12)]
+        public async Task T12_0_UploadFileAndWaitUntilTranscodedAsync()
+        {
+            await wsApi.UploadStreamAsync(createdProjectId, "test01.mp3", testMp3, testMp3.Length, false, default);
+            await WaitForTranscodedAsync();
+            var project = await projectApi.GetAsync(createdProjectId, default);
+            createdProjectAccessToken = project.AccessToken;
+            Assert.NotNull(project.AudioRecordingId);
+        }
+
+        [Fact, TestPriority(12.2)]
+        public async Task T12_2_TranscribeUploadedFileAsync()
+        {
+            createdProjectAccessToken = (await projectApi.TranscribeProjectAsync(createdProjectId, "cs-CZ", true, true, default)).AccessToken;
+        }
+
+        [Fact, TestPriority(12.3)]
+        public async Task T12_3_GetProjectProgressMessagesAsync()
+        {
+            var messages = await projectApi.GetProgressMessagesAsync(createdProjectId, null, null, null, null, default);
+            Assert.True(messages.Any());
+        }
+
+        [Fact, TestPriority(13)]
+        public async Task T1301_WaitUntilTranscribed()
+        {
+            TryValueResult<ProjectProgress> result;
+            int retryCount = 20;
+            while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
+                && !ProcessState.Finished.HasFlag(result.Value.TranscriptionState)
+                && retryCount > 0)
+            {
+                await Task.Delay(5000);
+                retryCount--;
+            }
+
+            Assert.True(ProcessState.Finished.HasFlag(result.Value.TranscriptionState));
+        }
+
+        [Fact, TestPriority(13.1)]
+        public async Task T13_1_CheckOriginalTrsxAsync()
+        {
+            int retryCount = 3;
+            TryValueResult<Project> result;
+            while ((result = await projectApi.GetAsync(createdProjectId, default).TryAsync())
+                && result.Value.OriginalTrsxId == null
+                && retryCount > 0)
+            {
+                await Task.Delay(3000);
+                retryCount--;
+            }
+
+            using (var origStream = await projectApi.DownloadOriginalTrsxAsync(createdProjectId, default))
+            using (var origReader = new StreamReader(origStream))
+            using (var testStream = new MemoryStream(testTrsx))
+            using (var testReader = new StreamReader(testStream))
+            {
+                while (!origReader.EndOfStream)
+                {
+                    var origLine = await origReader.ReadLineAsync();
+                    var testLine = await testReader.ReadLineAsync();
+                    if (origLine!.TrimStart().StartsWith("<p>"))
+                    {
+                        Assert.Equal(testLine, origLine);
+                    }
+                }
+            }
+        }
+
+        [Fact, TestPriority(13.5)]
+        public async Task T13_5_ResetProjectAsync()
+        {
+            await projectApi.ResetAsync(createdProjectId, default);
+            int retry = 3;
+            TryValueResult<ProjectProgress> progressResult;
+            while ((progressResult = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
+                && progressResult.Value.TranscriptionState != ProcessState.Finished
+                && retry > 0)
+            {
+                await Task.Delay(1000);
+                retry--;
+            }
+
+            var progress = progressResult.Value;
+            bool allFinished = progress.UploadState == ProcessState.Finished
+                && progress.MediaIdentificationState == ProcessState.Finished
+                && progress.TranscodingState == ProcessState.Finished
+                && progress.TranscriptionState == ProcessState.Finished
+                && progress.DiarizationState == ProcessState.Finished
+                && progress.SpeakerIdentificationState == ProcessState.Finished;
+
+            Assert.True(allFinished);
+        }
+
+        [Fact, TestPriority(14)]
+        public async Task T14_LegacyUploadFileAndWaitUntilTranscodedAsync()
+        {
+            _ = await projectApi.UploadMediaFileAsync(createdProjectId, testMp3.Length, "test02.mp3", testMp3, default);
+            await WaitForTranscodedAsync();
+        }
+
+
+        [Fact, TestPriority(15)]
+        public async Task T15_0_StartTranscribingAndStopAsync()
+        {
+            createdProjectAccessToken = (await projectApi.TranscribeProjectAsync(createdProjectId, "cs-CZ", true, true, default)).AccessToken;
+
+            int retryCount = 10;
+            TryValueResult<ProjectProgress> result;
+            
+            while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
+                            && result.Value.TranscriptionState != ProcessState.Running
+                            && retryCount > 0)
+            {
+                await Task.Delay(1000);
+                retryCount--;
+            }
+            Assert.True(retryCount > 0);
+            
+            await projectApi.StopAsync(createdProjectId, default);
+
+            retryCount = 5;
+            while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
+                && !ProcessState.Finished.HasFlag(result.Value.TranscriptionState)
+                && retryCount > 0)
+            {
+                await Task.Delay(1000);
+                retryCount--;
+            }
+
+            createdProjectAccessToken = (await projectApi.GetAsync(createdProjectId, default)).AccessToken;
+
+            Assert.True(retryCount > 0);
+        }
+
+        [Fact, TestPriority(15.1)]
+        public async Task T15_1_UploadOriginalTrsxAsync()
         {
             createdProjectAccessToken = (await projectApi.UploadOriginalTrsxAsync(createdProjectId, createdProjectAccessToken, "test01.trsx", testTrsx, default)).AccessToken;
         }
 
-        [Fact, TestPriority(10.5)]
-        public async Task DownloadOriginalTrsxAsync()
+        [Fact, TestPriority(15.2)]
+        public async Task T15_2_DownloadOriginalTrsxAsync()
         {
             var project = await projectApi.GetAsync(createdProjectId, default);
             Assert.NotNull(project!.OriginalTrsxId);
@@ -232,14 +368,14 @@ namespace XUnitTests
             Assert.Equal(testTrsx, trsx);
         }
 
-        [Fact, TestPriority(11)]
-        public async Task UploadCurrentTrsxAsync()
+        [Fact, TestPriority(15.3)]
+        public async Task T15_3_UploadCurrentTrsxAsync()
         {
             createdProjectAccessToken = (await projectApi.UploadCurrentTrsxAsync(createdProjectId, createdProjectAccessToken, "test01.trsx", testTrsx, default)).AccessToken;
         }
 
-        [Fact, TestPriority(11.5)]
-        public async Task DownloadCurrentTrsxAsync()
+        [Fact, TestPriority(15.4)]
+        public async Task T15_4_DownloadCurrentTrsxAsync()
         {
             var project = await projectApi.GetAsync(createdProjectId, default);
             Assert.NotNull(project!.CurrentTrsxId);
@@ -255,113 +391,15 @@ namespace XUnitTests
             Assert.Equal(testTrsx, trsx);
         }
 
-        [Fact, TestPriority(12)]
-        public async Task UploadFileAndWaitUntilTranscodedAsync()
-        {
-            await wsApi.UploadStreamAsync(createdProjectId, "test02.mp3", testMp3, testMp3.Length, false, default);
-            await WaitForTranscodedAsync();
-            var project = await projectApi.GetAsync(createdProjectId, default);
-            createdProjectAccessToken = project.AccessToken;
-            Assert.NotNull(project.AudioRecordingId);
-        }        
-
-        [Fact, TestPriority(12.2)]
-        public async Task TranscribeUploadedFileAsync()
-        {
-            createdProjectAccessToken = (await projectApi.TranscribeProjectAsync(createdProjectId, "cs-CZ", true, true, default)).AccessToken;
-        }
-
-        [Fact, TestPriority(12.3)]
-        public async Task GetProjectProgressMessagesAsync()
-        {           
-            var messages = await projectApi.GetProgressMessagesAsync(createdProjectId, null, null, null, null, default);
-            Assert.True(messages.Any());
-        }
-
-        [Fact, TestPriority(13)]
-        public async Task CheckOriginalTrsxAsync()
-        {
-            TryValueResult<ProjectProgress> result;
-            int retryCount = 120;
-            while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
-                && ProcessState.Finished.HasFlag(result.Value.TranscriptionState)
-                && retryCount > 0)
-            {
-                await Task.Delay(1000);
-                retryCount--;
-            }
-            
-            Assert.NotNull((await projectApi.GetAsync(createdProjectId, default)).OriginalTrsxId);
-
-            using (var originalTrsx = await projectApi.DownloadOriginalTrsxAsync(createdProjectId, default))
-            using (var ms = new MemoryStream())
-            {
-                originalTrsx.CopyTo(ms);
-                Assert.Equal(testTrsx, ms.ToArray());
-            }
-        }
-
-        [Fact, TestPriority(13.5)]
-        public async Task ResetProjectAsync()
-        {
-            await projectApi.ResetAsync(createdProjectId, default);
-            var progress = await projectApi.GetProgressStateAsync(createdProjectId, default);
-            bool allFinished = progress.UploadState == ProcessState.Finished
-                && progress.MediaIdentificationState == ProcessState.Finished
-                && progress.TranscodingState == ProcessState.Finished
-                && progress.TranscriptionState == ProcessState.Finished
-                && progress.DiarizationState == ProcessState.Finished
-                && progress.SpeakerIdentificationState == ProcessState.Finished;
-            Assert.True(allFinished);
-        }
-
-        [Fact, TestPriority(14)]
-        public async Task LegacyUploadFileAndWaitUntilTranscodedAsync()
-        {            
-            _ = await projectApi.UploadMediaFileAsync(createdProjectId, testMp3.Length, "test02.mp3", testMp3, default);
-            await WaitForTranscodedAsync();
-            var project = await projectApi.GetAsync(createdProjectId, default);
-            createdProjectAccessToken = project.AccessToken;
-            Assert.NotNull(project.AudioRecordingId);
-        }
-
-        [Fact, TestPriority(15)]
-        public async Task StartTranscribingAndStopAsync()
-        {
-            createdProjectAccessToken = (await projectApi.TranscribeProjectAsync(createdProjectId, "cs-CZ", true, true, default)).AccessToken;
-            TryValueResult<ProjectProgress> result;
-            int retryCount = 50;
-            while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
-                && (ProcessState.Finished.HasFlag(result.Value.TranscriptionState)
-                    || result.Value.TranscriptionState == ProcessState.None)
-                && retryCount > 0)
-            {
-                await Task.Delay(1000);
-                retryCount--;
-            }
-            Assert.Equal(ProcessState.Running, result.Value.TranscriptionState);
-            await projectApi.StopAsync(createdProjectId, default);
-
-            retryCount = 3;
-            while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
-                && ProcessState.Finished.HasFlag(result.Value.TranscriptionState)
-                && retryCount > 0)
-            {
-                await Task.Delay(1000);
-                retryCount--;
-            }
-            Assert.True(retryCount > 0);
-        }
-
         [Fact, TestPriority(16)]
-        public async Task GetTagsAsync()
+        public async Task T16_GetTagsAsync()
         {
             Assert.True(await projectApi.GetTagsAsync(createdProjectId, default).TryAsync());
         }
 
         [Fact, TestPriority(17)]
 
-        public async Task AddTagAsync()
+        public async Task T17_AddTagAsync()
         {
             var project = await projectApi.AddTagAsync(createdProjectId, createdProjectAccessToken, testTag, default);
             createdProjectAccessToken = project.AccessToken;
@@ -371,7 +409,7 @@ namespace XUnitTests
         }
 
         [Fact, TestPriority(18)]
-        public async Task RemoveTagAsync()
+        public async Task T18_RemoveTagAsync()
         {
             var project = await projectApi.RemoveTagAsync(createdProjectId, createdProjectAccessToken, testTag, default);
             createdProjectAccessToken = project.AccessToken;
@@ -381,14 +419,14 @@ namespace XUnitTests
         }
 
         [Fact, TestPriority(19)]
-        public async Task GetMetadataAsync()
+        public async Task T19_GetMetadataAsync()
         {
             Assert.True(await projectApi.GetMetadataAsync(createdProjectId, testMetadataKey, default).TryAsync());
         }
 
         [Fact, TestPriority(20)]
 
-        public async Task AddMetadataAsync()
+        public async Task T20_AddMetadataAsync()
         {
             var project = await projectApi.AddMetadataAsync(createdProjectId, createdProjectAccessToken,
                 testMetadataKey, testMetadataValue, default);
@@ -400,7 +438,7 @@ namespace XUnitTests
         }
 
         [Fact, TestPriority(21)]
-        public async Task RemoveMetadataAsync()
+        public async Task T21_RemoveMetadataAsync()
         {
             var project = await projectApi.RemoveMetadataAsync(createdProjectId, createdProjectAccessToken, testMetadataKey, default);
             createdProjectAccessToken = project.AccessToken;
@@ -409,7 +447,7 @@ namespace XUnitTests
         }
 
         [Fact, TestPriority(22)]
-        public async Task DeleteProjectAsync()
+        public async Task T22_DeleteProjectAsync()
         {
             Assert.True(await projectApi.DeleteAsync(createdProjectId, default));
         }
@@ -417,7 +455,7 @@ namespace XUnitTests
         private async Task WaitForTranscodedAsync()
         {
             TryValueResult<ProjectProgress> result;
-            int retryCount = 60;
+            int retryCount = 5;
             while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
                 && !ProcessState.Finished.HasFlag(result.Value.TranscodingState)
                 && retryCount > 0)
@@ -425,6 +463,21 @@ namespace XUnitTests
                 // wait
                 await Task.Delay(1000);
                 retryCount--;
+            }
+
+            if (result.Value.TranscodingState == ProcessState.Running)
+            {
+                createdProjectAccessToken = (await projectApi.TranscribeProjectAsync(createdProjectId, "cs-CZ", true, true, default)).AccessToken;
+                retryCount = 1;
+                while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
+                    && !ProcessState.Finished.HasFlag(result.Value.TranscriptionState)
+                    && retryCount > 0)
+                {
+                    await Task.Delay(2300);
+                    retryCount--;
+                }
+
+                var progress = result.Value;
             }
             Assert.Equal(ProcessState.Completed, result.Value.TranscodingState);
         }

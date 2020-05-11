@@ -192,7 +192,7 @@ namespace Beey.Client
         }
 
         public async Task<Project> TranscribeProjectAsync(int projectId,
-            string language = "cz", bool withPpc = true, bool saveTrsx = true,
+            string language = "cs-CZ", bool withPpc = true, bool saveTrsx = true,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();

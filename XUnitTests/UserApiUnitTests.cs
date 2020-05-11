@@ -8,11 +8,11 @@ using Xunit;
 
 namespace XUnitTests
 {
-    [CollectionDefinition("3 - User Collection")]
-    public class UserCollectionDefinition : ICollectionFixture<LoginFixture> { }
+    [CollectionDefinition("4 - User Collection")]
+    public class C4_UserCollectionDefinition : ICollectionFixture<LoginFixture> { }
 
-    [Collection("3 - User Collection")]
-    public class UserApiUnitTests
+    [Collection("4 - User Collection")]
+    public class C4_UserApiUnitTests
     {
         static readonly AdminUserApi api = new AdminUserApi(Configuration.BeeyUrl);
 
@@ -26,7 +26,7 @@ namespace XUnitTests
 
         private static int createdUserId;
 
-        public UserApiUnitTests(LoginFixture fixture)
+        public C4_UserApiUnitTests(LoginFixture fixture)
         {
             api.Token = fixture.Token;
         }

@@ -5,11 +5,11 @@ using Xunit;
 
 namespace XUnitTests
 {
-    [CollectionDefinition("3 - Speaker Collection")]
-    public class SpeakerCollectionDefinition : ICollectionFixture<LoginFixture> { }
+    [CollectionDefinition("5 - Speaker Collection")]
+    public class C5_SpeakerCollectionDefinition : ICollectionFixture<LoginFixture> { }
 
-    [Collection("3 - Speaker Collection")]
-    public class SpeakerApiUnitTests
+    [Collection("5 - Speaker Collection")]
+    public class C5_SpeakerApiUnitTests
     {
         static readonly SpeakerApi api = new SpeakerApi(Configuration.BeeyUrl);
 
@@ -21,7 +21,7 @@ namespace XUnitTests
 
         private static string createdSpeakerId;
 
-        public SpeakerApiUnitTests(LoginFixture fixture)
+        public C5_SpeakerApiUnitTests(LoginFixture fixture)
         {
             api.Token = fixture.Token;
         }

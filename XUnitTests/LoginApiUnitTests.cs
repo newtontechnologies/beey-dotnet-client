@@ -11,11 +11,11 @@ using Xunit;
 namespace XUnitTests
 {
     [CollectionDefinition("1 - Login Collection")]
-    public class LoginCollectionDefinition { }
+    public class C1_LoginCollectionDefinition { }
 
 
     [Collection("1 - Login Collection")]
-    public class LoginApiUnitTests
+    public class C1_LoginApiUnitTests
     {
         private static LoginApi api;
         private static LoginToken token;
