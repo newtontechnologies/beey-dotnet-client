@@ -1,5 +1,6 @@
 using Beey.Api.Rest;
 using Beey.Client;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -43,8 +44,10 @@ namespace XUnitTests
         public async Task CreateSpeakerAsync()
         {
             var speaker = await api.CreateAsync(new TranscriptionCore.Speaker(testFirstName, testSurname, testSex, ""), default);
-            System.Threading.Thread.Sleep(2000);
             createdSpeakerId = speaker.DBID;
+
+            // wait a bit for Elasticsearch to update
+            await Task.Delay(2000);
         }
 
         [Fact, TestPriority(4)]

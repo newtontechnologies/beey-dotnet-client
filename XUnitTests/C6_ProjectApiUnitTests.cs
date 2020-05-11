@@ -26,6 +26,7 @@ namespace XUnitTests
         private const string testTag = "Tag zbrusu nov";
         private const string testMetadataKey = "metadata test";
         private const string testMetadataValue = "Příliš žluťoučký kůň úpěl ďábelské ódy.";
+        private const string shareToEmail = "martin.podloucky@newtontech.cz";
         private static readonly ProjectApi projectApi = new ProjectApi(Configuration.BeeyUrl);
         private static readonly WebSocketsApi wsApi = new WebSocketsApi(Configuration.BeeyUrl);
 
@@ -206,8 +207,8 @@ namespace XUnitTests
             var listing = await projectApi.ListProjectSharing(createdProjectId, default);
             Assert.Equal(2, listing.TotalCount);
 
-            var sharing = listing.List.Where(sh => sh.User.Email == "martin.podloucky@newtontech.cz");
-            Assert.Equal("martin.podloucky@newtontech.cz", sharing.FirstOrDefault()?.User.Email);
+            var sharing = listing.List.Where(sh => sh.User.Email == shareToEmail);
+            Assert.Equal(shareToEmail, sharing.FirstOrDefault()?.User.Email);
         }
 
         [Fact, TestPriority(12)]
@@ -319,7 +320,7 @@ namespace XUnitTests
 
             int retryCount = 10;
             TryValueResult<ProjectProgress> result;
-            
+
             while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
                             && result.Value.TranscriptionState != ProcessState.Running
                             && retryCount > 0)
@@ -328,7 +329,7 @@ namespace XUnitTests
                 retryCount--;
             }
             Assert.True(retryCount > 0);
-            
+
             await projectApi.StopAsync(createdProjectId, default);
 
             retryCount = 5;
@@ -452,6 +453,19 @@ namespace XUnitTests
             Assert.True(await projectApi.DeleteAsync(createdProjectId, default));
         }
 
+        [Fact, TestPriority(23)]
+        public async Task T23_DeleteSharedProject()
+        {
+            var loginApi = new LoginApi(Configuration.BeeyUrl);
+            var projectApi = new ProjectApi(Configuration.BeeyUrl) { Token = await loginApi.LoginAsync(shareToEmail, "OVPgod", default) };
+            var projects = await projectApi.ListProjectsAsync(0, 0, ProjectApi.OrderOn.None, true, null, null, default);
+            foreach (var toDelete in projects.List)
+            {
+                Assert.True(await projectApi.DeleteAsync(toDelete.ProjectId, default));
+            }
+            await loginApi.LogoutAsync(projectApi.Token, default);
+        }
+
         private async Task WaitForTranscodedAsync()
         {
             TryValueResult<ProjectProgress> result;
@@ -461,7 +475,7 @@ namespace XUnitTests
                 && retryCount > 0)
             {
                 // wait
-                await Task.Delay(1000);
+                await Task.Delay(3000);
                 retryCount--;
             }
 
