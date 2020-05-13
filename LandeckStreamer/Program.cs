@@ -117,14 +117,14 @@ namespace LandeckStreamer
 
             _logger.Information("upload started");
 
-            var upload = beey.UploadStreamAsync(p.Id, "sejm", ffmpeg.StandardOutput.BaseStream, null, Configuration.TranscriptionLocale, true, breaker.Token);
+            var upload = beey.UploadStreamAsync(p.Id, "sejm", ffmpeg.StandardOutput.BaseStream, null, true, breaker.Token);
             bool repeat = true;
             while (repeat)
             {
                 try
                 {
 
-                    p = await beey.TranscribeProjectAsync(p.Id, p.AccessToken, Configuration.TranscriptionLocale, breaker.Token);
+                    p = await beey.TranscribeProjectAsync(p.Id, Configuration.TranscriptionLocale, cancellationToken: breaker.Token);
                     repeat = false;
                 }
                 catch (Exception e)

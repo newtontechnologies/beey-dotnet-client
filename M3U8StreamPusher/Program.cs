@@ -124,7 +124,7 @@ namespace M3U8StreamPusher
                 try
                 {
 
-                    p = await beey.TranscribeProjectAsync(p.Id, p.AccessToken, Configuration.TranscriptionLocale, breaker.Token);
+                    p = await beey.TranscribeProjectAsync(p.Id, Configuration.TranscriptionLocale, cancellationToken: breaker.Token);
                     repeat = false;
                 }
                 catch (Exception e)
