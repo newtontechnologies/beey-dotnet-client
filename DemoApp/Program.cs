@@ -28,6 +28,8 @@ namespace DemoApp
 
             var beey = new BeeyClient(url);
             await beey.LoginAsync("milos.kudelka@newtontech.cz", "OVPgod");
-        }        
+            string mp3Path = @"C:\Users\milos.kudelka\Newtontech\BeeyRepo\DotNetClient\XUnitTests\Files\test01.mp3";
+            string trsxPath = @"C:\Users\milos.kudelka\Newtontech\BeeyRepo\DotNetClient\XUnitTests\Files\test01.trsx";
+        }
     }
 }

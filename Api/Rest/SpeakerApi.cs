@@ -22,7 +22,7 @@ namespace Beey.Api.Rest
     {
         public SpeakerApi(string url) : base(url)
         {
-            EndPoint = "API/Speaker/";
+            EndPoint = "API/Speaker";
         }
 
         public async Task<Listing<Speaker>> ListAsync(int count, int skip, string? search,
@@ -43,7 +43,7 @@ namespace Beey.Api.Rest
         public async Task<Speaker> GetAsync(string dbId, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
-                .AddParameter("id", dbId)
+                .AddUrlSegment(System.Web.HttpUtility.UrlEncode(dbId))
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
             return HandleResponse(result, r => new Speaker(System.Xml.Linq.XElement.Parse(r.GetStringContent())));
@@ -66,14 +66,14 @@ namespace Beey.Api.Rest
                 .SetBody(speaker.Serialize().ToString(), "text/xml")
                 .ExecuteAsync(HttpMethod.PUT, cancellationToken);
 
-            HandleResponse(result, _ => true);
+            HandleResponse(result);
         }
 
         public async Task<bool> DeleteAsync(string dbId,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
-                .AddParameter("id", dbId)
+                .AddUrlSegment(System.Web.HttpUtility.UrlEncode(dbId))
                 .ExecuteAsync(HttpMethod.DELETE, cancellationToken);
 
             if (ResultNotFound(result))

@@ -3,6 +3,7 @@ using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Projects;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,34 +28,39 @@ namespace Beey.Api.Rest
            CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
+                .AddUrlSegment(id.ToString())
                 .AddUrlSegment("ProgressControl/State")
-                .AddParameter("id", id)
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<ProjectProgress>(r.GetStringContent()));
         }
 
-        // TODO: Message serialization from/to JSON
-        public async Task<string> GetProgressMessagesAsync(int id,
-           CancellationToken cancellationToken)
+        // TODO: implement correct deserialization
+        public async Task<JObject[]> GetProgressMessagesAsync(int id, int? count, int? skip,
+            int? fromId, int? toId,
+            CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
+                .AddUrlSegment(id.ToString())
                 .AddUrlSegment("ProgressControl/Messages")
-                .AddParameter("id", id)
+                .AddParameter("count", count)
+                .AddParameter("skip", skip)
+                .AddParameter("fromId", fromId)
+                .AddParameter("toId", toId)
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => r.GetStringContent());
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<JObject[]>(r.GetStringContent()));
         }
 
         public async Task StopAsync(int id,
            CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
+                .AddUrlSegment(id.ToString())
                 .AddUrlSegment("ProgressControl/Stop")
-                .AddParameter("id", id)
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            HandleResponse(result, _ => true);
+            HandleResponse(result);
         }
     }
 }

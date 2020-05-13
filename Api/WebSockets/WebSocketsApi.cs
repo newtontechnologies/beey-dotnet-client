@@ -70,7 +70,15 @@ namespace Beey.Api.WebSockets
             return res;
         }
 
-        public async Task UploadStreamAsync(int projectId, string dataName, Stream data, long? dataLength, string language, bool transcribe, CancellationToken cancellationToken)
+        public async Task UploadStreamAsync(int projectId, string dataName, byte[] data, long? dataLength, bool saveMedia, CancellationToken cancellationToken)
+        {
+            using (var ms = new MemoryStream(data))
+            {
+                await UploadStreamAsync(projectId, dataName, ms, dataLength, saveMedia, cancellationToken);
+            }
+        }
+
+        public async Task UploadStreamAsync(int projectId, string dataName, Stream data, long? dataLength, bool saveMedia, CancellationToken cancellationToken)
         {
             var policy = RetryPolicies.CreateAsyncNetworkPolicy<bool>(logger);
             bool res = await policy.ExecuteAsync(async (c) =>
@@ -78,8 +86,7 @@ namespace Beey.Api.WebSockets
                 var ws = await CreateBuilder()
                        .AddUrlSegment("Upload")
                        .AddParameter("id", projectId.ToString())
-                       .AddParameter("lang", language)
-                       .AddParameter("transcribe", transcribe.ToString().ToLower())
+                       .AddParameter("saveMedia", saveMedia)
                        .OpenConnectionAsync(c);
 
                 await Task.Delay(1000);
@@ -89,61 +96,55 @@ namespace Beey.Api.WebSockets
                 var lastreporttime = DateTime.MinValue;
                 var starttime = DateTime.Now;
 
-                using (data)
+                var (bytes, res) = await ws.ReceiveMessageAsync(buffer, c);
+                var fi = JsonConvert.DeserializeObject<FileStateInfo>(Encoding.UTF8.GetString(buffer, 0, bytes));
+                if (fi.BufferSize > buffer.Length)
+                    buffer = new byte[fi.BufferSize];
+
+                fi = new FileStateInfo()
                 {
-                    var (bytes, res) = await ws.ReceiveMessageAsync(buffer, c);
-                    var fi = JsonConvert.DeserializeObject<FileStateInfo>(Encoding.UTF8.GetString(buffer, 0, bytes));
-                    if (fi.BufferSize > buffer.Length)
-                        buffer = new byte[fi.BufferSize];
+                    FileName = dataName,
+                    TotalFileSize = dataLength,
+                    BufferSize = buffer.Length,
+                };
 
+                await ws.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(fi)), WebSocketMessageType.Text, true, c);
 
-                    fi = new FileStateInfo()
+                //send chunked
+                using (MemoryStream ms = new MemoryStream(buffer))
+                using (BinaryWriter bw = new BinaryWriter(ms))
+                {
+                    while (true)
                     {
-                        FileName = dataName,
-                        TotalFileSize = dataLength,
-                        BufferSize = buffer.Length,
-                    };
+                        ms.Seek(0, SeekOrigin.Begin);
+                        bw.Write((double)totalRead);
 
-                    await ws.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(fi)), WebSocketMessageType.Text, true, c);
+                        var read = await data.ReadAsync(buffer, sizeof(double) + sizeof(short), buffer.Length - sizeof(double) - sizeof(short));
+                        if (read <= 0) //EOF
+                            break;
 
+                        ms.Seek(sizeof(double), SeekOrigin.Begin);
+                        bw.Write((short)read);
 
-                    //send chunked
-                    using (MemoryStream ms = new MemoryStream(buffer))
-                    using (BinaryWriter bw = new BinaryWriter(ms))
-                    {
-                        while (true)
+                        await ws.SendAsync(new ArraySegment<byte>(buffer, 0, sizeof(double) + sizeof(short) + read), WebSocketMessageType.Binary, true, c);
+
+                        totalRead += read;
+
+                        var tdelta = DateTime.Now - lastreporttime;
+                        if (tdelta > TimeSpan.FromSeconds(10))
                         {
-                            ms.Seek(0, SeekOrigin.Begin);
-                            bw.Write((double)totalRead);
-
-                            var read = await data.ReadAsync(buffer, sizeof(double) + sizeof(short), buffer.Length - sizeof(double) - sizeof(short));
-                            if (read <= 0) //EOF
-                                break;
-
-                            ms.Seek(sizeof(double), SeekOrigin.Begin);
-                            bw.Write((short)read);
-
-                            await ws.SendAsync(new ArraySegment<byte>(buffer, 0, sizeof(double) + sizeof(short) + read), WebSocketMessageType.Binary, true, c);
-
-                            totalRead += read;
-
-                            var tdelta = DateTime.Now - lastreporttime;
-                            if (tdelta > TimeSpan.FromSeconds(10))
-                            {
-                                logger.Log(Logging.LogLevel.Info, () => $"written: {totalRead}B seconds: {DateTime.Now - starttime}:");
-                                lastreporttime = DateTime.Now;
-                            }
+                            logger.Log(Logging.LogLevel.Info, () => $"written: {totalRead}B seconds: {DateTime.Now - starttime}:");
+                            lastreporttime = DateTime.Now;
                         }
                     }
-
-                    //initiate close handshake
-                    await ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "file sent", c);
-                    //wait for close from server
-                    (bytes, res) = await ws.ReceiveMessageAsync(buffer, c);
-                    if (res.MessageType != WebSocketMessageType.Close)
-                        logger.Log(Logging.LogLevel.Warn, () => "data received after Websocket close handshake was intitiated");
-
                 }
+
+                //initiate close handshake
+                await ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "file sent", c);
+                //wait for close from server
+                (bytes, res) = await ws.ReceiveMessageAsync(buffer, c);
+                if (res.MessageType != WebSocketMessageType.Close)
+                    logger.Log(Logging.LogLevel.Warn, () => "data received after Websocket close handshake was intitiated");
 
                 return true;
             }, cancellationToken);

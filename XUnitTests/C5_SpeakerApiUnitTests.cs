@@ -1,15 +1,16 @@
 using Beey.Api.Rest;
 using Beey.Client;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace XUnitTests
 {
-    [CollectionDefinition("2 - Speaker Collection")]
-    public class SpeakerCollectionDefinition : ICollectionFixture<LoginFixture> { }
+    [CollectionDefinition("5 - Speaker Collection")]
+    public class C5_SpeakerCollectionDefinition : ICollectionFixture<LoginFixture> { }
 
-    [Collection("2 - Speaker Collection")]
-    public class SpeakerApiUnitTests
+    [Collection("5 - Speaker Collection")]
+    public class C5_SpeakerApiUnitTests
     {
         static readonly SpeakerApi api = new SpeakerApi(Configuration.BeeyUrl);
 
@@ -21,7 +22,7 @@ namespace XUnitTests
 
         private static string createdSpeakerId;
 
-        public SpeakerApiUnitTests(LoginFixture fixture)
+        public C5_SpeakerApiUnitTests(LoginFixture fixture)
         {
             api.Token = fixture.Token;
         }
@@ -43,8 +44,10 @@ namespace XUnitTests
         public async Task CreateSpeakerAsync()
         {
             var speaker = await api.CreateAsync(new TranscriptionCore.Speaker(testFirstName, testSurname, testSex, ""), default);
-            System.Threading.Thread.Sleep(2000);
             createdSpeakerId = speaker.DBID;
+
+            // wait a bit for Elasticsearch to update
+            await Task.Delay(2000);
         }
 
         [Fact, TestPriority(4)]

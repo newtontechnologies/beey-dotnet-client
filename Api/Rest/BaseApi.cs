@@ -52,7 +52,7 @@ namespace Beey.Api.Rest
 
         internal void HandleResponse(Response response)
         {
-            var _ = HandleResponse(response, (r) => new object());
+            _ = HandleResponse(response, r => new object());
         }
 
         internal T HandleResponse<T>(Response response, Func<Response, T> getValue)

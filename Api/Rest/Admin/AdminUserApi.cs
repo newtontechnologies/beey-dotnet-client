@@ -1,5 +1,6 @@
 ﻿using Beey.DataExchangeModel;
 using Beey.DataExchangeModel.Auth;
+using Beey.DataExchangeModel.Projects;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace Beey.Api.Rest.Admin
     {
         public AdminUserApi(string url) : base(url)
         {
-            EndPoint = "API/Admin/Users";
+            EndPoint = "API/Admin/User";
         }
 
         public async Task<Listing<User>> ListAsync(int count, int skip, CancellationToken cancellationToken)
@@ -30,7 +31,7 @@ namespace Beey.Api.Rest.Admin
         public async Task<User> GetAsync(int id, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
-                .AddParameter("id", id)
+                .AddUrlSegment(id.ToString())
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<User>(r.GetStringContent()));
@@ -53,14 +54,14 @@ namespace Beey.Api.Rest.Admin
                 .SetBody(JsonConvert.SerializeObject(user), "application/json")
                 .ExecuteAsync(HttpMethod.PUT, cancellationToken);
 
-            HandleResponse(result, _ => true);
+            HandleResponse(result);
         }
 
         public async Task<bool> DeleteAsync(int id,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
-                .AddParameter("id", id)
+                .AddUrlSegment(id.ToString())
                 .ExecuteAsync(HttpMethod.DELETE, cancellationToken);
 
             if (ResultNotFound(result))
@@ -69,6 +70,17 @@ namespace Beey.Api.Rest.Admin
             }
 
             return HandleResponse(result, _ => true);
+        }
+
+        public async Task<TranscriptionLogItem[]> GetTranscriptionLogAsync(int id,
+            CancellationToken cancellationToken)
+        {
+            var result = await CreateBuilder()
+                .AddUrlSegment(id.ToString())
+                .AddUrlSegment("TranscriptionLog")
+                .ExecuteAsync(HttpMethod.GET, cancellationToken);
+
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<TranscriptionLogItem[]>(r.GetStringContent()));
         }
     }
 }

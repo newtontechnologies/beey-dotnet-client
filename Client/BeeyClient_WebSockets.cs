@@ -38,7 +38,7 @@ namespace Beey.Client
         }
 
         public async Task UploadStreamAsync(int projectId,string dataName, Stream data,
-            long? dataLength, string language, bool transcribe,
+            long? dataLength, bool saveMedia,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
@@ -46,7 +46,7 @@ namespace Beey.Client
             var policy = CreateWebSocketsAsyncUnauthorizedPolicy<bool>();
             await policy.ExecuteAsync(async (ctx, c) =>
             {
-                await WebSocketsApi.UploadStreamAsync(projectId, dataName, data, dataLength, language, transcribe, cancellationToken);
+                await WebSocketsApi.UploadStreamAsync(projectId, dataName, data, dataLength, saveMedia, cancellationToken);
                 return true;
             }, CreatePollyContext(cancellationToken), cancellationToken);
         }
