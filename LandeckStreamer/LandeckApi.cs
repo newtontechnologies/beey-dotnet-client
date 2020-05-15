@@ -65,7 +65,7 @@ namespace LandeckStreamer
             {
                 _logger.Fatal($"did not found uninterrupted stream'{opts.Channel}' on \r\n {landecks} ");
                 Log.CloseAndFlush();
-                Environment.Exit(-1);
+                return null;
             }
             else
                 _logger.Information("Landeck & channel selected: {$landeck}", channelInfo);

@@ -19,5 +19,9 @@ namespace LandeckStreamer
         public string LandeckAPIURL { get; set; }
 
         public string FFmpeg { get; set; }
+
+        public string FFmpegAudioParams { get; set; }
+
+        public string FFmpegVideoParams { get; set; }
     }
 }

@@ -73,6 +73,12 @@ namespace LandeckStreamer
             string urlbase = null;
             bool IsVideo = false;
             JObject channelInfo = LandeckApi.LoadLandeckInfo(opts, opts.Start, opts.Length, ref urlbase, ref IsVideo);
+            while (channelInfo is null || (channelInfo.TryGetValue("stream_count", out var ssc) && ssc.Value<string>() == "2" && IsVideo == false))
+            {
+                _logger.Warning("Stream count missmatch when loading from landeck... retry in 1s");
+                await Task.Delay(1000);
+                channelInfo = LandeckApi.LoadLandeckInfo(opts, opts.Start, opts.Length, ref urlbase, ref IsVideo);
+            }
 
 
             var videodownloader = IsVideo ? new MpdAudioDownloader(urlbase, opts.Title + Path.GetRandomFileName() + "video.mp4", "video/mp4") : null;
@@ -81,16 +87,28 @@ namespace LandeckStreamer
 
             var videoDownloadTask = IsVideo ? videodownloader.DownloadStream(opts.Start, opts.Length, null) : null;
             var audioDownloadTask = audiodownloader.DownloadStream(opts.Start, opts.Length, null);
-
-            Process ffmpeg = Process.Start(new ProcessStartInfo()
+            Process ffmpeg;
+            if (IsVideo)
             {
-                FileName = Configuration.FFmpeg,
-                Arguments = $"-y -re -rw_timeout 30000000 -follow 1 -seekable 0 -i \"{audiodownloader.FilePath}\" -rw_timeout 30000000 -follow 1 -seekable 0 -i \"{videodownloader.FilePath}\" -map 0:a:0 -map 1:v:0 -s 640x480 -c:a aac -b:a 64k -f ismv -",
-                RedirectStandardOutput = true,
+                ffmpeg = Process.Start(new ProcessStartInfo()
+                {
+                    FileName = Configuration.FFmpeg,
+                    Arguments = string.Format(Configuration.FFmpegVideoParams, audiodownloader.FilePath, videodownloader.FilePath),
+                    RedirectStandardOutput = true,
 
-            });
+                });
+            }
+            else
+            {
+                ffmpeg = Process.Start(new ProcessStartInfo()
+                {
+                    FileName = Configuration.FFmpeg,
+                    Arguments = string.Format(Configuration.FFmpegAudioParams, audiodownloader.FilePath),
+                    RedirectStandardOutput = true,
 
-
+                });
+            }
+            //$"-y -re -rw_timeout 30000000 -follow 1 -seekable 0 -i \"{audiodownloader.FilePath}\" -map 0:a:0 -c:a aac -b:a 64k -frag_duration 1000 -f ismv -movflags frag_keyframe+empty_moov+separate_moof+isml -frag_duration 1000 -",
             //var outtask = ffmpeg.StandardOutput.BaseStream.CopyToAsync(File.Create("muxed.mp4"));
 
 
