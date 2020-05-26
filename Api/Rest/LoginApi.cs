@@ -64,7 +64,7 @@ namespace Beey.Api.Rest
                 .AddUrlSegment("ContentVersion")
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => JObject.Parse(r.GetStringContent()).GetValue("Value").Value<string>());
+            return HandleResponse(result, r => JObject.Parse(r.GetStringContent()).GetValue("Main").Value<string>());
         }
 
         public async Task<JObject> GetPasswordSettingsAsync(CancellationToken cancellationToken)

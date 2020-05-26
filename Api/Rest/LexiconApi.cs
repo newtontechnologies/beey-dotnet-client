@@ -28,12 +28,13 @@ namespace Beey.Api.Rest
             return HandleResponse(result, r => JsonConvert.DeserializeObject<TmpValidationError[]>(r.GetStringContent()));
         }
 
-        public async Task<TmpValidationError[]> ValidateLexiconAsync(string language,
+        public async Task<TmpValidationError[]> ValidateLexiconAsync(IEnumerable<LexiconEntry> lexicon, string language,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("Validate")
                 .AddParameter("language", language)
+                .SetBody(JsonConvert.SerializeObject(lexicon))
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<TmpValidationError[]>(r.GetStringContent()));

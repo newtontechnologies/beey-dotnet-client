@@ -1,4 +1,6 @@
 ﻿using Beey.Api.Rest;
+using Beey.Client;
+using Beey.DataExchangeModel.Lexicons;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -43,6 +45,43 @@ namespace XUnitTests
             var jSettings = await api.GetUserSettingsAsync(default);
 
             Assert.Equal(testSettings, jSettings);
+        }
+
+        [Fact, TestPriority(5)]
+        public async Task GetUserInfo()
+        {
+            var info = await api.GetUserInfoAsync(default);
+            Assert.NotNull(info);
+        }
+
+        [Fact, TestPriority(6)]
+        public async Task GetTranscriptionLog()
+        {
+            await api.GetTranscriptionLogAsync(default);
+        }
+
+        [Fact, TestPriority(7)]
+        public async Task SetUserLex()
+        {
+            await api.SetUserLexAsync("cs-CZ", new LexiconEntry[]
+                {
+                    new LexiconEntry("test", "test")
+                }, default);
+        }
+
+        [Fact, TestPriority(8)]
+        public async Task GetUserLex()
+        {
+            var userLex = await api.GetUserLexAsync("cs-CZ", default);
+            Assert.Single(userLex);
+            Assert.Equal("test", userLex[0].Text);
+            Assert.Equal("test", userLex[0].Pronunciation);
+        }
+
+        [Fact, TestPriority(9)]
+        public async Task GetUserMessages()
+        {
+            await api.GetUserMessagesAsync(null, default);
         }
     }
 }

@@ -32,5 +32,17 @@ namespace XUnitTests
         {
             await api.LogoutAsync(token, default);
         }
+
+        [Fact, TestPriority(3)]
+        public async Task GetVersionAsync()
+        {
+            await api.GetContentVersionAsync(default);
+        }
+
+        [Fact, TestPriority(4)]
+        public async Task GetPasswordSettingsAsync()
+        {
+            await api.GetPasswordSettingsAsync(default);
+        }
     }
 }

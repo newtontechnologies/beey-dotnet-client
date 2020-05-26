@@ -33,7 +33,7 @@ namespace Beey.Api.Rest
         public async Task<LoginToken> GetUserInfoAsync(CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
-                .ExecuteAsync(HttpMethod.POST, cancellationToken);
+                .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<LoginToken>(r.GetStringContent()));
         }
@@ -90,14 +90,14 @@ namespace Beey.Api.Rest
             HandleResponse(result);
         }
 
-        public async Task<Message[]> GetUserMessagesAsync(DateTime? from, CancellationToken cancellationToken)
+        public async Task<JObject[]> GetUserMessagesAsync(DateTime? from, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("MessageCache")
                 .AddParameter("from", from)
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<Message[]>(r.GetStringContent()));
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<JObject[]>(r.GetStringContent()));
         }
     }
 }

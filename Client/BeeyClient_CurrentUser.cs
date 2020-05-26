@@ -90,11 +90,11 @@ namespace Beey.Client
             }, CreatePollyContext(cancellationToken), cancellationToken);
         }
 
-        public async Task<Message[]> GetUserMessagesAsync(DateTime? from, CancellationToken cancellationToken = default)
+        public async Task<Object[]> GetUserMessagesAsync(DateTime? from, CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Message[]>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<JObject[]>();
             return await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await CurrentUserApi.GetUserMessagesAsync(from, cancellationToken);

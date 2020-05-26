@@ -113,7 +113,12 @@ namespace Beey.Client
                 return await LexiconApi.ValidateLexiconEntryAsync(text, pronunciation, language, cancellationToken);
             }, CreatePollyContext(cancellationToken), cancellationToken);
         }
-        public async Task<LexiconApi.TmpValidationError[]> ValidateLexiconAsync(string language,
+
+        public Task<LexiconApi.TmpValidationError[]> ValidateLexiconEntryAsync(LexiconEntry entry, string language,
+            CancellationToken cancellationToken = default)
+            => ValidateLexiconEntryAsync(entry.Text, entry.Pronunciation, language, cancellationToken);
+
+        public async Task<LexiconApi.TmpValidationError[]> ValidateLexiconAsync(IEnumerable<LexiconEntry> lexicon, string language,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
@@ -121,7 +126,7 @@ namespace Beey.Client
             var policy = CreateHttpAsyncUnauthorizedPolicy<LexiconApi.TmpValidationError[]>();
             return await policy.ExecuteAsync(async (ctx, c) =>
             {
-                return await LexiconApi.ValidateLexiconAsync(language, cancellationToken);
+                return await LexiconApi.ValidateLexiconAsync(lexicon, language, cancellationToken);
             }, CreatePollyContext(cancellationToken), cancellationToken);
         }
 

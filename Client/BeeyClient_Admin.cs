@@ -1,6 +1,7 @@
 ﻿using Beey.DataExchangeModel;
 using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Emails;
+using Beey.DataExchangeModel.Projects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -82,6 +83,18 @@ namespace Beey.Client
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await AdminUserApi.DeleteAsync(id, c);
+            }, CreatePollyContext(cancellationToken), cancellationToken));
+        }
+
+        public async Task<TranscriptionLogItem[]> GetTranscriptionLogAsync(int userId, 
+            CancellationToken cancellationToken = default)
+        {
+            this.RequireAuthorization();
+
+            var policy = CreateHttpAsyncUnauthorizedPolicy<TranscriptionLogItem[]>();
+            return (await policy.ExecuteAsync(async (ctx, c) =>
+            {
+                return await AdminUserApi.GetTranscriptionLogAsync(userId, c);
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
     }
