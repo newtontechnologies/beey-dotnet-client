@@ -12,16 +12,16 @@ using Xunit;
 
 namespace XUnitTests
 {
-    [CollectionDefinition("7 - Lexicon Collection")]
-    public class C7_LexiconCollectionDefinition : ICollectionFixture<LoginFixture> { }
+    [CollectionDefinition("6 - Lexicon Collection")]
+    public class C6_LexiconCollectionDefinition : ICollectionFixture<LoginFixture> { }
 
 
-    [Collection("7 - Lexicon Collection")]
-    public class C7_LexiconApiUnitTests
+    [Collection("6 - Lexicon Collection")]
+    public class C6_LexiconApiUnitTests
     {
         private static LexiconApi api = new LexiconApi(Configuration.BeeyUrl);
 
-        public C7_LexiconApiUnitTests(LoginFixture fixture)
+        public C6_LexiconApiUnitTests(LoginFixture fixture)
         {
             api.Token = fixture.Token;
         }

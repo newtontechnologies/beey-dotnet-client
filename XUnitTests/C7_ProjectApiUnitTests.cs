@@ -14,11 +14,11 @@ using System.Diagnostics;
 
 namespace XUnitTests
 {
-    [CollectionDefinition("6 - Project Collection")]
-    public class C6_ProjectCollectionDefinition : ICollectionFixture<LoginFixture> { }
+    [CollectionDefinition("7 - Project Collection")]
+    public class C7_ProjectCollectionDefinition : ICollectionFixture<LoginFixture> { }
 
-    [Collection("6 - Project Collection")]
-    public class C6_ProjectApiUnitTests
+    [Collection("7 - Project Collection")]
+    public class C7_ProjectApiUnitTests
     {
         private const string testName = "test";
         private const string testPath = "test/path";
@@ -39,7 +39,7 @@ namespace XUnitTests
         private static long createdProjectAccessToken;
         private static int createdProjectAccessId;
 
-        public C6_ProjectApiUnitTests(LoginFixture fixture)
+        public C7_ProjectApiUnitTests(LoginFixture fixture)
         {
             projectApi.Token = fixture.Token;
             wsApi.Token = fixture.Token;
