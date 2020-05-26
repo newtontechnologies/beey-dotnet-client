@@ -72,7 +72,6 @@ namespace Beey.Api.Rest
             MemoryStream memoryStream = CreateMemoryStream(fileContent);
 
             try { return await UploadTrsxAsync(projectId, accessToken, original, fileName, memoryStream, cancellationToken); }
-            catch (Exception) { throw; }
             finally { memoryStream.Close(); }
         }
         private async Task<Project> UploadTrsxAsync(int projectId, long accessToken, bool original, FileInfo fileInfo,
@@ -81,7 +80,6 @@ namespace Beey.Api.Rest
             FileStream fileStream = CreateFileStream(fileInfo);
 
             try { return await UploadTrsxAsync(projectId, accessToken, original, fileInfo.Name, fileStream, cancellationToken); }
-            catch (Exception) { throw; }
             finally { fileStream.Close(); }
         }
     }

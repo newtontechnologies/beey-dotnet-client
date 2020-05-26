@@ -42,7 +42,6 @@ namespace Beey.Api.Rest
             MemoryStream memoryStream = CreateMemoryStream(fileContent);
 
             try { return await UploadMediaFileAsync(projectId, fileSize, fileName, memoryStream, cancellationToken); }
-            catch (Exception) { throw; }
             finally { memoryStream.Close(); }
         }
         public async Task<Project> UploadMediaFileAsync(int projectId, long fileSize, System.IO.FileInfo fileInfo,
@@ -51,7 +50,6 @@ namespace Beey.Api.Rest
             FileStream fileStream = CreateFileStream(fileInfo);
 
             try { return await UploadMediaFileAsync(projectId, fileSize, fileInfo.Name, fileStream, cancellationToken); }
-            catch (Exception) { throw; }
             finally { fileStream.Close(); }
         }
 

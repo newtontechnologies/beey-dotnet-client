@@ -76,6 +76,13 @@ namespace XUnitTests
         }
 
         [Fact, TestPriority(7)]
+        public async Task GetTranscriptionLogAsync()
+        {
+            var res = await api.GetTranscriptionLogAsync(createdUserId, default);
+            Assert.Empty(res);
+        }
+
+        [Fact, TestPriority(8)]
         public async Task DeleteUserAsync()
         {
             var res = await api.DeleteAsync(createdUserId, default);

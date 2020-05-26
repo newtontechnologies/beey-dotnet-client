@@ -323,15 +323,16 @@ namespace XUnitTests
         }
 
         [Fact, TestPriority(13.6)]
-        public async Task T13_6_GetExportSettings()
+        public async Task T13_6_GetSubtitleExportFormats()
         {
             var formats = await projectApi.GetSubtitleExportFormatsAsync(createdProjectId, default);
         }
 
         [Fact, TestPriority(13.7)]
-        public async Task T13_7_ExportProject()
+        public async Task T13_7_ExportSubtitles()
         {
-            var formats = await projectApi.ExportSubtitlesAsync(createdProjectId, "srt", default);
+            var export = await projectApi.ExportSubtitlesAsync(createdProjectId, "srt", default);
+            Assert.True(export.ReadByte() > -1);
         }
 
         [Fact, TestPriority(13.80)]
