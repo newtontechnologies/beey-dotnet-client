@@ -11,6 +11,7 @@ using System.Net;
 using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Export;
 using System.IO;
+using Newtonsoft.Json.Linq;
 
 namespace Beey.Client
 {
@@ -180,11 +181,11 @@ namespace Beey.Client
             return listing;
         }
 
-        public async Task<Message[]> GetMessagesAsync(int id, DateTime? from = null, CancellationToken cancellationToken = default)
+        public async Task<JObject[]> GetMessagesAsync(int id, DateTime? from = null, CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Message[]>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<JObject[]>();
             return await policy.ExecuteAsync(async (c) =>
             {
                 return await ProjectApi.GetMessagesAsync(id, from, c);

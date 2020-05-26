@@ -20,7 +20,7 @@ namespace Beey.Api.Rest
             return HandleResponse(result, r => JsonConvert.DeserializeObject<ExportFormat[]>(r.GetStringContent()));
         }
 
-        public async Task<System.IO.Stream> ExportSubtitlesAsync(int projectId, int formatId,
+        public async Task<System.IO.Stream> ExportSubtitlesAsync(int projectId, string formatId,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()

@@ -158,9 +158,26 @@ namespace XUnitTests
         }
 
         [Fact, TestPriority(5)]
-        public async Task T05_GetProjectAsync()
+        public async Task T05_0_GetProjectAsync()
         {
             var created = await projectApi.GetAsync(createdProjectId, default);
+        }
+
+        [Fact, TestPriority(5.3)]
+        public async Task T05_3_GetProjectAccessAsync()
+        {
+            var created = await projectApi.GetProjectAccessAsync(createdProjectId, default);
+        }
+
+        [Fact, TestPriority(5.7)]
+        public async Task T05_7_UpdateProjectAccessAsync()
+        {
+            var created = await projectApi.GetProjectAccessAsync(createdProjectId, default);
+            created.CustomPath = "asdf";
+            await projectApi.UpdateProjectAccessAsync(createdProjectId, created, default);
+            created = await projectApi.GetProjectAccessAsync(createdProjectId, default);
+
+            Assert.Equal("asdf", created.CustomPath);
         }
 
         [Fact, TestPriority(6)]
@@ -235,7 +252,7 @@ namespace XUnitTests
         }
 
         [Fact, TestPriority(13)]
-        public async Task T1301_WaitUntilTranscribed()
+        public async Task T13_0_WaitUntilTranscribed()
         {
             TryValueResult<ProjectProgress> result;
             int retryCount = 20;
@@ -305,13 +322,51 @@ namespace XUnitTests
             Assert.True(allFinished);
         }
 
+        [Fact, TestPriority(13.6)]
+        public async Task T13_6_GetExportSettings()
+        {
+            var formats = await projectApi.GetSubtitleExportFormatsAsync(createdProjectId, default);
+        }
+
+        [Fact, TestPriority(13.7)]
+        public async Task T13_7_ExportProject()
+        {
+            var formats = await projectApi.ExportSubtitlesAsync(createdProjectId, "srt", default);
+        }
+
+        [Fact, TestPriority(13.80)]
+        public async Task T13_8_DownloadAudio()
+        {
+            var audio = await projectApi.DownloadAudioAsync(createdProjectId, default);
+            Assert.True(audio.ReadByte() > -1);
+        }
+        [Fact, TestPriority(13.81)]
+        public async Task T13_81_DownloadVideo()
+        {
+            // TODO: uncomment when using video
+            //var video = await projectApi.DownloadVideoAsync(createdProjectId, default);
+            //Assert.True(video.ReadByte() > -1);
+        }
+        [Fact, TestPriority(13.82)]
+        public async Task T13_82_DownloadManfiest()
+        {
+            var manifest = await projectApi.DownloadMpdManifestAsync(createdProjectId, default);
+            Assert.True(manifest.ReadByte() > -1);
+        }
+
         [Fact, TestPriority(14)]
-        public async Task T14_LegacyUploadFileAndWaitUntilTranscodedAsync()
+        public async Task T14_0_LegacyUploadFileAndWaitUntilTranscodedAsync()
         {
             _ = await projectApi.UploadMediaFileAsync(createdProjectId, testMp3.Length, "test02.mp3", testMp3, default);
             await WaitForTranscodedAsync();
         }
 
+        [Fact, TestPriority(14.5)]
+        public async Task T14_5_GetMessageCacheAsync()
+        {
+            var messages = await projectApi.GetMessagesAsync(createdProjectId, null, default);
+            Assert.True(messages.Any());
+        }
 
         [Fact, TestPriority(15)]
         public async Task T15_0_StartTranscribingAndStopAsync()

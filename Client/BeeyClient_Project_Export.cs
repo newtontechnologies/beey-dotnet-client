@@ -21,7 +21,7 @@ namespace Beey.Client
             }, cancellationToken);
         }
 
-        public async Task<Stream> ExportSubtitlesAsync(int projectId, int formatId,
+        public async Task<Stream> ExportSubtitlesAsync(int projectId, string formatId,
             CancellationToken cancellationToken)
         {
             this.RequireAuthorization();

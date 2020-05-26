@@ -3,6 +3,7 @@ using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Projects;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -143,7 +144,7 @@ namespace Beey.Api.Rest
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
         }
 
-        public async Task<Message[]> GetMessagesAsync(int id, DateTime? from, CancellationToken cancellationToken)
+        public async Task<JObject[]> GetMessagesAsync(int id, DateTime? from, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment(id.ToString())
@@ -151,7 +152,7 @@ namespace Beey.Api.Rest
                 .AddParameter("from", from)
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<Message[]>(r.GetStringContent()));
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<JObject[]>(r.GetStringContent()));
         }
 
         public enum OrderOn { Created, Updated, None }
