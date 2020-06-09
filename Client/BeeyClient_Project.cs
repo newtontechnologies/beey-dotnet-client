@@ -192,8 +192,8 @@ namespace Beey.Client
             }, cancellationToken);
         }
 
-        public async Task<Project> TranscribeProjectAsync(int projectId,
-            string language = "cs-CZ", bool withPpc = true, bool saveTrsx = true,
+        public async Task<Project> TranscribeProjectAsync(int projectId, string language = "cs-CZ",
+            bool withPpc = true, bool withVad = true, bool saveTrsx = true,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
@@ -201,7 +201,7 @@ namespace Beey.Client
             var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
             return await policy.ExecuteAsync(async (c) =>
             {
-                return await ProjectApi.TranscribeProjectAsync(projectId, language, withPpc, saveTrsx, cancellationToken);
+                return await ProjectApi.TranscribeProjectAsync(projectId, language, withPpc, withVad, saveTrsx, cancellationToken);
             }, cancellationToken);
         }
         public async Task ResetProjectAsync(int projectId, CancellationToken cancellationToken = default)
