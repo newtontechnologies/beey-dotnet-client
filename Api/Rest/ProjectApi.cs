@@ -68,7 +68,7 @@ namespace Beey.Api.Rest
         {
             var result = await CreateBuilder()
                 .AddUrlSegment(project.Id.ToString())
-                .SetBody(JsonConvert.SerializeObject(project), "application/json")
+                .SetBody(JsonConvert.SerializeObject(project, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }), "application/json")
                 .ExecuteAsync(HttpMethod.PUT, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
@@ -88,7 +88,7 @@ namespace Beey.Api.Rest
 
             var result = await CreateBuilder()
                 .AddUrlSegment(id.ToString())
-                .SetBody(JsonConvert.SerializeObject(properties), "application/json")
+                .SetBody(JsonConvert.SerializeObject(properties, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }), "application/json")
                 .ExecuteAsync(HttpMethod.PUT, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));

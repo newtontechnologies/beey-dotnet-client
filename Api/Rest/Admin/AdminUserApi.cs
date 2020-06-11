@@ -51,7 +51,7 @@ namespace Beey.Api.Rest.Admin
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
-                .SetBody(JsonConvert.SerializeObject(user), "application/json")
+                .SetBody(JsonConvert.SerializeObject(user, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }), "application/json")
                 .ExecuteAsync(HttpMethod.PUT, cancellationToken);
 
             HandleResponse(result);
