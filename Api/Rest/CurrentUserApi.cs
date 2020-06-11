@@ -2,11 +2,13 @@
 using Beey.DataExchangeModel.Lexicons;
 using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Projects;
+using Beey.DataExchangeModel.Serialization.JsonConverters;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,6 +16,9 @@ namespace Beey.Api.Rest
 {
     public class CurrentUserApi : BaseAuthApi<CurrentUserApi>
     {
+        private static JsonSerializerOptions jsonSerializerOptions
+            = new JsonSerializerOptions().AddConverters(new JsonMessageConverter());
+
         public CurrentUserApi(string url) : base(url)
         {
             EndPoint = "API/CurrentUser";
@@ -90,14 +95,14 @@ namespace Beey.Api.Rest
             HandleResponse(result);
         }
 
-        public async Task<JObject[]> GetUserMessagesAsync(DateTime? from, CancellationToken cancellationToken)
+        public async Task<MessageNew[]> GetUserMessagesAsync(DateTime? from, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("MessageCache")
                 .AddParameter("from", from)
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<JObject[]>(r.GetStringContent()));
+            return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<MessageNew[]>(r.GetStringContent(), jsonSerializerOptions));
         }
     }
 }

@@ -235,7 +235,7 @@ namespace XUnitTests
             await WaitForTranscodedAsync();
             var project = await projectApi.GetAsync(createdProjectId, default);
             createdProjectAccessToken = project.AccessToken;
-            Assert.NotNull(project.AudioRecordingId);
+            Assert.NotNull(project.MediaFileId);
         }
 
         [Fact, TestPriority(12.2)]
@@ -257,14 +257,14 @@ namespace XUnitTests
             TryValueResult<ProjectProgress> result;
             int retryCount = 20;
             while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
-                && !ProcessState.Finished.HasFlag(result.Value.TranscriptionState)
+                && !ProcessState.Finished.HasFlag(result.Value.PPCState)
                 && retryCount > 0)
             {
                 await Task.Delay(5000);
                 retryCount--;
             }
 
-            Assert.True(ProcessState.Finished.HasFlag(result.Value.TranscriptionState));
+            Assert.True(ProcessState.Finished.HasFlag(result.Value.PPCState));
         }
 
         [Fact, TestPriority(13.1)]
@@ -304,7 +304,7 @@ namespace XUnitTests
             int retry = 3;
             TryValueResult<ProjectProgress> progressResult;
             while ((progressResult = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
-                && progressResult.Value.TranscriptionState != ProcessState.Finished
+                && progressResult.Value.RecognitionState != ProcessState.Finished
                 && retry > 0)
             {
                 await Task.Delay(1000);
@@ -315,9 +315,10 @@ namespace XUnitTests
             bool allFinished = progress.UploadState == ProcessState.Finished
                 && progress.MediaIdentificationState == ProcessState.Finished
                 && progress.TranscodingState == ProcessState.Finished
-                && progress.TranscriptionState == ProcessState.Finished
+                && progress.RecognitionState == ProcessState.Finished
                 && progress.DiarizationState == ProcessState.Finished
-                && progress.SpeakerIdentificationState == ProcessState.Finished;
+                && progress.SpeakerIdentificationState == ProcessState.Finished
+                && progress.PPCState == ProcessState.Finished;
 
             Assert.True(allFinished);
         }
@@ -336,16 +337,24 @@ namespace XUnitTests
         }
 
         [Fact, TestPriority(13.80)]
-        public async Task T13_8_DownloadAudio()
+        public async Task T13_805_DownloadAudio()
         {
-            var audio = await projectApi.DownloadAudioAsync(createdProjectId, default);
+            var audio = await projectApi.DownloadAudioInitAsync(createdProjectId, default);
             Assert.True(audio.ReadByte() > -1);
         }
+
+        [Fact, TestPriority(13.805)]
+        public async Task T13_80_DownloadMediaFile()
+        {
+            var media = await projectApi.DownloadMediaFileAsync(createdProjectId, default);
+            Assert.True(media.ReadByte() > -1);
+        }
+
         [Fact, TestPriority(13.81)]
         public async Task T13_81_DownloadVideo()
         {
             // TODO: uncomment when using video
-            //var video = await projectApi.DownloadVideoAsync(createdProjectId, default);
+            //var video = await projectApi.DownloadVideoInitAsync(createdProjectId, default);
             //Assert.True(video.ReadByte() > -1);
         }
         [Fact, TestPriority(13.82)]
@@ -378,7 +387,7 @@ namespace XUnitTests
             TryValueResult<ProjectProgress> result;
 
             while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
-                            && result.Value.TranscriptionState != ProcessState.Running
+                            && result.Value.RecognitionState != ProcessState.Running
                             && retryCount > 0)
             {
                 await Task.Delay(1000);
@@ -390,7 +399,7 @@ namespace XUnitTests
 
             retryCount = 5;
             while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
-                && !ProcessState.Finished.HasFlag(result.Value.TranscriptionState)
+                && !ProcessState.Finished.HasFlag(result.Value.RecognitionState)
                 && retryCount > 0)
             {
                 await Task.Delay(1000);

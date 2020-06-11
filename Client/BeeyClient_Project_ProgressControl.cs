@@ -22,14 +22,14 @@ namespace Beey.Client
             }, cancellationToken);
         }
 
-        public async Task<JObject[]> GetProjectProgressMessagesAsync(int id,
+        public async Task<MessageNew[]> GetProjectProgressMessagesAsync(int id,
             int? count = null, int? skip = null,
             int? fromId = null, int? toId = null,
         CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<JObject[]>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<MessageNew[]>();
             return await policy.ExecuteAsync(async (c) =>
             {
                 return await ProjectApi.GetProgressMessagesAsync(id, count, skip, fromId, toId, c);

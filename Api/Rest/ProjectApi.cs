@@ -2,12 +2,14 @@
 using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Projects;
+using Beey.DataExchangeModel.Serialization.JsonConverters;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,6 +25,9 @@ namespace Beey.Api.Rest
     /// </summary>
     public partial class ProjectApi : BaseAuthApi<ProjectApi>
     {
+        private static JsonSerializerOptions jsonSerializerOptions
+            = new JsonSerializerOptions().AddConverters(new JsonMessageConverter());
+
         public ProjectApi(string url) : base(url)
         {
             EndPoint = "API/Project";
@@ -146,7 +151,7 @@ namespace Beey.Api.Rest
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
         }
 
-        public async Task<JObject[]> GetMessagesAsync(int id, DateTime? from, CancellationToken cancellationToken)
+        public async Task<MessageNew[]> GetMessagesAsync(int id, DateTime? from, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment(id.ToString())
@@ -154,7 +159,7 @@ namespace Beey.Api.Rest
                 .AddParameter("from", from)
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<JObject[]>(r.GetStringContent()));
+            return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<MessageNew[]>(r.GetStringContent(), jsonSerializerOptions));
         }
 
         public enum OrderOn { Created, Updated, None }

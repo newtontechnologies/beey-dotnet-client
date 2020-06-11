@@ -18,11 +18,7 @@ namespace XUnitTests
 
         const string testEmail = "milos.kudelka@gmail.com";
         const string testPassword = "He55lo";
-
-        const string changedPassword = "Pa55word";
         const int creditMinutes = 666;
-
-        const TranscriptionCore.Speaker.Sexes testSex = TranscriptionCore.Speaker.Sexes.Male;
 
         private static int createdUserId;
 
@@ -87,6 +83,15 @@ namespace XUnitTests
         {
             var res = await api.DeleteAsync(createdUserId, default);
             Assert.True(res);
+        }
+
+        [Fact, TestPriority(9)]
+        public async Task AddCreditAsync()
+        {
+            var listing = await api.ListAsync(100, 0, default);
+            var mainUser = listing.List.Where(u => u.Email == Configuration.Email).FirstOrDefault();
+            mainUser.CreditMinutes += 10;
+            await api.UpdateAsync(mainUser, default);
         }
     }
 }

@@ -181,11 +181,11 @@ namespace Beey.Client
             return listing;
         }
 
-        public async Task<JObject[]> GetMessagesAsync(int id, DateTime? from = null, CancellationToken cancellationToken = default)
+        public async Task<MessageNew[]> GetMessagesAsync(int id, DateTime? from = null, CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<JObject[]>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<MessageNew[]>();
             return await policy.ExecuteAsync(async (c) =>
             {
                 return await ProjectApi.GetMessagesAsync(id, from, c);

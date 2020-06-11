@@ -53,6 +53,28 @@ namespace Beey.Api.Rest
             finally { fileStream.Close(); }
         }
 
+        public async Task<Stream> DownloadAudioInitAsync(int projectId,
+            CancellationToken cancellationToken)
+        {
+            var builder = CreateBuilder()
+                .AddUrlSegment(projectId.ToString())
+                .AddUrlSegment("Files/Audio/Init");
+
+            var result = await builder.ExecuteAsync(HttpMethod.GET, cancellationToken);
+
+            return HandleResponse(result, r => r.Content);
+        }
+        public async Task<Stream> DownloadVideoInitAsync(int projectId,
+            CancellationToken cancellationToken)
+        {
+            var builder = CreateBuilder()
+                .AddUrlSegment(projectId.ToString())
+                .AddUrlSegment("Files/Video/Init");
+
+            var result = await builder.ExecuteAsync(HttpMethod.GET, cancellationToken);
+
+            return HandleResponse(result, r => r.Content);
+        }
         public async Task<Stream> DownloadAudioSegmentAsync(int projectId, int segment,
             CancellationToken cancellationToken)
         {
@@ -77,23 +99,12 @@ namespace Beey.Api.Rest
 
             return HandleResponse(result, r => r.Content);
         }
-        public async Task<Stream> DownloadAudioAsync(int projectId,
+        public async Task<Stream> DownloadMediaFileAsync(int projectId,
             CancellationToken cancellationToken)
         {
             var builder = CreateBuilder()
                 .AddUrlSegment(projectId.ToString())
-                .AddUrlSegment("Files/Audio");
-
-            var result = await builder.ExecuteAsync(HttpMethod.GET, cancellationToken);
-
-            return HandleResponse(result, r => r.Content);
-        }
-        public async Task<Stream> DownloadVideoAsync(int projectId,
-            CancellationToken cancellationToken)
-        {
-            var builder = CreateBuilder()
-                .AddUrlSegment(projectId.ToString())
-                .AddUrlSegment("Files/Video");
+                .AddUrlSegment("Files/MediaFile");
 
             var result = await builder.ExecuteAsync(HttpMethod.GET, cancellationToken);
 
@@ -110,6 +121,7 @@ namespace Beey.Api.Rest
 
             return HandleResponse(result, r => r.Content);
         }
+
 
         private FileStream CreateFileStream(FileInfo fileInfo)
         {

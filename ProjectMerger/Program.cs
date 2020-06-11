@@ -71,8 +71,8 @@ namespace ProjectMerger
             }
 
             Log.Information("Downloading files");
-            var recordingTask1 = beey.DownloadAudioAsync(project1.Id, cts.Token);
-            var recordingTask2 = beey.DownloadAudioAsync(project2.Id, cts.Token);
+            var recordingTask1 = beey.DownloadMediaFileAsync(project1.Id, cts.Token);
+            var recordingTask2 = beey.DownloadMediaFileAsync(project2.Id, cts.Token);
             var trsxTask1 = project1.CurrentTrsxId.HasValue
                 ? beey.DownloadCurrentTrsxAsync(project1.Id, cts.Token)
                 : beey.DownloadOriginalTrsxAsync(project1.Id, cts.Token);
