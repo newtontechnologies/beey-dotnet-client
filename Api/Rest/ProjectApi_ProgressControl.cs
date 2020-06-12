@@ -49,7 +49,7 @@ namespace Beey.Api.Rest
                 .AddParameter("toId", toId)
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<MessageNew[]>(r.GetStringContent(), jsonSerializerOptions));
+            return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<MessageNew[]>(r.GetStringContent(), GetDefaultJsonSerializerOptions()));
         }
 
         public async Task StopAsync(int id,

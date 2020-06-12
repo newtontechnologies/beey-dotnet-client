@@ -25,9 +25,6 @@ namespace Beey.Api.Rest
     /// </summary>
     public partial class ProjectApi : BaseAuthApi<ProjectApi>
     {
-        private static JsonSerializerOptions jsonSerializerOptions
-            = new JsonSerializerOptions().AddConverters(new JsonMessageConverter());
-
         public ProjectApi(string url) : base(url)
         {
             EndPoint = "API/Project";
@@ -159,7 +156,7 @@ namespace Beey.Api.Rest
                 .AddParameter("from", from)
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<MessageNew[]>(r.GetStringContent(), jsonSerializerOptions));
+            return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<MessageNew[]>(r.GetStringContent(), GetDefaultJsonSerializerOptions()));
         }
 
         public enum OrderOn { Created, Updated, None }
@@ -171,5 +168,8 @@ namespace Beey.Api.Rest
                 _ => "created",
             };
         }
+
+        private static JsonSerializerOptions GetDefaultJsonSerializerOptions()
+            => new JsonSerializerOptions().AddConverters(new JsonMessageConverter());
     }
 }

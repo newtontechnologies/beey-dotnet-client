@@ -16,9 +16,6 @@ namespace Beey.Api.Rest
 {
     public class CurrentUserApi : BaseAuthApi<CurrentUserApi>
     {
-        private static JsonSerializerOptions jsonSerializerOptions
-            = new JsonSerializerOptions().AddConverters(new JsonMessageConverter());
-
         public CurrentUserApi(string url) : base(url)
         {
             EndPoint = "API/CurrentUser";
@@ -102,7 +99,10 @@ namespace Beey.Api.Rest
                 .AddParameter("from", from)
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<MessageNew[]>(r.GetStringContent(), jsonSerializerOptions));
+            return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<MessageNew[]>(r.GetStringContent(), GetJsonSerializerOptions()));
         }
+
+        private static JsonSerializerOptions GetJsonSerializerOptions()
+            => new JsonSerializerOptions().AddConverters(new JsonMessageConverter());
     }
 }
