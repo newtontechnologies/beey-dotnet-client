@@ -36,7 +36,7 @@ namespace Beey.Api.Rest
         }
 
         // TODO: implement correct deserialization
-        public async Task<MessageNew[]> GetProgressMessagesAsync(int id, int? count, int? skip,
+        public async Task<Message[]> GetProgressMessagesAsync(int id, int? count, int? skip,
             int? fromId, int? toId,
             CancellationToken cancellationToken)
         {
@@ -49,7 +49,7 @@ namespace Beey.Api.Rest
                 .AddParameter("toId", toId)
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<MessageNew[]>(r.GetStringContent(), GetDefaultJsonSerializerOptions()));
+            return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<Message[]>(r.GetStringContent(), GetDefaultJsonSerializerOptions()));
         }
 
         public async Task StopAsync(int id,

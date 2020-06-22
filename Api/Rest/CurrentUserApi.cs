@@ -92,14 +92,14 @@ namespace Beey.Api.Rest
             HandleResponse(result);
         }
 
-        public async Task<MessageNew[]> GetUserMessagesAsync(DateTime? from, CancellationToken cancellationToken)
+        public async Task<Message[]> GetUserMessagesAsync(DateTime? from, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("MessageCache")
                 .AddParameter("from", from)
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<MessageNew[]>(r.GetStringContent(), GetJsonSerializerOptions()));
+            return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<Message[]>(r.GetStringContent(), GetJsonSerializerOptions()));
         }
 
         private static JsonSerializerOptions GetJsonSerializerOptions()

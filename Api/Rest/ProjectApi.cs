@@ -148,7 +148,7 @@ namespace Beey.Api.Rest
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
         }
 
-        public async Task<MessageNew[]> GetMessagesAsync(int id, DateTime? from, CancellationToken cancellationToken)
+        public async Task<Message[]> GetMessagesAsync(int id, DateTime? from, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment(id.ToString())
@@ -156,7 +156,7 @@ namespace Beey.Api.Rest
                 .AddParameter("from", from)
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<MessageNew[]>(r.GetStringContent(), GetDefaultJsonSerializerOptions()));
+            return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<Message[]>(r.GetStringContent(), GetDefaultJsonSerializerOptions()));
         }
 
         public enum OrderOn { Created, Updated, None }
