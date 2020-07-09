@@ -76,18 +76,19 @@ namespace YTtoBeey
                 // Attempt to start youtube-dl and download the video (supports more than only youtube)
                 var proc = new Process();
                 tmpfile = "temp-" + DateTime.Now.ToFileTime().ToString();
-                proc.StartInfo = new ProcessStartInfo("youtube-dl.exe", "--no-cache-dir -f bestaudio \"" + video + "\" --output " + tmpfile);
+                //This would be much faster beey has issues with m4a: proc.StartInfo = new ProcessStartInfo("youtube-dl.exe", "--no-cache-dir -f bestaudio \"" + video + "\" --output " + tmpfile);
+                proc.StartInfo = new ProcessStartInfo("youtube-dl.exe", "--no-cache-dir \"" + video + "\" --output " + tmpfile);
                 proc.StartInfo.UseShellExecute = false;
                 proc.StartInfo.CreateNoWindow = true;
                 proc.StartInfo.RedirectStandardError = true;
                 proc.Start();
-                Console.WriteLine("[INFO] Downloading audio...");
+                Console.WriteLine("[INFO] Downloading video...");
                 proc.WaitForExit();
 
                 if (proc.StandardError.ReadToEnd().Contains("ERROR"))
                 { //if youtube-dl returns error
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("[FATAL] Could not download video. Check the url?");
+                    Console.WriteLine("[FATAL] Could not download video. Check the url? Maybe video is age restricted?");
                     Console.ResetColor();
                     return;
                 }
