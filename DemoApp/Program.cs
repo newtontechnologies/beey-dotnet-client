@@ -1,6 +1,7 @@
 ﻿using Beey.Api.Rest;
 using Beey.Client;
 using Beey.DataExchangeModel.Messaging;
+using Microsoft.Extensions.Configuration;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,8 @@ namespace DemoApp
 {
     class Program
     {
+        private static IConfigurationRoot config;
+
         static async Task Main(string[] args)
         {
             var a = AppDomain.CurrentDomain.BaseDirectory;
@@ -27,45 +30,32 @@ namespace DemoApp
                 .WriteTo.File("beey.log")
                 .CreateLogger();
 
-            //command line arguments: DemoApp.exe settings.xml audio.mp4
-            var cmdArgs = Environment.GetCommandLineArgs();
-            if (cmdArgs.Length < 3) {
-                Console.WriteLine("Please specify the settings file and the file to be transcribed in the following format:\nthis.exe settings.xml audio.mp4.");
-                Environment.Exit(1);
-            } else if (!File.Exists(cmdArgs[1])) {
-                Console.WriteLine("Settings file not found. Please make sure that the file exists.");
-                Environment.Exit(1);
-            } else if (!File.Exists(cmdArgs[2])) {
+            //command line arguments: DemoApp.exe audio.mp4
+            if (args.Length < 1) {
+                Console.WriteLine("Please specify the file to be transcribed in the following format:\nthis.exe audio.mp4.");
+                return;
+            } else if (!File.Exists(args[0])) {
                 Console.WriteLine("Audio file not found. Please make sure that the file exists.");
-                Environment.Exit(1);
+                return;
+            } else if (!File.Exists("Settings.xml")) {
+                Console.WriteLine("Settings.xml file not found. Please make sure that this file exists.");
+                return;
             }
 
             //load settings
-            string audioPath = cmdArgs[2];
+            string audioPath = args[0];
             string url = "";
             string email = "";
             string password = "";
 
-            //use xml for scalability
-            XmlReader xmlReader = XmlReader.Create(cmdArgs[1]);
-            while (xmlReader.Read()) {
-                if ((xmlReader.NodeType == XmlNodeType.Element)) {
-                    string caseSwitch = xmlReader.Name;
-                    switch (caseSwitch) {
-                        case "Url":
-                            url = xmlReader.ReadElementContentAsString();
-                            break;
-                        case "Email":
-                            email = xmlReader.ReadElementContentAsString();
-                            break;
-                        case "Password":
-                            password = xmlReader.ReadElementContentAsString();
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
+            config = new ConfigurationBuilder()
+                  .SetBasePath(Directory.GetCurrentDirectory())
+                  .AddXmlFile("Settings.xml", optional: false, reloadOnChange: true)
+                  .Build();
+
+            url = config.GetValue<String>("Beey-Server:Url");
+            email = config.GetValue<String>("Credentials:Email");
+            password = config.GetValue<String>("Credentials:Password");
 
             var beey = new BeeyClient(url); //api
 
