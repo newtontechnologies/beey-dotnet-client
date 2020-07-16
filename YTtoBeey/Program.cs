@@ -17,34 +17,35 @@ namespace YTtoBeey
             string configpath = "Settings.xml";
             bool attemptYT = false;
             string trsxPath = "transcript.trsx";
+            string language = "cs-CZ";
+            string videouri = "";
 
             if (args.Length < 1)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("Usage: YTtoBeey.exe <path to mp3>/<video url> (<transcript.trsx>) (<Settings.xml>)");
+                Console.WriteLine("Usage: YTtoBeey.exe <path to mp3>/<video url> (<transcript.trsx>) (<cs-CZ>) (<Settings.xml>)");
                 Console.ResetColor();
                 return;
             }
-            else if (args.Length == 1)
+            else
             {
                 if (!File.Exists(args[0]))
                     attemptYT = true; //file not found, perhaps a url?
+                videouri = args[0];
+
+                if (args.Length >= 2)
+                    trsxPath = args[1];
+                if (args.Length >= 3)
+                    language = args[2];
+                if (args.Length >= 4)
+                    configpath = args[3];
             }
-            else if (args.Length == 2)
-            {
-                trsxPath = args[1];
-            }
-            else
-            {
-                trsxPath = args[1];
-                configpath = args[2];
-            }
-            string video = args[0];
 
             // Connect & login to beey
             BeeyClient beey;
             try
             {
+                Console.WriteLine("[INFO] Login to beey..");
                 beey = await LoadConfigAndConnect(configpath);
             }
             catch (ArgumentException ex)
@@ -65,6 +66,7 @@ namespace YTtoBeey
             }
 
             // Create a project
+            Console.WriteLine("[INFO] Creating a project..");
             var project = await beey.CreateProjectAsync("Atest_" + DateTime.Now.ToFileTime().ToString(), "A/test");
 
             // Get stream to upload
@@ -76,8 +78,8 @@ namespace YTtoBeey
                 // Attempt to start youtube-dl and download the video (supports more than only youtube)
                 var proc = new Process();
                 tmpfile = "temp-" + DateTime.Now.ToFileTime().ToString();
-                //This would be much faster beey has issues with m4a: proc.StartInfo = new ProcessStartInfo("youtube-dl.exe", "--no-cache-dir -f bestaudio \"" + video + "\" --output " + tmpfile);
-                proc.StartInfo = new ProcessStartInfo("youtube-dl.exe", "--no-cache-dir \"" + video + "\" --output " + tmpfile);
+                //This could be much faster; but beey has issues with m4a: proc.StartInfo = new ProcessStartInfo("youtube-dl.exe", "--no-cache-dir -f bestaudio \"" + videouri + "\" --output " + tmpfile);
+                proc.StartInfo = new ProcessStartInfo("youtube-dl.exe", "--no-cache-dir \"" + videouri + "\" --output " + tmpfile);
                 proc.StartInfo.UseShellExecute = false;
                 proc.StartInfo.CreateNoWindow = true;
                 proc.StartInfo.RedirectStandardError = true;
@@ -108,10 +110,11 @@ namespace YTtoBeey
             }
             else
             {
-                upstream = new FileStream(video, FileMode.Open);
+                upstream = new FileStream(videouri, FileMode.Open);
             }
 
             // Upload the stream
+            Console.WriteLine("[INFO] Uploading..");
             await beey.UploadStreamAsync(project.Id, "test01.mp3", upstream, null, false);
 
             // Close stream and delete temporary files
@@ -133,7 +136,7 @@ namespace YTtoBeey
             }
 
             // Wait for transcribing
-            await beey.TranscribeProjectAsync(project.Id);
+            await beey.TranscribeProjectAsync(project.Id,language);
 
             Console.Write("\n[INFO] Waiting for transcribing");
             while (
@@ -146,7 +149,7 @@ namespace YTtoBeey
             }
 
             // Download trsx
-            Console.WriteLine("\n[INFO] Downloading trsx now");
+            Console.WriteLine("\n[INFO] Downloading trsx..");
 
             Stream downstream = await beey.DownloadOriginalTrsxAsync(project.Id);
             using (FileStream fs = new FileStream(trsxPath, FileMode.Create))
