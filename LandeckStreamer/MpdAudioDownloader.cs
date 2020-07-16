@@ -13,14 +13,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace LandeckStreamer
+namespace LandeckStreamer 
 {
-    public class MpdAudioDownloader
+    public class MpdAudioDownloader 
     {
         private static readonly ILogger _logger = Log.ForContext<MpdAudioDownloader>();
         private readonly Stopwatch stopWatch = new Stopwatch();
         private readonly ConcurrentQueue<string> audio = new ConcurrentQueue<string>();
-
 
         private readonly string UrlBase = "";
         public readonly string FilePath = null;
@@ -35,7 +34,6 @@ namespace LandeckStreamer
         }
 
         private readonly List<string> savedSegments = new List<string>();
-
 
         volatile bool ListIsComplete = false;
         public bool DataIsComplete { get => ListIsComplete; }
@@ -60,7 +58,6 @@ namespace LandeckStreamer
                 return (false, null);
             }
         }
-
 
         public TimeSpan ManifestLoadTotal { get; private set; } = new TimeSpan();
         public int ManifestLoadCount { get; private set; } = 0;
@@ -88,7 +85,7 @@ namespace LandeckStreamer
                     ManifestSameRepeats++;
 
                     if (ManifestSameRepeats > (5 + Length.TotalMinutes))
-                        throw new InvalidOperationException("stuck reloading same list...");
+                        throw new InvalidOperationException("Stuck reloading the same list");
                 }
                 else
                     ManifestSameRepeats = 0;
@@ -115,7 +112,6 @@ namespace LandeckStreamer
             long timescale = 10000000;
             long timeOffset = 0;
 
-
             var url = UrlBase
                         .Replace("$StartDateTime$", From.ToString("s"))
                         .Replace("$DownloadLength$", Length.Ticks.ToString());
@@ -130,28 +126,26 @@ namespace LandeckStreamer
 
             var audioSegmentTemplate = audioSet.Element("SegmentTemplate");
 
-            var initurl = url + audioSegmentTemplate.Attribute("initialization").Value;
+            string initurl = url + audioSegmentTemplate.Attribute("initialization").Value;
 
-
-            var media = audioSegmentTemplate.Attribute("media").Value;
+            string media = audioSegmentTemplate.Attribute("media").Value;
 
             try
             {
                 timescale = long.Parse(audioSegmentTemplate.Attribute("timescale").Value);
-                var offset = Regex.Match(media, @".*/(\d+)/.*$")?.Groups[1]?.Value;
+                string offset = Regex.Match(media, @".*/(\d+)/.*$")?.Groups[1]?.Value;
                 timeOffset = long.Parse(offset);
             }
             catch { }
 
-
             var audioRepresentation = audioSet.Element("Representation");
-            var reprId = audioRepresentation.Attribute("id").Value;
+            string reprId = audioRepresentation.Attribute("id").Value;
             media = media.Replace("$RepresentationID$", reprId);
 
             var segments = audioSegmentTemplate.Descendants("S");
             var savedSegments = segments.Select(s => url + media.Replace("$Time$", s.Attribute("t").Value)).ToArray();
 
-            var tickspersec = double.Parse(audioSegmentTemplate.Attribute("timescale").Value);
+            double tickspersec = double.Parse(audioSegmentTemplate.Attribute("timescale").Value);
             timescale = (long)tickspersec;
             var virtualFromStart = DateTime.Now - From;
             segments = segments.Where(s =>
@@ -160,8 +154,6 @@ namespace LandeckStreamer
                 var start = TimeSpan.FromSeconds(segmentStart /= tickspersec);
                 return start < virtualFromStart;
             });
-
-
 
             var ls = segments.Last();
             double lastEnd = long.Parse(ls.Attribute("t").Value) + long.Parse(ls.Attribute("d").Value);
@@ -179,12 +171,9 @@ namespace LandeckStreamer
         public long TimeScale { get; private set; } = 10000000;
 
         public double TimeOffsetSeconds => (double)TimeOffset / TimeScale;
-
-
         public int DownloadedBytes { get; private set; } = 0;
 
         public TimeSpan DownloadLength { get; private set; }
-        static TimeSpan ManyfestDownloadRetryDelay { get; } = TimeSpan.FromSeconds(2);
         public async Task DownloadStream(DateTime from, TimeSpan length, Stream writeTo, CancellationToken token = default)
         {
             var DownloadStarted = stopWatch.Elapsed;
@@ -236,17 +225,16 @@ namespace LandeckStreamer
                     }
                     else if (ListIsComplete)
                     {
-                        writeTo?.Flush(); //wait until everything is send
+                        writeTo?.Flush(); //wait until everything is sent
                         done = true;
                         return;
                     }
                     else
                     {
-                        await Task.Delay(ManyfestDownloadRetryDelay);
+                        await Task.Delay(2000);
                         Console.WriteLine($"DLM - waiting for landeck to record new data");
                     }
                 }
-
             }
             finally
             {

@@ -20,13 +20,12 @@ namespace LandeckStreamer
         private static ILogger _logger;
 
         public static BeeyConfiguration Configuration { get; private set; }
-        public static bool Finished { get; private set; }
-
-        static readonly DateTime ProgramStarted = DateTime.UtcNow;
         static readonly CancellationTokenSource breaker = new CancellationTokenSource();
 
-        static void Main(string[] args)
-        {
+        static readonly DateTime ProgramStarted = DateTime.UtcNow;
+
+        static void Main(string[] args) {
+            //Start logging
             Log.Logger = new LoggerConfiguration()
                .Enrich.With(new ProcessIdEnricher())
                .WriteTo.File("LandeckStreamer.log", rollingInterval: RollingInterval.Day, shared: true, outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {ProcessId} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
@@ -34,138 +33,129 @@ namespace LandeckStreamer
                .CreateLogger();
 
             _logger = Log.ForContext<Program>();
-
             _logger.Information("Starting with Args {@Args}", string.Join(" ", args));
 
+            //Load settings
             var conf = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddXmlFile("Settings.xml", optional: false)
                 .Build();
 
+            //Beey server settings + credentials
             Configuration = conf.GetSection("Beey").Get<BeeyConfiguration>();
 
-            CommandLine.Parser.Default.ParseArguments<CommandLineOptions>(args)
+            //Get command line arguments and starts
+            Parser.Default.ParseArguments<CommandLineOptions>(args)
             .WithParsed(opts =>
             {
-                try
-                {
+                try {
                     MainAsync(opts).Wait();
                 }
-                catch (AggregateException ae) when (ae.InnerException is InvalidOperationException iox && iox.Message == "stuck reloading same list...")
-                {
-                    _logger.Fatal(iox, "streamer failed with undrecoverable Landeck download error");
+                catch (AggregateException ae) when (ae.InnerException is InvalidOperationException iox && iox.Message == "stuck reloading same list...") {
+                    _logger.Fatal(iox, "Failed with unrecoverable Landeck download error");
                     Log.CloseAndFlush();
+                    return;
                 }
-                catch (Exception e)
-                {
-                    _logger.Fatal(e, "streamer failed with undrecoverable error");
+                catch (Exception e) {
+                    _logger.Fatal(e, "Failed with unrecoverable error");
                     Log.CloseAndFlush();
+                    return;
                 }
             });
-            // .WithNotParsed((errs) => HandleParseError(errs));
-
-            _logger.Information("Terminating sucessfuly");
+            _logger.Information("Terminating successfully");
         }
 
-        private static async Task MainAsync(CommandLineOptions opts)
-        {
+        //Most stuff happens here
+        private static async Task MainAsync(CommandLineOptions opts) {
             string projectname = opts.Title;
             string urlbase = null;
-            bool IsVideo = false;
-            JObject channelInfo = LandeckApi.LoadLandeckInfo(opts, opts.Start, opts.Length, ref urlbase, ref IsVideo);
-            while (channelInfo is null || (channelInfo.TryGetValue("stream_count", out var ssc) && ssc.Value<string>() == "2" && IsVideo == false))
-            {
-                _logger.Warning("Stream count missmatch when loading from landeck... retry in 1s");
+            bool isVideo = false;
+
+            //Checks if the channel is valid + gets information about the channel
+            JObject channelInfo = LandeckApi.LoadLandeckInfo(opts, opts.Start, opts.Length, ref urlbase, ref isVideo);
+
+            int count = 5;
+            while (channelInfo is null || (channelInfo.TryGetValue("stream_count", out var ssc) && ssc.Value<string>() == "2" && isVideo == false)) {
+                _logger.Warning("Stream count mismatch when loading from landeck. Retry in 1s");
+                count--;
                 await Task.Delay(1000);
-                channelInfo = LandeckApi.LoadLandeckInfo(opts, opts.Start, opts.Length, ref urlbase, ref IsVideo);
+                channelInfo = LandeckApi.LoadLandeckInfo(opts, opts.Start, opts.Length, ref urlbase, ref isVideo);
+
+                if(count <= 0) {
+                    _logger.Fatal("Failed to load landeck information");
+                    return;
+                }
             }
 
-
-            var videodownloader = IsVideo ? new MpdAudioDownloader(urlbase, opts.Title + Path.GetRandomFileName() + "video.mp4", "video/mp4") : null;
+            //Download the video/audio streams
+            var videodownloader = isVideo ? new MpdAudioDownloader(urlbase, opts.Title + Path.GetRandomFileName() + "video.mp4", "video/mp4") : null;
             var audiodownloader = new MpdAudioDownloader(urlbase, opts.Title + Path.GetRandomFileName() + "audio.mp4", "audio/mp4");
 
+            Task videoDownloadTask = isVideo ? videodownloader.DownloadStream(opts.Start, opts.Length, null) : null;
+            Task audioDownloadTask = audiodownloader.DownloadStream(opts.Start, opts.Length, null);
 
-            var videoDownloadTask = IsVideo ? videodownloader.DownloadStream(opts.Start, opts.Length, null) : null;
-            var audioDownloadTask = audiodownloader.DownloadStream(opts.Start, opts.Length, null);
             Process ffmpeg;
-            if (IsVideo)
-            {
+            if (isVideo) {
                 ffmpeg = Process.Start(new ProcessStartInfo()
                 {
                     FileName = Configuration.FFmpeg,
                     Arguments = string.Format(Configuration.FFmpegVideoParams, audiodownloader.FilePath, videodownloader.FilePath),
                     RedirectStandardOutput = true,
-
                 });
-            }
-            else
-            {
+            } else {
                 ffmpeg = Process.Start(new ProcessStartInfo()
                 {
                     FileName = Configuration.FFmpeg,
                     Arguments = string.Format(Configuration.FFmpegAudioParams, audiodownloader.FilePath),
                     RedirectStandardOutput = true,
-
                 });
             }
-            //$"-y -re -rw_timeout 30000000 -follow 1 -seekable 0 -i \"{audiodownloader.FilePath}\" -map 0:a:0 -c:a aac -b:a 64k -frag_duration 1000 -f ismv -movflags frag_keyframe+empty_moov+separate_moof+isml -frag_duration 1000 -",
-            //var outtask = ffmpeg.StandardOutput.BaseStream.CopyToAsync(File.Create("muxed.mp4"));
 
+            //Beey transcription process
+            string beeyurl = Configuration.URL;
+            string login = Configuration.Login;
+            string pass = Configuration.Password;
 
-            var beeyurl = Configuration.URL;
-            var login = Configuration.Login;
-            var pass = Configuration.Password;
-            _logger.Information("logging into beey");
-            var beey = new BeeyClient(beeyurl);
+            BeeyClient beey = new BeeyClient(beeyurl);
+
+            _logger.Information("Logging into beey");
             await beey.LoginAsync(login, pass);
-            _logger.Information("logged in");
+            _logger.Information("Logged in");
 
-            var now = DateTime.Now;
             StreamWriter msw = null;
-            if (Configuration.LogMessages)//Start.Value.ToString("yyyy'-'MM'-'dd'T'HH'-'mm'-'ss")
+            if (Configuration.LogMessages)
                 msw = new StreamWriter(File.Create($"pusher{ProgramStarted:yyyy'-'MM'-'dd'T'HH'-'mm'-'ss}.msgs")) { AutoFlush = true };
 
-            var p = await beey.CreateProjectAsync(new ParamsProjectInit() { Name = projectname, CustomPath = projectname });
+            Project project = await beey.CreateProjectAsync(new ParamsProjectInit() { Name = projectname, CustomPath = projectname });
+            _logger.Information("Created project {name} {@project}", projectname, project);
 
+            Task watchdog = Listener(beey, project, msw);
+            await Task.Delay(2000);
 
-            _logger.Information("Created project {name} {@project}", projectname, p);
+            _logger.Information("Upload started");
+            Task upload = beey.UploadStreamAsync(project.Id, "sejm", ffmpeg.StandardOutput.BaseStream, null, true, breaker.Token);
 
-            var watchdog = Listener(beey, p, msw);
-            await Task.Delay(TimeSpan.FromSeconds(2));
-
-            _logger.Information("upload started");
-
-            var upload = beey.UploadStreamAsync(p.Id, "sejm", ffmpeg.StandardOutput.BaseStream, null, true, breaker.Token);
             bool repeat = true;
-            while (repeat)
-            {
-                try
-                {
-
-                    p = await beey.TranscribeProjectAsync(p.Id, Configuration.TranscriptionLocale, cancellationToken: breaker.Token);
+            while (repeat) {
+                try {
+                    project = await beey.TranscribeProjectAsync(project.Id, Configuration.TranscriptionLocale, cancellationToken: breaker.Token);
                     repeat = false;
                 }
-                catch (Exception e)
-                {
-
+                catch (Exception) {
+                    _logger.Warning("Not yet ready to start transcription");
                 }
             }
             await upload;
 
-
-            _logger.Information("transcription finished");
+            _logger.Information("Transcription finished");
             await Task.WhenAll(audioDownloadTask, videoDownloadTask, upload, watchdog);
         }
 
-
-
-
-        public static async Task Listener(BeeyClient beey, Project proj, StreamWriter writer)
-        {
-            try
-            {
-                if (writer != null)
-                {
+        //Websocket communication for beey messages
+        public static async Task Listener(BeeyClient beey, Project proj, StreamWriter writer) {
+            bool finished = false;
+            try {
+                if (writer != null) {
                     await writer.WriteAsync('[');
                     await writer.WriteLineAsync();
                 }
@@ -173,54 +163,43 @@ namespace LandeckStreamer
                 var messages = await beey.ListenToMessages(proj.Id, breaker.Token);
 
                 _logger.Information("Listening connected");
-                await foreach (var s in messages)
-                {
+                await foreach (var s in messages) {
                     if (Configuration.MessageEcho)
                         Console.WriteLine(s);
-                    if (writer != null)
-                    {
+                    if (writer != null) {
                         await writer.WriteAsync(s);
                         await writer.WriteAsync(',');
                         await writer.WriteLineAsync();
                     }
 
-                    if (s.Contains("Failed"))
-                    {
-                        _logger.Error("server reported processing error {message}", s);
+                    if (s.Contains("Failed")) {
+                        _logger.Error("Server reported processing error: {message}", s);
                     }
 
-                    if (s.Contains("RecognitionMsg") && !s.Contains("Started"))
-                    {
-                        _logger.Information("transcription ended on server with message {message}", s);
-                        Finished = true;
+                    //Ends beey messaging task
+                    if (s.Contains("TranscriptionTracking") && s.Contains("Completed")) {
+                        _logger.Information("Transcription ended on server with message {message}", s);
+                        finished = true;
                         breaker.Cancel();
                     }
-
-
                 }
             }
-            catch (Exception e)
-            {
-                if (e is TaskCanceledException && !Finished)
+            catch (Exception e) {
+                if (e is TaskCanceledException && !finished)
                     _logger.Error(e, "Listening to beey messages failed");
             }
-            finally
-            {
-                if (writer != null)
-                {
+            finally {
+                if (writer != null) {
                     await writer.WriteLineAsync();
                     await writer.WriteAsync(']');
                     writer.Close();
                 }
 
-                if (!breaker.IsCancellationRequested)
-                {
+                if (!breaker.IsCancellationRequested) {
                     _logger.Error("Beey message pipe was unexpectedly closed, closing upload");
                     breaker.Cancel();
                 }
             }
         }
-
-
     }
 }

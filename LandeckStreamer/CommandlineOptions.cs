@@ -12,7 +12,6 @@ namespace LandeckStreamer
         [Option('c', HelpText = "channel name from packager ini", Required = true)]
         public string Channel { get; set; }
 
-
         [Option('s', HelpText = "start time", Required = false)]
         public DateTime Start { get; set; } = DateTime.Now;
 

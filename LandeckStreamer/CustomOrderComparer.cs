@@ -16,7 +16,6 @@ namespace LandeckTranscriber
             Order = noorder.Concat(norder.Except(noorder)).ToArray();
         }
 
-
         public int Compare(string x, string y)
         {
             var idx = Array.IndexOf(Order, x);
