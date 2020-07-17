@@ -27,7 +27,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProjectMerger", "ProjectMer
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LandeckStreamer", "LandeckStreamer\LandeckStreamer.csproj", "{4CAB083B-9231-4058-9BC6-181218C98164}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YTtoBeey", "YTtoBeey\YTtoBeey.csproj", "{BFF49E07-C433-48C9-9FF2-7F400BB4F2BA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YTtoBeey", "YTtoBeey\YTtoBeey.csproj", "{BFF49E07-C433-48C9-9FF2-7F400BB4F2BA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediaStreamer", "MediaStreamer\MediaStreamer.csproj", "{AE604774-51C1-41B7-B15E-72A8C4EFDAA1}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -137,6 +139,14 @@ Global
 		{BFF49E07-C433-48C9-9FF2-7F400BB4F2BA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BFF49E07-C433-48C9-9FF2-7F400BB4F2BA}.Release|x86.ActiveCfg = Release|Any CPU
 		{BFF49E07-C433-48C9-9FF2-7F400BB4F2BA}.Release|x86.Build.0 = Release|Any CPU
+		{AE604774-51C1-41B7-B15E-72A8C4EFDAA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE604774-51C1-41B7-B15E-72A8C4EFDAA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE604774-51C1-41B7-B15E-72A8C4EFDAA1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AE604774-51C1-41B7-B15E-72A8C4EFDAA1}.Debug|x86.Build.0 = Debug|Any CPU
+		{AE604774-51C1-41B7-B15E-72A8C4EFDAA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE604774-51C1-41B7-B15E-72A8C4EFDAA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE604774-51C1-41B7-B15E-72A8C4EFDAA1}.Release|x86.ActiveCfg = Release|Any CPU
+		{AE604774-51C1-41B7-B15E-72A8C4EFDAA1}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
