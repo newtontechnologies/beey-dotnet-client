@@ -31,6 +31,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YTtoBeey", "YTtoBeey\YTtoBe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediaStreamer", "MediaStreamer\MediaStreamer.csproj", "{AE604774-51C1-41B7-B15E-72A8C4EFDAA1}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatchTranscriber", "BatchTranscriber\BatchTranscriber.csproj", "{07FC8CC3-223C-4865-B541-33F4D33D96A6}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		DataExchangeModel\Beey.DataExchangeModel.projitems*{306cefb5-a8c2-4577-8332-13827a9ec870}*SharedItemsImports = 13
@@ -147,6 +149,14 @@ Global
 		{AE604774-51C1-41B7-B15E-72A8C4EFDAA1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AE604774-51C1-41B7-B15E-72A8C4EFDAA1}.Release|x86.ActiveCfg = Release|Any CPU
 		{AE604774-51C1-41B7-B15E-72A8C4EFDAA1}.Release|x86.Build.0 = Release|Any CPU
+		{07FC8CC3-223C-4865-B541-33F4D33D96A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07FC8CC3-223C-4865-B541-33F4D33D96A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07FC8CC3-223C-4865-B541-33F4D33D96A6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{07FC8CC3-223C-4865-B541-33F4D33D96A6}.Debug|x86.Build.0 = Debug|Any CPU
+		{07FC8CC3-223C-4865-B541-33F4D33D96A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07FC8CC3-223C-4865-B541-33F4D33D96A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07FC8CC3-223C-4865-B541-33F4D33D96A6}.Release|x86.ActiveCfg = Release|Any CPU
+		{07FC8CC3-223C-4865-B541-33F4D33D96A6}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
