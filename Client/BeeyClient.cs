@@ -68,6 +68,25 @@ namespace Beey.Client
             WebSocketsApi.Token = LoginToken;
         }
 
+        public async Task LoginAsync(LoginToken loginToken, CancellationToken cancellationToken = default)
+        {
+            SpeakerApi.Token = loginToken;
+            ProjectApi.Token = loginToken;
+            CurrentUserApi.Token = loginToken;
+            EmailApi.Token = loginToken;
+            WebSocketsApi.Token = loginToken;
+        }
+
+        public async Task LoginAsync(string token, CancellationToken cancellationToken = default)
+        {
+            LoginToken loginToken = new LoginToken();
+            loginToken.Token = token;
+
+            CurrentUserApi.Token = loginToken;
+
+            await LoginAsync(await CurrentUserApi.GetUserInfoAsync(cancellationToken));
+        }
+
         public async Task LogoutAsync(CancellationToken cancellationToken = default)
         {
             if (LoginToken != null)
