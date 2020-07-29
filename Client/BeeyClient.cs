@@ -53,6 +53,16 @@ namespace Beey.Client
             WebSocketsApi = new WebSocketsApi(webSocketsUrl);
         }
 
+        private void SetTokens(LoginToken? loginToken)
+        {
+            SpeakerApi.Token = loginToken;
+            ProjectApi.Token = loginToken;
+            CurrentUserApi.Token = loginToken;
+            AdminUserApi.Token = loginToken;
+            EmailApi.Token = loginToken;
+            WebSocketsApi.Token = loginToken;
+        }
+
         public async Task LoginAsync(string email, string password,
             CancellationToken cancellationToken = default)
         {
@@ -60,31 +70,17 @@ namespace Beey.Client
             this.userEmail = email;
             this.userPassword = password;
 
-            SpeakerApi.Token = LoginToken;
-            ProjectApi.Token = LoginToken;
-            CurrentUserApi.Token = LoginToken;
-            AdminUserApi.Token = LoginToken;
-            EmailApi.Token = LoginToken;
-            WebSocketsApi.Token = LoginToken;
-        }
-
-        public async Task LoginAsync(LoginToken loginToken, CancellationToken cancellationToken = default)
-        {
-            SpeakerApi.Token = loginToken;
-            ProjectApi.Token = loginToken;
-            CurrentUserApi.Token = loginToken;
-            EmailApi.Token = loginToken;
-            WebSocketsApi.Token = loginToken;
+            SetTokens(LoginToken);
         }
 
         public async Task LoginAsync(string token, CancellationToken cancellationToken = default)
         {
-            LoginToken loginToken = new LoginToken();
-            loginToken.Token = token;
+            LoginToken temporaryLoginToken = new LoginToken();
+            temporaryLoginToken.Token = token;
 
-            CurrentUserApi.Token = loginToken;
+            CurrentUserApi.Token = temporaryLoginToken;
 
-            await LoginAsync(await CurrentUserApi.GetUserInfoAsync(cancellationToken));
+            SetTokens(await CurrentUserApi.GetUserInfoAsync(cancellationToken));
         }
 
         public async Task LogoutAsync(CancellationToken cancellationToken = default)
@@ -94,12 +90,7 @@ namespace Beey.Client
                 await LoginApi.LogoutAsync(LoginToken, cancellationToken);
             }
 
-            SpeakerApi.Token = null;
-            ProjectApi.Token = null;
-            CurrentUserApi.Token = null;
-            AdminUserApi.Token = null;
-            EmailApi.Token = null;
-            WebSocketsApi.Token = null;
+            SetTokens(null);
 
             LoginToken = null;
             userEmail = null;
@@ -113,12 +104,7 @@ namespace Beey.Client
             this.userEmail = email;
             this.userPassword = password;
 
-            SpeakerApi.Token = LoginToken;
-            ProjectApi.Token = LoginToken;
-            CurrentUserApi.Token = LoginToken;
-            AdminUserApi.Token = LoginToken;
-            EmailApi.Token = LoginToken;
-            WebSocketsApi.Token = LoginToken;
+            SetTokens(LoginToken);
         }       
 
         public async Task<LexiconApi.TmpValidationError[]> ValidateLexiconEntryAsync(string text, string pronunciation, string language,
