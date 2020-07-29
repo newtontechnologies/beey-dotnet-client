@@ -7,4 +7,7 @@
 		<Email>ondrej.foltyn@newtontech.cz</Email>
 		<Password>OVPgod</Password>
 	</Credentials>
+	<YTtoBeey>
+		<Youtube-Dl>youtube-dl.exe</Youtube-Dl>
+	</YTtoBeey>
 </Settings>

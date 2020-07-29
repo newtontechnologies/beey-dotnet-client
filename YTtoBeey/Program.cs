@@ -16,7 +16,7 @@ namespace YTtoBeey
         
         private static bool transcribed = false;
 
-        private const string versionInfo = "YTtoBeey v1.3r0";
+        private const string versionInfo = "YTtoBeey v1.4r0";
 
         static string configpath = "Settings.xml";
         static bool attemptYT = false;
@@ -24,6 +24,7 @@ namespace YTtoBeey
         static string language = "cs-CZ";
         static string videouri = "";
         static string logintoken = null;
+        static string youtubeDlExe = "youtube-dl.exe";
 
         static async Task Main(string[] args)
         {
@@ -291,6 +292,8 @@ namespace YTtoBeey
             var doc = new XmlDocument();
             doc.Load(configpath);
             var beey = new BeeyClient(doc.SelectSingleNode("/Settings/Beey-Server/Url").InnerText);
+
+            youtubeDlExe = doc.SelectSingleNode("/Settings/YTtoBeey/Youtube-Dl").InnerText;
 
             if (token == null)
                 await beey.LoginAsync(
