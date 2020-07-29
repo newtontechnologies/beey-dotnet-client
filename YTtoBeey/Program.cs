@@ -16,7 +16,7 @@ namespace YTtoBeey
         
         private static bool transcribed = false;
 
-        private const string versionInfo = "YTtoBeey v1.4r0";
+        private const string versionInfo = "YTtoBeey v1.4r1";
 
         static string configpath = "Settings.xml";
         static bool attemptYT = false;
@@ -66,9 +66,11 @@ namespace YTtoBeey
                 var proc = new Process();
                 tmpfile = "temp-" + DateTime.Now.ToFileTime().ToString();
                 //This could be much faster; but beey has issues with m4a: proc.StartInfo = new ProcessStartInfo("youtube-dl.exe", "--no-cache-dir -f bestaudio \"" + videouri + "\" --output " + tmpfile);
-                proc.StartInfo = new ProcessStartInfo("youtube-dl.exe", "--no-cache-dir \"" + videouri + "\" --output " + tmpfile);
+                proc.StartInfo = new ProcessStartInfo(youtubeDlExe, "--no-cache-dir \"" + videouri + "\" --output " + tmpfile);
                 proc.StartInfo.UseShellExecute = false;
-                proc.StartInfo.CreateNoWindow = true;
+
+                proc.StartInfo.RedirectStandardOutput = true; //optional; to make it silent
+
                 proc.StartInfo.RedirectStandardError = true;
                 proc.Start();
                 Console.WriteLine("[INFO] Downloading video...");
