@@ -14,7 +14,7 @@ namespace JobScheduling
 
         public static void Load()
         {
-            new ConfigurationBuilder()
+            configuration = new ConfigurationBuilder()
                   .SetBasePath(Directory.GetCurrentDirectory())
                   .AddXmlFile("Settings.xml", optional: false, reloadOnChange: true)
                   .AddXmlFile("Settings.overrides.xml", optional: true, reloadOnChange: true)

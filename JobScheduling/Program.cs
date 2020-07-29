@@ -26,6 +26,7 @@ namespace JobScheduling
         -r <time span>     repeat interval
         -d <duration>      duration of the media
         -n <name>          name of the project in Beey
+        -t <token>         token instead of credentials
     - If scheduling finished successfuly, application returns job ID.  
 - '{listKeyword}' to show active jobs.
 - '{cancelKeyword} <jobId>' to cancel active job.         
@@ -35,8 +36,8 @@ namespace JobScheduling
 
         private static readonly HashSet<string> switchesWithArgument = new HashSet<string>()
         {
-            "-l", "-d", "-r", "-n",
-            "/l", "/d", "/r", "/n"
+            "-l", "-d", "-r", "-n", "-t",
+            "/l", "/d", "/r", "/n", "/t"
         };
         private static readonly HashSet<string> standaloneSwitches = new HashSet<string>()
         {
@@ -125,6 +126,7 @@ namespace JobScheduling
             TimeSpan? repeatInterval = null;
             string projectName = null;
             string language = null;
+            string loginToken = null;
 
             for (int i = 3; i < split.Length; i++)
             {
@@ -168,6 +170,11 @@ namespace JobScheduling
                         i++;
                         projectName = split[i];
                         break;
+                    case "-t":
+                    case "/t":
+                        i++;
+                        loginToken = split[i];
+                        break;
                     case "-l":
                     case "/l":
                         i++;
@@ -181,7 +188,7 @@ namespace JobScheduling
 
             projectName = projectName ?? $"scheduled_{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}";
             language = language ?? "cs-CZ";
-            Func<Task> job = CreateJob(url, language, duration, projectName);
+            Func<Task> job = CreateJob(url, language, duration, projectName, loginToken);
             Action<Exception> onException = ex =>
             {
                 // TODO: add better error reporting (e.g. mail)
@@ -191,14 +198,18 @@ namespace JobScheduling
             jobScheduler.ScheduleJob(job, onException, date, repeatInterval);
         }
 
-        private static Func<Task> CreateJob(string url, string language, TimeSpan? duration, string projectName)
+        private static Func<Task> CreateJob(string url, string language, TimeSpan? duration, string projectName, string loginToken)
         {
             // TODO: log job progress? Where?
             return async () =>
             {
                 // Login first to not waste time in case of incorrect login.
                 var beey = new BeeyClient(Configuration.Beey.Url);
-                await beey.LoginAsync(Configuration.Beey.Login, Configuration.Beey.Password);
+                if(loginToken == null) {
+                    await beey.LoginAsync(Configuration.Beey.Login, Configuration.Beey.Password);
+                } else {
+                    await beey.LoginAsync(loginToken);
+                }
 
                 Stream stream = StartDownloadingStream(url, duration);
                 await TranscribeStream(beey, stream, language, projectName);
