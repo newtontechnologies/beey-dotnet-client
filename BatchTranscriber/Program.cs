@@ -14,12 +14,12 @@ namespace BatchTranscriber
 
     class Program
     {
-        const string versionInfo = "BatchTranscriber v1.0r0";
+        const string versionInfo = "BatchTranscriber v1.1r1";
 
         static int maxThreads = 8; //Number of threads to run at the same time.
         static string outputDirectory = "out"; //Output directory
         static string settingsFile = "Settings.xml";
-        static string? language = null;
+        static string language = null;
 
         static bool usingInputDir = true; //using directory as input or a file list?
         static string inputDirectory = ".";
@@ -34,7 +34,7 @@ namespace BatchTranscriber
 
         static BeeyClient beey;
 
-        static string? loginToken = null;
+        static string loginToken = null;
 
         static async Task Main(string[] args)
         {
@@ -242,7 +242,7 @@ namespace BatchTranscriber
         /// <param name="configpath">Path to Settings.xml</param>
         /// <param name="token">Will be used as alternative to email/passwd if not null</param>
         /// <returns>BeeyClient instance with login done</returns>
-        static async Task<BeeyClient> LoadConfigAndConnect(string configpath = "Settings.xml", string? token = null)
+        static async Task<BeeyClient> LoadConfigAndConnect(string configpath = "Settings.xml", string token = null)
         {
             if (!File.Exists(configpath))
                 throw new ArgumentException("File " + configpath + " doesn't exist!");

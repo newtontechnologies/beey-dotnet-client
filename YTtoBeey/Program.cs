@@ -1,6 +1,7 @@
 ﻿using Beey.Client;
 using Beey.DataExchangeModel.Messaging;
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -15,47 +16,27 @@ namespace YTtoBeey
         
         private static bool transcribed = false;
 
-        private const string verinfo = "YTtoBeey v1.2r0"; 
+        private const string versionInfo = "YTtoBeey v1.3r0";
+
+        static string configpath = "Settings.xml";
+        static bool attemptYT = false;
+        static string trsxPath = "transcript.trsx";
+        static string language = "cs-CZ";
+        static string videouri = "";
+        static string logintoken = null;
 
         static async Task Main(string[] args)
         {
             CleanTemp();
             Console.CancelKeyPress += Console_CancelKeyPress;
 
-            // Commandline args handling
-            string configpath = "Settings.xml";
-            bool attemptYT = false;
-            string trsxPath = "transcript.trsx";
-            string language = "cs-CZ";
-            string videouri = "";
-
-            if (args.Length < 1)
-            {
-                Console.WriteLine("[INFO] " + verinfo);
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("Usage: YTtoBeey.exe <path to mp3>/<video url> (<transcript.trsx>) (<cs-CZ>) (<Settings.xml>)");
-                Console.ResetColor();
-                return;
-            }
-            else
-            {
-                if (!File.Exists(args[0]))
-                    attemptYT = true; //file not found, perhaps a url?
-                videouri = args[0];
-
-                if (args.Length >= 2)
-                    trsxPath = args[1];
-                if (args.Length >= 3)
-                    language = args[2];
-                if (args.Length >= 4)
-                    configpath = args[3];
-            }
+            HandleArgs(args);
 
             // Connect & login to beey
             try
             {
                 Console.WriteLine("[INFO] Login to beey..");
-                beey = await LoadConfigAndConnect(configpath);
+                beey = await LoadConfigAndConnect(configpath,logintoken);
             }
             catch (ArgumentException ex)
             {
@@ -207,6 +188,51 @@ namespace YTtoBeey
         }
 
         /// <summary>
+        /// Handles command line arguments
+        /// </summary>
+        /// <param name="args">args</param>
+        static void HandleArgs(string[] args)
+        {
+            if (args.Length < 1)
+            {
+                Console.WriteLine("[INFO] " + versionInfo);
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("Usage: YTtoBeey.exe <path to mp3>/<video url> (output=transcript.trsx) (language=cs-CZ) (settings=Settings.xml) (logintoken=TOKEN)");
+                Console.ResetColor();
+                Environment.Exit(0);
+            }
+            else 
+            {
+                if (!File.Exists(args[0]))
+                    attemptYT = true; //file not found, perhaps a url?
+                videouri = args[0];
+
+                if (args.Length < 2)
+                    return;
+
+                for (int i = 1; i < args.Length; i++)
+                {
+                    string[] argSplit = args[i].Split('=');
+                    switch(argSplit[0])
+                    {
+                        case "output":
+                            trsxPath = argSplit[1];
+                            break;
+                        case "language":
+                            language = argSplit[1];
+                            break;
+                        case "settings":
+                            configpath = argSplit[1];
+                            break;
+                        case "logintoken":
+                            logintoken = argSplit[1];
+                            break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Ctrl+C pressed, perform a cleanup and exit
         /// </summary>
         /// <param name="sender"></param>
@@ -257,7 +283,7 @@ namespace YTtoBeey
         /// </summary>
         /// <param name="configpath">(optional) Path to Settings.xml</param>
         /// <returns>BeeyClient instance</returns>
-        static async Task<BeeyClient> LoadConfigAndConnect(string configpath = "Settings.xml")
+        static async Task<BeeyClient> LoadConfigAndConnect(string configpath = "Settings.xml",string token = null)
         {
             if (!File.Exists(configpath))
                 throw new ArgumentException("File " + configpath + " doesn't exist!");
@@ -265,10 +291,14 @@ namespace YTtoBeey
             var doc = new XmlDocument();
             doc.Load(configpath);
             var beey = new BeeyClient(doc.SelectSingleNode("/Settings/Beey-Server/Url").InnerText);
-            await beey.LoginAsync(
-                doc.SelectSingleNode("/Settings/Credentials/Email").InnerText,
-                doc.SelectSingleNode("/Settings/Credentials/Password").InnerText
-                );
+
+            if (token == null)
+                await beey.LoginAsync(
+                    doc.SelectSingleNode("/Settings/Credentials/Email").InnerText,
+                    doc.SelectSingleNode("/Settings/Credentials/Password").InnerText
+                    );
+            else
+                await beey.LoginAsync(token);
 
             return beey;
         }
