@@ -5,7 +5,7 @@ A console-app in .NET core to upload many files to Beey and get their transcript
 
 # Usage
 
-`BatchTranscriber.exe {<directory with audio files>|<list of files>} <output directory> (threads=8) (settings=Settings.xml) (mode={batch|single}) (debug={no|yes})`
+`BatchTranscriber.exe {<directory with audio files>|<list of files>} <output directory> (threads=8) (logintoken=TOKEN) (settings=Settings.xml) (mode={batch|single}) (debug={no|yes}) (language=cs-CZ)`
 
 * **First param.** is required, it is either a directory in which **all** the files will be sent to beey or a file in which case it is treated as a list of files. *(or as a single file, see 'Singlemode')*
 
@@ -33,6 +33,8 @@ To transcript a single file `audio.mp3` and save transcription in directory `tra
 # Extra options
 
 * **threads=X** maximum number of threads to be run at the same time. **(default: 8)**
+* **logintoken=TOKEN** token to be used as an alternative to email/password
+* **language=cs-CZ** this will override language in Settings.xml !
 * **settings=Settings.xml** custom file to be used instead of Settings.xml **(default: Settings.xml)**
 * **debug=yes** this will enable spamming the stdout with all the messages from all the threads. **(default: no)**
 * **mode=single** only works if the first param. is a file, see 'Singlemode' **(default: batch)**

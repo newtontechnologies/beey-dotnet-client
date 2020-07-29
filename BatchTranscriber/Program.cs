@@ -14,16 +14,16 @@ namespace BatchTranscriber
 
     class Program
     {
-        const string verinfo = "BatchTranscriber v1.0r0";
+        const string versionInfo = "BatchTranscriber v1.0r0";
 
-        static int threadlimit = 8; //Number of threads to run at the same time.
-        static string outputdir = "out"; //Output directory
-        static string settingsfile = "Settings.xml";
-        static string language = "cs-CZ";
+        static int maxThreads = 8; //Number of threads to run at the same time.
+        static string outputDirectory = "out"; //Output directory
+        static string settingsFile = "Settings.xml";
+        static string? language = null;
 
         static bool usingInputDir = true; //using directory as input or a file list?
-        static string inputdir = ".";
-        static string inputfile = "list.txt";
+        static string inputDirectory = ".";
+        static string inputFileList = "list.txt";
         static bool singlemode = false; //batch or a single file? 
         static bool debug = false; //true if you want to spam the console with debug info.
 
@@ -34,6 +34,8 @@ namespace BatchTranscriber
 
         static BeeyClient beey;
 
+        static string? loginToken = null;
+
         static async Task Main(string[] args)
         {
             HandleArgs(args);
@@ -42,7 +44,7 @@ namespace BatchTranscriber
 
             try
             {
-                beey = await LoadConfigAndConnect(settingsfile);
+                beey = await LoadConfigAndConnect(settingsFile,loginToken);
             }
             catch (ArgumentException ex)
             {
@@ -64,8 +66,8 @@ namespace BatchTranscriber
             }
 
             //Init threadpool
-            threads = new Thread[threadlimit];
-            threadStatuses = new WorkerStatus[threadlimit];
+            threads = new Thread[maxThreads];
+            threadStatuses = new WorkerStatus[maxThreads];
 
             //Start the work
             Stopwatch stopwatch = new Stopwatch();
@@ -73,52 +75,50 @@ namespace BatchTranscriber
 
             #region Work
 
-            int currfile = 0; //Pointer in file list
-            bool startnew = true; //start new threads?
-            bool allfinished = true; //are all threads finished?
+            int currentFileIndex = 0;
+            bool filesAreRemaining = true;
+            bool allThreadsFinished = true;
 
-            while (!(!startnew && allfinished)) //repeat until all files are processed and all threads are finished
+            while (filesAreRemaining || !allThreadsFinished)
             {
-                allfinished = true;
+                allThreadsFinished = true;
 
-                for (int i = 0; i < threadlimit; i++) //cycle through threads
+                for (int i = 0; i < maxThreads; i++) //cycle through threads
                 {
-                    if (currfile >= files.Count)
-                        startnew = false; //all files processed, dont start new threads
+                    if (currentFileIndex >= files.Count)
+                        filesAreRemaining = false;
 
-                    if (threadStatuses[i] == WorkerStatus.READY && startnew)
+                    if (threadStatuses[i] == WorkerStatus.READY && filesAreRemaining)
                     {
-                        //the thread is ready for a new job
-                        threads[i] = new Thread(() => Work(files[currfile], i));
+                        threads[i] = new Thread(() => Work(files[currentFileIndex], i));
                         threadStatuses[i] = WorkerStatus.WORKING;
                         threads[i].Start();
-                        Console.WriteLine("Thread #" + i + ": Started. (" + files[currfile] + ")");
-                        Thread.Sleep(400); //give it some time (otherwise it would do wierd magical things)
-                        currfile++;
-                        allfinished = false;
+                        Console.WriteLine("Thread #" + i + ": Started. (" + files[currentFileIndex] + ")");
+                        Thread.Sleep(400); //give it some time (otherwise it would do weird magical things)
+                        currentFileIndex++;
+                        allThreadsFinished = false;
                     }
                     else if (threadStatuses[i] == WorkerStatus.WORKING)
                     {
-                        //thread is working
-                        allfinished = false;
+                        allThreadsFinished = false;
                     }
                     else if (threadStatuses[i] == WorkerStatus.FINISHED)
-                    { //thread has finished
+                    {
                         Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine("Thread #" + i + ": Finished.");
                         Console.ResetColor();
-                        threadStatuses[i] = WorkerStatus.READY; //set status ready
+                        threadStatuses[i] = WorkerStatus.READY;
                     }
                     else if (threadStatuses[i] == WorkerStatus.FAILED)
                     { //thread failed
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine("Thread #" + i + ": Failed.");
                         Console.ResetColor();
-                        threadStatuses[i] = WorkerStatus.READY; //set status ready
+                        threadStatuses[i] = WorkerStatus.READY;
                     }
                 }
 
-                Thread.Sleep(1000); //wait, then cycle through threads again
+                Thread.Sleep(1000);
             }
             #endregion
 
@@ -150,9 +150,9 @@ namespace BatchTranscriber
             if (args.Length < 2)
             {
                 //print out help
-                Console.WriteLine("[INFO] " + verinfo);
+                Console.WriteLine("[INFO] " + versionInfo);
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("Usage: BatchTranscriber.exe {<directory with audio files>|<list of files>} <output directory> (threads=8) (settings=Settings.xml) (mode={batch|single}) (debug={no|yes})");
+                Console.WriteLine("Usage: BatchTranscriber.exe {<directory with audio files>|<list of files>} <output directory> (threads=8) (logintoken=TOKEN) (settings=Settings.xml) (mode={batch|single}) (debug={no|yes}) (language=cs-CZ)");
                 Console.WriteLine("\n<list of files> == Filename of a file which contains paths to files to transcribe (one on each line)");
                 Console.WriteLine("If mode=single is set, then the first argument will be treated like a single file.");
                 Console.ResetColor();
@@ -161,17 +161,17 @@ namespace BatchTranscriber
 
             if (File.Exists(args[0]))
             { // arg0 is a file list
-                inputfile = args[0];
+                inputFileList = args[0];
                 usingInputDir = false;
             }
             else if (Directory.Exists(args[0])) //arg0 is a directory
-                inputdir = args[0];
+                inputDirectory = args[0];
             else
                 Fatal("Could not find '" + args[0] + "'."); //arg0 is nonsense
 
-            outputdir = args[1]; //arg1 will be the output directory
-            if (!Directory.Exists(outputdir))
-                Directory.CreateDirectory(outputdir);
+            outputDirectory = args[1]; //arg1 will be the output directory
+            if (!Directory.Exists(outputDirectory))
+                Directory.CreateDirectory(outputDirectory);
 
 
             for (int i = 2; i < args.Length; i++) //cycle through remaining args, looking for optional settings
@@ -185,23 +185,29 @@ namespace BatchTranscriber
                 switch (argsplit[0])
                 {
                     case "threads":
-                        if (!int.TryParse(argsplit[1], out threadlimit)) //threadlimit
+                        if (!int.TryParse(argsplit[1], out maxThreads))
                             Console.WriteLine("[WARN] '" + args[i] + "' is an invalid argument.");
                         break;
                     case "mode":
-                        if (argsplit[1] == "single") //single/batch mode
+                        if (argsplit[1] == "single")
                             singlemode = true;
                         break;
                     case "settings":
-                        settingsfile = args[1]; //custom Settings.xml
+                        settingsFile = args[1];
                         break;
                     case "debug":
-                        if (argsplit[1] == "yes") //spam the console with debug info?
+                        if (argsplit[1] == "yes")
                             debug = true;
+                        break;
+                    case "logintoken":
+                        loginToken = argsplit[1];
+                        break;
+                    case "language":
+                        language = argsplit[1];
                         break;
                 }
             }
-            if (threadlimit < 1)
+            if (maxThreads < 1)
                 Fatal("Thread limit must be 1 or higher.");
         }
 
@@ -212,16 +218,16 @@ namespace BatchTranscriber
         {
             if (usingInputDir)
             {
-                foreach (string file in Directory.GetFiles(inputdir))
+                foreach (string file in Directory.GetFiles(inputDirectory))
                     files.Add(file);
             }
             else if (singlemode)
             {
-                files.Add(inputfile);
+                files.Add(inputFileList);
             }
             else
             {
-                using (StreamReader r = new StreamReader(inputfile))
+                using (StreamReader r = new StreamReader(inputFileList))
                 {
                     string line;
                     while ((line = r.ReadLine()) != null)
@@ -234,20 +240,27 @@ namespace BatchTranscriber
         /// Loads up Settings.xml and logins to beey
         /// </summary>
         /// <param name="configpath">Path to Settings.xml</param>
+        /// <param name="token">Will be used as alternative to email/passwd if not null</param>
         /// <returns>BeeyClient instance with login done</returns>
-        static async Task<BeeyClient> LoadConfigAndConnect(string configpath = "Settings.xml")
+        static async Task<BeeyClient> LoadConfigAndConnect(string configpath = "Settings.xml", string? token = null)
         {
             if (!File.Exists(configpath))
                 throw new ArgumentException("File " + configpath + " doesn't exist!");
 
             var doc = new XmlDocument();
             doc.Load(configpath);
-            language = doc.SelectSingleNode("/Settings/Language").InnerText;
+
+            if(language == null)
+                language = doc.SelectSingleNode("/Settings/Language").InnerText;
+
             var beey = new BeeyClient(doc.SelectSingleNode("/Settings/Beey-Server/Url").InnerText);
-            await beey.LoginAsync(
-                doc.SelectSingleNode("/Settings/Credentials/Email").InnerText,
-                doc.SelectSingleNode("/Settings/Credentials/Password").InnerText
-                );
+            if (token == null)
+                await beey.LoginAsync(
+                    doc.SelectSingleNode("/Settings/Credentials/Email").InnerText,
+                    doc.SelectSingleNode("/Settings/Credentials/Password").InnerText
+                    );
+            else
+                await beey.LoginAsync(token);
 
             return beey;
         }
@@ -265,9 +278,15 @@ namespace BatchTranscriber
             if (debug)
                 Console.WriteLine("[DEBUG] Thread " + threadId + ": Begin creating project.");
 
-            // Create a project
-            var project = await beey.CreateProjectAsync("BatchTranscriber_" + DateTime.Now.ToFileTime().ToString(), "A/test");
-
+            Beey.DataExchangeModel.Projects.Project project;
+            try { 
+                project = await beey.CreateProjectAsync("BatchTranscriber_" + DateTime.Now.ToFileTime().ToString(), "A/test");
+            } catch(Exception ex) {
+                threadStatuses[threadId] = WorkerStatus.FAILED;
+                if (debug)
+                    Console.WriteLine("[DEBUG] Thread " + threadId + ": Exception below\n--\n"+ex.ToString()+"--\n\n");
+                return;
+            }
             // Open a filestream
             Stream upstream;
 
@@ -283,17 +302,18 @@ namespace BatchTranscriber
                 return;
             }
 
-            // Upload the stream
+            
             if (debug)
                 Console.WriteLine("[DEBUG] Thread " + threadId + ": Begin upload stream.");
 
             await beey.UploadStreamAsync(project.Id, "test01.mp3", upstream, null, false);
 
-            // Close stream
+            
             upstream.Close();
 
             if (debug)
                 Console.WriteLine("[DEBUG] Thread " + threadId + ": Stream uploaded.");
+
 
             // Wait for transcoding
             TryValueResult<ProjectProgress> result;
@@ -327,7 +347,6 @@ namespace BatchTranscriber
             }
 
             // Download trsx
-
             await Task.Delay(3000); //workaround so hopefully the mysterious bug wont happen as it happened in YTtoBeey
 
             if (debug)
@@ -345,16 +364,13 @@ namespace BatchTranscriber
             if (debug)
                 Console.WriteLine("[DEBUG] Thread " + threadId + ": Downloading");
 
-            try
-            {
-
-                using (FileStream fs = new FileStream(outputdir + "\\" + Path.GetFileName(file) + ".trsx", FileMode.Create))
+            try {
+                using (FileStream fs = new FileStream(outputDirectory + "\\" + Path.GetFileName(file) + ".trsx", FileMode.Create))
                     downstream!.CopyTo(fs);
-
             }
             catch (Exception ex)
             {
-                threadStatuses[threadId] = WorkerStatus.FAILED; //fail while opening a file to download trsx into
+                threadStatuses[threadId] = WorkerStatus.FAILED;
                 if (debug)
                     Console.WriteLine("[DEBUG] Thread " + threadId + ": Exception thrown while downloading trsx:\n--\n" + ex.ToString() + "\n--\n");
                 return;
@@ -363,7 +379,7 @@ namespace BatchTranscriber
             if (debug)
                 Console.WriteLine("[DEBUG] Thread " + threadId + ": Finished.");
 
-            threadStatuses[threadId] = WorkerStatus.FINISHED; //set status as finished
+            threadStatuses[threadId] = WorkerStatus.FINISHED;
         }
     }
 }

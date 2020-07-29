@@ -55,6 +55,7 @@ namespace Beey.Client
 
         private void SetTokens(LoginToken? loginToken)
         {
+            LoginToken = loginToken;
             SpeakerApi.Token = loginToken;
             ProjectApi.Token = loginToken;
             CurrentUserApi.Token = loginToken;
@@ -80,7 +81,12 @@ namespace Beey.Client
 
             CurrentUserApi.Token = temporaryLoginToken;
 
-            SetTokens(await CurrentUserApi.GetUserInfoAsync(cancellationToken));
+            LoginToken loginToken = await CurrentUserApi.GetUserInfoAsync(cancellationToken);
+
+            this.userEmail = loginToken.User.Email;
+            this.userPassword = loginToken.User.Password;
+
+            SetTokens(loginToken);
         }
 
         public async Task LogoutAsync(CancellationToken cancellationToken = default)
@@ -137,7 +143,7 @@ namespace Beey.Client
 
         private void RequireAuthorization()
         {
-            if (LoginToken == null || userEmail == null || userPassword == null)
+            if (LoginToken == null)
             {
                 logger.Log(Logging.LogLevel.Error, () => unauthorizedErrorMessage);
                 throw new UnauthorizedAccessException();
