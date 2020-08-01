@@ -14,7 +14,7 @@ namespace BatchTranscriber
 
     class Program
     {
-        const string versionInfo = "BatchTranscriber v1.1r1";
+        const string versionInfo = "BatchTranscriber v1.2r0";
 
         static int maxThreads = 8; //Number of threads to run at the same time.
         static string outputDirectory = "out"; //Output directory
@@ -35,6 +35,13 @@ namespace BatchTranscriber
         static BeeyClient beey;
 
         static string loginToken = null;
+
+        /// <summary>
+        /// Specialized output format for integration with the ConsoleWebUI project (temporary "solution")
+        /// </summary>
+        static bool costdOutput = false;
+
+        static bool doDeleteFinished = false;
 
         static async Task Main(string[] args)
         {
@@ -90,10 +97,15 @@ namespace BatchTranscriber
 
                     if (threadStatuses[i] == WorkerStatus.READY && filesAreRemaining)
                     {
-                        threads[i] = new Thread(() => Work(files[currentFileIndex], i));
+                        threads[i] = new Thread(() => Work(files[currentFileIndex], i).Wait());
                         threadStatuses[i] = WorkerStatus.WORKING;
                         threads[i].Start();
-                        Console.WriteLine("Thread #" + i + ": Started. (" + files[currentFileIndex] + ")");
+
+                        if(costdOutput)
+                            Console.WriteLine("Starting file " + currentFileIndex + " out of " + files.Count);
+                        else
+                            Console.WriteLine("Thread #" + i + ": Started. (" + files[currentFileIndex] + ")");
+
                         Thread.Sleep(400); //give it some time (otherwise it would do weird magical things)
                         currentFileIndex++;
                         allThreadsFinished = false;
@@ -105,14 +117,16 @@ namespace BatchTranscriber
                     else if (threadStatuses[i] == WorkerStatus.FINISHED)
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine("Thread #" + i + ": Finished.");
+                        if(!costdOutput)
+                            Console.WriteLine("Thread #" + i + ": Finished.");
                         Console.ResetColor();
                         threadStatuses[i] = WorkerStatus.READY;
                     }
                     else if (threadStatuses[i] == WorkerStatus.FAILED)
                     { //thread failed
                         Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine("Thread #" + i + ": Failed.");
+                        if(!costdOutput)
+                            Console.WriteLine("Thread #" + i + ": Failed.");
                         Console.ResetColor();
                         threadStatuses[i] = WorkerStatus.READY;
                     }
@@ -125,7 +139,7 @@ namespace BatchTranscriber
             stopwatch.Stop();
 
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("[INFO] Finished in " + stopwatch.Elapsed);
+            Console.WriteLine("Finished in " + stopwatch.Elapsed);
             Console.ResetColor();
         }
 
@@ -152,7 +166,7 @@ namespace BatchTranscriber
                 //print out help
                 Console.WriteLine("[INFO] " + versionInfo);
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("Usage: BatchTranscriber.exe {<directory with audio files>|<list of files>} <output directory> (threads=8) (logintoken=TOKEN) (settings=Settings.xml) (mode={batch|single}) (debug={no|yes}) (language=cs-CZ)");
+                Console.WriteLine("Usage: BatchTranscriber.exe {<directory with audio files>|<list of files>} <output directory> (threads=8) (logintoken=TOKEN) (settings=Settings.xml) (mode={batch|single}) (language=cs-CZ) (debug={no|yes}) (format={normal|costd1.0})");
                 Console.WriteLine("\n<list of files> == Filename of a file which contains paths to files to transcribe (one on each line)");
                 Console.WriteLine("If mode=single is set, then the first argument will be treated like a single file.");
                 Console.ResetColor();
@@ -205,6 +219,11 @@ namespace BatchTranscriber
                     case "language":
                         language = argsplit[1];
                         break;
+                    case "format":
+                        if (argsplit[1] == "costd1.0")
+                            costdOutput = true;
+                        break;
+
                 }
             }
             if (maxThreads < 1)
@@ -254,6 +273,9 @@ namespace BatchTranscriber
                 language = doc.SelectSingleNode("/Settings/Language").InnerText;
 
             var beey = new BeeyClient(doc.SelectSingleNode("/Settings/Beey-Server/Url").InnerText);
+
+            doDeleteFinished = bool.Parse(doc.SelectSingleNode("/Settings/DeleteFinished").InnerText);
+
             if (token == null)
                 await beey.LoginAsync(
                     doc.SelectSingleNode("/Settings/Credentials/Email").InnerText,
@@ -331,7 +353,10 @@ namespace BatchTranscriber
                 Console.WriteLine("[DEBUG] Thread " + threadId + ": Transcode finished.");
 
             // Wait for transcribing
-            await beey.TranscribeProjectAsync(project.Id, language);
+            if (language == "FROMFILE")
+                await beey.TranscribeProjectAsync(project.Id, Path.GetFileName(file).Split('_')[0]);
+            else
+                await beey.TranscribeProjectAsync(project.Id, language);
 
             if (debug)
                 Console.WriteLine("[DEBUG] Thread " + threadId + ": Transcribing.");
@@ -374,6 +399,12 @@ namespace BatchTranscriber
                 if (debug)
                     Console.WriteLine("[DEBUG] Thread " + threadId + ": Exception thrown while downloading trsx:\n--\n" + ex.ToString() + "\n--\n");
                 return;
+            }
+
+            if(doDeleteFinished) { 
+                if(!costdOutput)
+                    Console.WriteLine("[INFO] Thread " + threadId + ": Deleting original file. (doDeleteFinished is set)");
+                File.Delete(file);
             }
 
             if (debug)

@@ -1,7 +1,8 @@
 {
   "profiles": {
     "BatchTranscriber": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "audio trans debug=yes language=FROMFILE"
     }
   }
 }

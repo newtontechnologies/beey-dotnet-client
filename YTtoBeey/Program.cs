@@ -16,7 +16,7 @@ namespace YTtoBeey
         
         private static bool transcribed = false;
 
-        private const string versionInfo = "YTtoBeey v1.4r1";
+        private const string versionInfo = "YTtoBeey v1.5r0";
 
         static string configpath = "Settings.xml";
         static bool attemptYT = false;
@@ -25,6 +25,8 @@ namespace YTtoBeey
         static string videouri = "";
         static string logintoken = null;
         static string youtubeDlExe = "youtube-dl.exe";
+
+        static bool costdOutputEnabled = false;
 
         static async Task Main(string[] args)
         {
@@ -36,7 +38,7 @@ namespace YTtoBeey
             // Connect & login to beey
             try
             {
-                Console.WriteLine("[INFO] Login to beey..");
+                Console.WriteLine("Login to Beey...");
                 beey = await LoadConfigAndConnect(configpath,logintoken);
             }
             catch (ArgumentException ex)
@@ -73,14 +75,17 @@ namespace YTtoBeey
 
                 proc.StartInfo.RedirectStandardError = true;
                 proc.Start();
-                Console.WriteLine("[INFO] Downloading video...");
+
+                Console.WriteLine("Downloading video...");
+
                 proc.WaitForExit();
 
-                { 
+                {
                     string stderr = proc.StandardError.ReadToEnd();
 
                     if (stderr.Contains("ERROR"))
-                    { //if youtube-dl returns error
+                    { 
+                        //if youtube-dl returns error
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine("[FATAL] Could not download video. Check the url? Maybe video is age restricted?");
                         Console.ResetColor();
@@ -109,11 +114,17 @@ namespace YTtoBeey
             }
 
             // Create a project
-            Console.WriteLine("[INFO] Creating a project..");
+            Console.WriteLine("Creating a project...");
+
             project = await beey.CreateProjectAsync("YTtoBeey_" + DateTime.Now.ToFileTime().ToString(), "YTtoBeey");
 
+            if(costdOutputEnabled)
+                Console.WriteLine("[CALLBACK]|projectId|"+project.Id);
+
             // Upload the stream
-            Console.WriteLine("[INFO] Uploading..");
+            
+            Console.WriteLine("Uploading...");
+
             await beey.UploadStreamAsync(project.Id, "test01.mp3", upstream, null, false);
 
             // Close stream and delete temporary files
@@ -124,26 +135,37 @@ namespace YTtoBeey
 
             // Wait for transcoding
             TryValueResult<ProjectProgress> result;
-            Console.Write("[INFO] Waiting for transcoding");
+
+            if(costdOutputEnabled)
+                Console.WriteLine("Waiting for transcoding...");
+            else
+                Console.Write("Waiting for transcoding.");
+
             while (
                 (result = await beey.GetProjectProgressStateAsync(project.Id).TryAsync()) &&
                 !ProcessState.Finished.HasFlag(result.Value.TranscodingState)
                 )
             {
-                Console.Write(".");
+                if(!costdOutputEnabled)
+                    Console.Write(".");
                 await Task.Delay(1000);
             }
 
             // Wait for transcribing
             await beey.TranscribeProjectAsync(project.Id, language);
 
-            Console.Write("\n[INFO] Waiting for transcribing");
+            if(costdOutputEnabled)
+                Console.WriteLine("Waiting for transcribing...");
+            else
+                Console.Write("\nWaiting for transcribing");
+
             while (
                 (result = await beey.GetProjectProgressStateAsync(project.Id).TryAsync()) &&
                 !ProcessState.Finished.HasFlag(result.Value.PPCState)
                 )
             {
-                Console.Write(".");
+                if(!costdOutputEnabled)
+                    Console.Write(".");
                 await Task.Delay(1000);
             }
 
@@ -152,7 +174,10 @@ namespace YTtoBeey
             transcribed = true;
 
             // Download trsx
-            Console.WriteLine("\n[INFO] Downloading trsx..");
+            if(costdOutputEnabled)
+                Console.WriteLine("Downloading trsx...");
+            else
+                Console.WriteLine("\n[INFO] Downloading trsx..");
 
             Stream downstream = null;
 
@@ -176,7 +201,7 @@ namespace YTtoBeey
                         Console.WriteLine("Whole exception below:\n--\n");
                         Console.WriteLine(ex.ToString());
                         return;
-                    }   
+                    }
                 }
                 await Task.Delay(3000);
             }
@@ -186,7 +211,7 @@ namespace YTtoBeey
             {
                 downstream!.CopyTo(fs);
             }
-            Console.WriteLine("[INFO] Done!");
+            Console.WriteLine("Done!");
             CleanTemp();
         }
 
@@ -200,7 +225,7 @@ namespace YTtoBeey
             {
                 Console.WriteLine("[INFO] " + versionInfo);
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("Usage: YTtoBeey.exe <path to mp3>/<video url> (output=transcript.trsx) (language=cs-CZ) (settings=Settings.xml) (logintoken=TOKEN)");
+                Console.WriteLine("Usage: YTtoBeey.exe <path to mp3>/<video url> (output=transcript.trsx) (language=cs-CZ) (settings=Settings.xml) (logintoken=TOKEN) (format={normal|costd1.0})");
                 Console.ResetColor();
                 Environment.Exit(0);
             }
@@ -229,6 +254,10 @@ namespace YTtoBeey
                             break;
                         case "logintoken":
                             logintoken = argSplit[1];
+                            break;
+                        case "format":
+                            if (argSplit[1].ToLower() == "costd1.0")
+                                costdOutputEnabled = true;
                             break;
                     }
                 }
