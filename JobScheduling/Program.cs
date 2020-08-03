@@ -1,8 +1,10 @@
 ﻿using Beey.Client;
 using Beey.DataExchangeModel.Messaging;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Resources;
 using System.Runtime.CompilerServices;
@@ -34,6 +36,8 @@ namespace JobScheduling
 - '{exitKeyword}' to exit.
 - press CTRL+C to exit.";
 
+        private static readonly Serilog.ILogger log = Serilog.Log.ForContext<Program>();
+
         private static readonly HashSet<string> switchesWithArgument = new HashSet<string>()
         {
             "-l", "-d", "-r", "-n", "-t",
@@ -57,6 +61,11 @@ namespace JobScheduling
 
         static async Task Main(string[] args)
         {
+            Serilog.Log.Logger = new LoggerConfiguration()
+                .WriteTo.File(DateTime.Now.ToString("yyyy-MM-dd_HHmmss"))
+                .Enrich.FromLogContext()
+                .CreateLogger();
+
             Console.WriteLine("Job Scheduler");
             Configuration.Load();
             if (args.Contains("-?") || args.Contains("/?"))
@@ -191,7 +200,7 @@ namespace JobScheduling
             Func<Task> job = CreateJob(url, language, duration, projectName, loginToken);
             Action<Exception> onException = ex =>
             {
-                // TODO: add better error reporting (e.g. mail)
+                // TODO: add better error reporting (e.g. log, mail)
                 Console.WriteLine(ex.Message);
             };
 
@@ -205,18 +214,35 @@ namespace JobScheduling
             {
                 // Login first to not waste time in case of incorrect login.
                 var beey = new BeeyClient(Configuration.Beey.Url);
-                if(loginToken == null) {
+                if (loginToken == null)
+                {
                     await beey.LoginAsync(Configuration.Beey.Login, Configuration.Beey.Password);
-                } else {
+                }
+                else
+                {
                     await beey.LoginAsync(loginToken);
                 }
 
-                Stream stream = StartDownloadingStream(url, duration);
-                await TranscribeStream(beey, stream, language, projectName);
+                var (stream, downloading) = StartDownloadingStream(url, duration);
+                try
+                {
+                    var transcribing = TranscribeStreamAsync(beey, stream, language, projectName);
+                    await Task.WhenAny(downloading, transcribing).Unwrap();
+                    await downloading;
+                    await transcribing;
+                }
+                catch (Exception ex)
+                {
+                    // TODO: log
+                }
+                finally
+                {
+                    stream.Dispose();
+                }
             };
         }
 
-        private static async Task TranscribeStream(BeeyClient beey, Stream stream, string language, string projectName)
+        private static async Task TranscribeStreamAsync(BeeyClient beey, Stream stream, string language, string projectName)
         {
             var project = await beey.CreateProjectAsync(projectName, null);
             await beey.UploadStreamAsync(project.Id, projectName, stream, null, true);
@@ -244,9 +270,18 @@ namespace JobScheduling
             await beey.TranscribeProjectAsync(project.Id, language, true, true, true);
         }
 
-        private static Stream StartDownloadingStream(string url, TimeSpan? duration)
+        private static (Stream Stream, Task Downloading) StartDownloadingStream(string url, TimeSpan? duration)
         {
-            throw new NotImplementedException();
+            var stream = new Nanogrid.Utils.BufferingStream();
+            var task = DownloadStreamAsync(stream, url, duration);
+            return (stream, task);
+        }
+
+        private static async Task DownloadStreamAsync(Stream destination, string url, TimeSpan? duration)
+        {
+            var mediaSource = new M3u8MediaSource(new Uri(url));
+            var media = await mediaSource.LoadMediaAsync(duration);
+            await media.CopyToAsync(destination);
         }
 
         private static void Command_List(TextWriter console, JobScheduler jobScheduler)

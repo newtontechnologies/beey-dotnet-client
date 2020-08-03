@@ -10,6 +10,7 @@ namespace JobScheduling
 {
     class JobScheduler
     {
+        private Serilog.ILogger log = Serilog.Log.ForContext<JobScheduler>();
         private static readonly TimeSpan noRepeatInterval = TimeSpan.FromMilliseconds(-1);
         private int idCounter = 0;
         private ConcurrentDictionary<int, JobData> activeJobs = new ConcurrentDictionary<int, JobData>();
@@ -62,10 +63,10 @@ namespace JobScheduling
                 {
                     if (!isRepeating && state != null)
                     {
+                        log.Information("Job clean-up.");
                         if (!CancelJob((int)state))
-                        {
-                            // TODO implement logging
-                            Console.WriteLine("Error when cleaning up. Job data does not exist.");
+                        {                            
+                            log.Error("Error when cleaning up. Job data does not exist.");
                         }
                     }
                 }
