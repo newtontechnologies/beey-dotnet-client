@@ -1,5 +1,6 @@
 ﻿using Beey.Client;
 using Beey.DataExchangeModel.Messaging;
+using Nanogrid.Utils;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -66,7 +67,7 @@ namespace JobScheduling
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 
             Serilog.Log.Logger = new LoggerConfiguration()
-                .WriteTo.File(DateTime.Now.ToString("yyyy-MM-dd_HHmmss"))
+                .WriteTo.File(DateTime.Now.ToString("yyyy-MM-dd_HHmmss") + ".log")
                 .Enrich.FromLogContext()
                 .CreateLogger();
 
@@ -120,7 +121,13 @@ namespace JobScheduling
 
         private static void Command_Transcribe(TextWriter console, JobScheduler jobScheduler, string line)
         {
-            var split = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var split = line.Split('"')
+                .Select((s, i)
+                    => i % 2 == 0
+                        ? s.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                        : new string[] { s })
+                .SelectMany(s => s).ToArray();
+
             if (split.Length < 3)
             {
                 console.WriteLine("Invalid input.");
@@ -129,7 +136,7 @@ namespace JobScheduling
             }
             string url = split[1];
             DateTime date;
-            if (DateTime.TryParse(split[2], out date))
+            if (!DateTime.TryParse(split[2], out date))
             {
                 console.WriteLine($"Invalid date '{split[2]}'.");
                 return;
@@ -202,10 +209,9 @@ namespace JobScheduling
             projectName = projectName ?? $"scheduled_{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}";
             language = language ?? "cs-CZ";
             Func<Task> job = CreateJob(url, language, duration, projectName, loginToken);
-            Action<Exception> onException = ex =>
+            Action<int, Exception> onException = (id, ex) =>
             {
-                // TODO: add better error reporting (e.g. log, mail)
-                Console.WriteLine(ex.Message);
+                log.Error(ex.Message, $"Error when transcribing job {id}.");
             };
 
             jobScheduler.ScheduleJob(job, onException, date, repeatInterval);
@@ -235,10 +241,6 @@ namespace JobScheduling
                     await downloading;
                     await transcribing;
                 }
-                catch (Exception ex)
-                {
-                    // TODO: log
-                }
                 finally
                 {
                     stream.Dispose();
@@ -249,14 +251,17 @@ namespace JobScheduling
         private static async Task TranscribeStreamAsync(BeeyClient beey, Stream stream, string language, string projectName)
         {
             var project = await beey.CreateProjectAsync(projectName, null);
-            await beey.UploadStreamAsync(project.Id, projectName, stream, null, true);
+            var cts = new CancellationTokenSource();
+            var uploading = beey.UploadStreamAsync(project.Id, projectName, stream, null, true, cts.Token);
             // Wait for an hour at max.
             int maxWaitingTimeMs = 3600 * 1000;
             int delayMs = 10000;
             int retryCount = maxWaitingTimeMs / delayMs;
             TryValueResult<ProjectProgress> result;
+            // Apparently, progress in backend can be created a bit late, so wait for a bit.
+            await Task.Delay(2000);
             while ((result = await beey.GetProjectProgressStateAsync(project.Id).TryAsync())
-                && !ProcessState.Finished.HasFlag(result.Value.TranscodingState)
+                && !ProcessState.Finished.HasFlag(result.Value.FileIndexingState)
                 && result.Value.MediaIdentificationState != ProcessState.Completed
                 && retryCount > 0)
             {
@@ -264,28 +269,45 @@ namespace JobScheduling
                 retryCount--;
             }
 
-            if (result.Value.TranscodingState == ProcessState.Failed)
-                throw new Exception("Trancoding failed.");
-            else if (result.Value.TranscodingState != ProcessState.Completed && result.Value.MediaIdentificationState != ProcessState.Completed)
-                throw new Exception($"Transcoding did not finish in {(maxWaitingTimeMs / 1000) / 60} minutes.");
+            if (result.Value.FileIndexingState == ProcessState.Failed)
+            {
+                cts.Cancel();
+                throw new Exception("File indexing failed.");
+            }
+            else if (result.Value.FileIndexingState != ProcessState.Completed && result.Value.MediaIdentificationState != ProcessState.Completed)
+            {
+                cts.Cancel();
+                throw new Exception($"File indexing did not finish in {(maxWaitingTimeMs / 1000) / 60} minutes.");
+            }
 
             // Wait a bit to let the server be ready to transcribe.
-            await Task.Delay(1000);
-            await beey.TranscribeProjectAsync(project.Id, language, true, true, true);
+            await Task.Delay(2000);
+            try
+            {
+                await beey.TranscribeProjectAsync(project.Id, language, true, true, true);
+            }
+            catch (Exception)
+            {
+                cts.Cancel();
+                throw;
+            }
+
+            await uploading;
         }
 
         private static (Stream Stream, Task Downloading) StartDownloadingStream(string url, TimeSpan? duration)
         {
-            var stream = new Nanogrid.Utils.BufferingStream();
+            var stream = new BufferingStream();
             var task = DownloadStreamAsync(stream, url, duration);
             return (stream, task);
         }
 
-        private static async Task DownloadStreamAsync(Stream destination, string url, TimeSpan? duration)
+        private static async Task DownloadStreamAsync(BufferingStream destination, string url, TimeSpan? duration)
         {
             var mediaSource = new M3u8MediaSource(new Uri(url));
             var media = await mediaSource.LoadMediaAsync(duration);
             await media.CopyToAsync(destination);
+            destination.CompleteWrite();
         }
 
         private static void Command_List(TextWriter console, JobScheduler jobScheduler)

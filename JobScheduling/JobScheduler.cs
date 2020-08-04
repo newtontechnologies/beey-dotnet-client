@@ -16,13 +16,13 @@ namespace JobScheduling
         private ConcurrentDictionary<int, JobData> activeJobs = new ConcurrentDictionary<int, JobData>();
 
         // TODO: check if Wait() is OK
-        public int ScheduleJob(Func<Task> job, Action<Exception> onException, DateTime date)
+        public int ScheduleJob(Func<Task> job, Action<int, Exception> onException, DateTime date)
             => ScheduleJob(() => job().Wait(), onException, date, null);
-        public int ScheduleJob(Func<Task> job, Action<Exception> onException, DateTime date, TimeSpan? repeatInterval)
+        public int ScheduleJob(Func<Task> job, Action<int, Exception> onException, DateTime date, TimeSpan? repeatInterval)
             => ScheduleJob(() => job().Wait(), onException, date, repeatInterval);
-        public int ScheduleJob(Action job, Action<Exception> onException, DateTime date)
+        public int ScheduleJob(Action job, Action<int, Exception> onException, DateTime date)
             => ScheduleJob(job, onException, date, null);
-        public int ScheduleJob(Action job, Action<Exception> onException, DateTime date, TimeSpan? repeatInterval)
+        public int ScheduleJob(Action job, Action<int, Exception> onException, DateTime date, TimeSpan? repeatInterval)
         {
             int timerId = Interlocked.Increment(ref idCounter);
             var goTime = date - DateTime.Now;
@@ -47,24 +47,28 @@ namespace JobScheduling
             return job != null;
         }
 
-        private Action<object> CreateCallback(Action job, Action<Exception> onException, bool isRepeating)
+        private Action<object> CreateCallback(Action job, Action<int, Exception> onException, bool isRepeating)
         {
             return (state) =>
             {
+                int jobId = (int)state;
                 try
                 {
+                    log.Information($"Starting job {state}.");
                     job();
+                    log.Information($"Job {state} finished.");
                 }
                 catch (Exception ex)
                 {
-                    onException(ex);
+                    log.Error(ex, $"Job {state} failed.");
+                    onException(jobId, ex);
                 }
                 finally
                 {
-                    if (!isRepeating && state != null)
+                    if (!isRepeating)
                     {
                         log.Information("Job clean-up.");
-                        if (!CancelJob((int)state))
+                        if (!CancelJob(jobId))
                         {                            
                             log.Error("Error when cleaning up. Job data does not exist.");
                         }
