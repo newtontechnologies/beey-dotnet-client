@@ -3,6 +3,7 @@ using Beey.DataExchangeModel.Messaging;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Pipelines;
 using System.Linq;
@@ -61,6 +62,9 @@ namespace JobScheduling
 
         static async Task Main(string[] args)
         {
+            // open-m3u8 fails when parsing floating point numbers without setting culture, so set it globally
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+
             Serilog.Log.Logger = new LoggerConfiguration()
                 .WriteTo.File(DateTime.Now.ToString("yyyy-MM-dd_HHmmss"))
                 .Enrich.FromLogContext()

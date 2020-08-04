@@ -23,37 +23,27 @@ namespace JobScheduling
             throw new NotImplementedException();
         }
 
-        public override async Task<M3u8Media> LoadMediaAsync(TimeSpan? duration, TimeSpan? skip, CancellationToken cancellationToken= default)
+        public override async Task<M3u8Media> LoadMediaAsync(TimeSpan? duration, TimeSpan? skip, CancellationToken cancellationToken = default)
         {
-            // open-m3u8 fails when parsing floating point numbers without setting culture
-            var originalCulture = CultureInfo.DefaultThreadCurrentCulture;
-            try
+            string baseUrl = uri.AbsoluteUri[..^uri.Segments.Last().Length];
+            using (var client = new HttpClient())
+            using (var manifest = await client.GetStreamAsync(uri.AbsoluteUri))
             {
-                CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
-                string baseUrl = uri.AbsoluteUri[..^uri.Segments.Last().Length];
-                using (var client = new HttpClient())
-                using (var manifest = await client.GetStreamAsync(uri.AbsoluteUri))
+                var parser = new PlaylistParser(manifest, Format.EXT_M3U, M3U8Parser.Encoding.UTF_8, ParsingMode.LENIENT);
+                var playlist = parser.parse();
+                string? mediaPlaylistUrl = uri.AbsoluteUri;
+                if (playlist.hasMasterPlaylist())
                 {
-                    var parser = new PlaylistParser(manifest, Format.EXT_M3U, M3U8Parser.Encoding.UTF_8, ParsingMode.LENIENT);
-                    var playlist = parser.parse();
-                    string? mediaPlaylistUrl = uri.AbsoluteUri;
-                    if (playlist.hasMasterPlaylist())
-                    {
-                        var masterPlaylist = playlist.getMasterPlaylist();
-                        mediaPlaylistUrl = masterPlaylist.getPlaylists().FirstOrDefault()?.getUri();
-                    }
-
-                    if (mediaPlaylistUrl == null)
-                        throw new ArgumentException("Stream not found.");
-                    if (!mediaPlaylistUrl.StartsWith("http"))
-                        mediaPlaylistUrl = baseUrl + mediaPlaylistUrl;
-
-                    return new M3u8Media(new Uri(mediaPlaylistUrl), duration, skip);
+                    var masterPlaylist = playlist.getMasterPlaylist();
+                    mediaPlaylistUrl = masterPlaylist.getPlaylists().FirstOrDefault()?.getUri();
                 }
-            }
-            finally
-            {
-                CultureInfo.DefaultThreadCurrentCulture = originalCulture;
+
+                if (mediaPlaylistUrl == null)
+                    throw new ArgumentException("Stream not found.");
+                if (!mediaPlaylistUrl.StartsWith("http"))
+                    mediaPlaylistUrl = baseUrl + mediaPlaylistUrl;
+
+                return new M3u8Media(new Uri(mediaPlaylistUrl), duration, skip);
             }
         }
     }

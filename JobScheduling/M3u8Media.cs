@@ -35,21 +35,11 @@ namespace JobScheduling
         {
             if (data == null)
             {
-                // open-m3u8 fails when parsing floating point numbers without setting culture
-                var originalCulture = CultureInfo.DefaultThreadCurrentCulture;
-                CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
-                try
-                {
                     var manifestLoader = new ManifestLoader();
                     var dataEnumerator = manifestLoader.DownloadTracks(mediaPlaylistUrl.AbsoluteUri, duration, skip, token).GetAsyncEnumerator(token);
                     await dataEnumerator.MoveNextAsync();
                     var stream = await client.GetStreamAsync(GetUri(dataEnumerator.Current));
                     data = (dataEnumerator, stream);
-                }
-                finally
-                {
-                    CultureInfo.DefaultThreadCurrentCulture = originalCulture;
-                }
             }
 
             int read = await data.Value.Stream.ReadAsync(buffer, offset, count, token);
