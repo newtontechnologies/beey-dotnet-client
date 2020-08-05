@@ -5,7 +5,7 @@
 	<FFmpeg>
 		<PathWin>.\FFmpeg\ffmpeg.exe</PathWin>
 		<PathUnix>./FFmpeg/ffmpeg</PathUnix>
-		<StreamArgsWin>-i {0} -map 0:a -c:a aac -b:a 64k -hls_time 1 -hls_list_size 0 -hls_segment_type fmp4 -hls_flags single_file -f hls {1} -hls_segment_filename pipe:1 NUL</StreamArgsWin>
-		<StreamArgsUnix>-i {0} -map 0:a -c:a aac -b:a 64k -hls_time 1 -hls_list_size 0 -hls_segment_type fmp4 -hls_flags single_file -f hls {1} -hls_segment_filename pipe:1 /dev/null</StreamArgsUnix>
+		<StreamArgsWin>-i {0} -map 0:a -c:a aac -b:a 64k -hls_time 1 -hls_list_size 0 -hls_segment_type fmp4 -hls_flags single_file -f hls {1} -hls_segment_filename pipe:1 {2}</StreamArgsWin>
+		<StreamArgsUnix>-i {0} -map 0:a -c:a aac -b:a 64k -hls_time 1 -hls_list_size 0 -hls_segment_type fmp4 -hls_flags single_file -f hls {1} -hls_segment_filename pipe:1 {2}</StreamArgsUnix>
 	</FFmpeg>
 </Configuration>

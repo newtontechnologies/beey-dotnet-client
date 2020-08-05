@@ -54,23 +54,23 @@ namespace JobScheduling
                 int jobId = (int)state;
                 try
                 {
-                    log.Information($"Starting job {state}.");
+                    log.Information("Starting job {state}.", state);
                     job();
-                    log.Information($"Job {state} finished.");
+                    log.Information("Job {state} finished.", state);
                 }
                 catch (Exception ex)
                 {
-                    log.Error(ex, $"Job {state} failed.");
+                    log.Error(ex, "Job {state} failed.", state);
                     onException(jobId, ex);
                 }
                 finally
                 {
                     if (!isRepeating)
                     {
-                        log.Information("Job clean-up.");
+                        log.Information("Job {state} clean-up.", state);
                         if (!CancelJob(jobId))
                         {                            
-                            log.Error("Error when cleaning up. Job data does not exist.");
+                            log.Error("Error when cleaning up job {state}. Job data does not exist.", state);
                         }
                     }
                 }

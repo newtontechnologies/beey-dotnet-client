@@ -304,12 +304,13 @@ namespace JobScheduling
 
         private static async Task DownloadStreamAsync(BufferingStream destination, string url, TimeSpan? duration)
         {
+            string tmpFilename = $"tmp_{Guid.NewGuid()}.out";
             try
             {
                 var ffmpegInfo = new ProcessStartInfo
                 {
                     FileName = Configuration.FFmpeg.Path,
-                    Arguments = string.Format(Configuration.FFmpeg.StreamArgs, url, duration.HasValue ? "-t " + duration.ToString() : ""),
+                    Arguments = string.Format(Configuration.FFmpeg.StreamArgs, url, duration.HasValue ? "-t " + duration.ToString() : "", tmpFilename),
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -360,6 +361,29 @@ namespace JobScheduling
             finally
             {
                 destination.CompleteWrite();
+                bool deleted = false;
+                int delayTimeSeconds = 1;
+                int delayTimeMaxSeconds = 10;
+                while (!deleted)
+                {
+                    try
+                    {
+                        if (File.Exists(tmpFilename))
+                            File.Delete(tmpFilename);
+                        deleted = true;
+                    }
+                    catch (Exception)
+                    {
+                        log.Warning("Error when deleting file {file}. Retrying in {seconds} seconds.", tmpFilename, delayTimeSeconds);
+                        await Task.Delay(delayTimeSeconds);
+                        delayTimeSeconds++;
+                        if (delayTimeSeconds >= delayTimeMaxSeconds)
+                        {
+                            log.Fatal("File {file} cannot be deleted.", tmpFilename);
+                            break;
+                        }
+                    }
+                }
             }
 
             /* TODO: reimplement M3u8MediaSource and M3u8Media to use FFmpeg
