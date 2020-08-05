@@ -16,7 +16,7 @@ namespace YTtoBeey
         
         private static bool transcribed = false;
 
-        private const string versionInfo = "YTtoBeey v1.5r0";
+        private const string versionInfo = "YTtoBeey v1.5r3";
 
         static string configpath = "Settings.xml";
         static bool attemptYT = false;
@@ -68,7 +68,7 @@ namespace YTtoBeey
                 var proc = new Process();
                 tmpfile = "temp-" + DateTime.Now.ToFileTime().ToString();
                 //This could be much faster; but beey has issues with m4a: proc.StartInfo = new ProcessStartInfo("youtube-dl.exe", "--no-cache-dir -f bestaudio \"" + videouri + "\" --output " + tmpfile);
-                proc.StartInfo = new ProcessStartInfo(youtubeDlExe, "--no-cache-dir \"" + videouri + "\" --output " + tmpfile);
+                proc.StartInfo = new ProcessStartInfo(youtubeDlExe, "-f best --no-cache-dir \"" + videouri + "\" --output " + tmpfile);
                 proc.StartInfo.UseShellExecute = false;
 
                 proc.StartInfo.RedirectStandardOutput = true; //optional; to make it silent
@@ -96,6 +96,16 @@ namespace YTtoBeey
                 
                 try
                 {
+                    //Workaround for compatibility because the file sometimes has extension on Linux.
+
+                    #region workaround
+                    foreach (FileInfo file in Directory.GetParent(tmpfile).GetFiles())
+                    {
+                        if (file.Name.StartsWith(tmpfile))
+                            tmpfile = file.FullName;
+                    }
+                    #endregion
+
                     upstream = new FileStream(tmpfile, FileMode.Open);
                 }
                 catch (Exception ex)
@@ -293,7 +303,17 @@ namespace YTtoBeey
             string[] tmpfiles = Directory.GetFiles(".", "temp*", SearchOption.TopDirectoryOnly);
             if (tmpfiles.Length > 0)
             {
-                Console.WriteLine("[INFO] Found redundant temporary files, cleaning up ...");
+                Console.WriteLine("Found redundant temporary files, cleaning up ...");
+
+                foreach (var runningProcesss in Process.GetProcesses())
+                {
+                    if (Path.GetFileName(runningProcesss.MainModule.FileName).StartsWith("YTtoBeey"))
+                    {
+                        Console.WriteLine("[ERROR] Refusing to clean up, another instance of YTtoBeey running...");
+                        return;
+                    }
+                }
+
                 foreach (string file in tmpfiles)
                 {
                     try
