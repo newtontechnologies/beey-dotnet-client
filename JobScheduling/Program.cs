@@ -4,6 +4,7 @@ using Nanogrid.Utils;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Pipelines;
@@ -219,7 +220,6 @@ namespace JobScheduling
 
         private static Func<Task> CreateJob(string url, string language, TimeSpan? duration, string projectName, string loginToken)
         {
-            // TODO: log job progress? Where?
             return async () =>
             {
                 // Login first to not waste time in case of incorrect login.
@@ -304,10 +304,70 @@ namespace JobScheduling
 
         private static async Task DownloadStreamAsync(BufferingStream destination, string url, TimeSpan? duration)
         {
+            try
+            {
+                var ffmpegInfo = new ProcessStartInfo
+                {
+                    FileName = Configuration.FFmpeg.Path,
+                    Arguments = string.Format(Configuration.FFmpeg.StreamArgs, url, duration.HasValue ? "-t " + duration.ToString() : ""),
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                };
+                var process = Process.Start(ffmpegInfo);
+                var stdoutLastChange = DateTime.Now;
+                var readingOutput = Task.Run(async () =>
+                {
+                    byte[] bfr = new byte[4096];
+                    while (!process.HasExited)
+                    {
+                        stdoutLastChange = DateTime.Now;
+                        var cnt = await process.StandardOutput.BaseStream.ReadAsync(bfr.AsMemory());
+                        if (cnt == 0)
+                            break;
+                        await destination.WriteAsync(bfr, 0, cnt);
+                    }
+                });
+                var readingError = process.StandardError.ReadToEndAsync();
+
+                while (!process.HasExited && stdoutLastChange + TimeSpan.FromSeconds(35) > DateTime.Now)
+                {
+                    await Task.Delay(1000);
+                    process.Refresh();
+                }
+
+                if (!process.HasExited)
+                {
+                    process.Kill();
+                    throw new Exception("FFmpeg got stuck.");
+                }
+                else if (process.ExitCode != 0)
+                {
+                    var fferr = await readingError;
+                    throw new Exception($"FFmpeg exited with error {fferr}.");
+                }
+                else
+                {
+                    await readingOutput;
+                    var fferr = await readingError;
+                    if (fferr.Contains("audio:0kB")) //sometimes ffmpeg returns 0, but does not extract any audio...
+                    {
+                        throw new Exception($"FFmpeg finished, but produced no audio with error {fferr}.");
+                    }
+                }
+            }
+            finally
+            {
+                destination.CompleteWrite();
+            }
+
+            /* TODO: reimplement M3u8MediaSource and M3u8Media to use FFmpeg
             var mediaSource = new M3u8MediaSource(new Uri(url));
             var media = await mediaSource.LoadMediaAsync(duration);
             await media.CopyToAsync(destination);
             destination.CompleteWrite();
+            */
         }
 
         private static void Command_List(TextWriter console, JobScheduler jobScheduler)
