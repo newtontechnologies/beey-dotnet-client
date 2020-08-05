@@ -14,7 +14,7 @@ namespace BatchTranscriber
 
     class Program
     {
-        const string versionInfo = "BatchTranscriber v1.2r0";
+        const string versionInfo = "BatchTranscriber v1.2r3";
 
         static int maxThreads = 8; //Number of threads to run at the same time.
         static string outputDirectory = "out"; //Output directory
@@ -100,9 +100,9 @@ namespace BatchTranscriber
                         threads[i] = new Thread(() => Work(files[currentFileIndex], i).Wait());
                         threadStatuses[i] = WorkerStatus.WORKING;
                         threads[i].Start();
-
+                        
                         if(costdOutput)
-                            Console.WriteLine("Starting file " + currentFileIndex + " out of " + files.Count);
+                            Console.WriteLine("Started file " + (currentFileIndex + 1) + " out of " + files.Count);
                         else
                             Console.WriteLine("Thread #" + i + ": Started. (" + files[currentFileIndex] + ")");
 
@@ -390,7 +390,7 @@ namespace BatchTranscriber
                 Console.WriteLine("[DEBUG] Thread " + threadId + ": Downloading");
 
             try {
-                using (FileStream fs = new FileStream(outputDirectory + "\\" + Path.GetFileName(file) + ".trsx", FileMode.Create))
+                using (FileStream fs = new FileStream(outputDirectory + "/" + Path.GetFileName(file) + ".trsx", FileMode.Create))
                     downstream!.CopyTo(fs);
             }
             catch (Exception ex)
