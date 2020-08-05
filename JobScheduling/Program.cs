@@ -18,6 +18,8 @@ namespace JobScheduling
 {
     class Program
     {
+        public static bool runningAsScript = false;
+
         private const string prompt = "> ";
         private const string transcribeKeyword = "transcribe";
         private const string listKeyword = "list";
@@ -85,8 +87,16 @@ namespace JobScheduling
             };
             while (!cts.IsCancellationRequested)
             {
-                Console.Write(prompt);
+                if (args.Length == 0)
+                {
+                    Console.Write(prompt);
+                } else {
+                    runningAsScript = true;
+                }
+                    
+
                 string line = await ReadLineAsync(cts.Token);
+
                 if (string.IsNullOrWhiteSpace(line))
                 {
                     continue;
@@ -113,7 +123,12 @@ namespace JobScheduling
                 }
                 else
                 {
-                    Console.WriteLine($"Unknown command. Enter '{commandsKeyword}' if you need help.");
+                    if(runningAsScript)
+                    {
+                        Console.WriteLine("[FATAL] Unknown command.");
+                        Environment.Exit(-1);
+                    } else
+                        Console.WriteLine($"Unknown command. Enter '{commandsKeyword}' if you need help.");
                 }
             }
 
@@ -209,10 +224,15 @@ namespace JobScheduling
 
             projectName = projectName ?? $"scheduled_{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}";
             language = language ?? "cs-CZ";
+
+            if (runningAsScript)
+                Console.WriteLine("Waiting..");
+
             Func<Task> job = CreateJob(url, language, duration, projectName, loginToken);
             Action<int, Exception> onException = (id, ex) =>
             {
                 log.Error(ex.Message, $"Error when transcribing job {id}.");
+                Console.WriteLine("[FATAL] Error while transcribing" + ex.ToString());
             };
 
             jobScheduler.ScheduleJob(job, onException, date, repeatInterval);
@@ -223,6 +243,10 @@ namespace JobScheduling
             return async () =>
             {
                 // Login first to not waste time in case of incorrect login.
+
+                if(runningAsScript)
+                    Console.WriteLine("Login to beey...");
+
                 var beey = new BeeyClient(Configuration.Beey.Url);
                 if (loginToken == null)
                 {
@@ -233,13 +257,27 @@ namespace JobScheduling
                     await beey.LoginAsync(loginToken);
                 }
 
+
+                if(runningAsScript)
+                    Console.WriteLine("Start download...");
+
                 var (stream, downloading) = StartDownloadingStream(url, duration);
                 try
                 {
+                    if (runningAsScript)
+                        Console.WriteLine("Transcribing...");
+
                     var transcribing = TranscribeStreamAsync(beey, stream, language, projectName);
                     await Task.WhenAny(downloading, transcribing).Unwrap();
                     await downloading;
                     await transcribing;
+
+                    if(runningAsScript)
+                        Console.WriteLine("Finished.");
+                    Environment.Exit(0);
+                } catch(Exception ex) {
+                    if(runningAsScript)
+                        Console.WriteLine("[FATAL] Exception while working: " + ex.ToString());
                 }
                 finally
                 {
@@ -251,6 +289,8 @@ namespace JobScheduling
         private static async Task TranscribeStreamAsync(BeeyClient beey, Stream stream, string language, string projectName)
         {
             var project = await beey.CreateProjectAsync(projectName, null);
+            if(runningAsScript)
+                Console.WriteLine("[CALLBACK]|projectId|"+project.Id);
             var cts = new CancellationTokenSource();
             var uploading = beey.UploadStreamAsync(project.Id, projectName, stream, null, false, cts.Token);
             // Wait for an hour at max.
