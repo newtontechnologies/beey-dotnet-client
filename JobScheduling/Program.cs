@@ -252,7 +252,7 @@ namespace JobScheduling
         {
             var project = await beey.CreateProjectAsync(projectName, null);
             var cts = new CancellationTokenSource();
-            var uploading = beey.UploadStreamAsync(project.Id, projectName, stream, null, true, cts.Token);
+            var uploading = beey.UploadStreamAsync(project.Id, projectName, stream, null, false, cts.Token);
             // Wait for an hour at max.
             int maxWaitingTimeMs = 3600 * 1000;
             int delayMs = 10000;
