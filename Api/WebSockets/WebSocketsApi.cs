@@ -1,4 +1,5 @@
-﻿using Beey.DataExchangeModel.Auth;
+﻿using Beey.Api.Logging;
+using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Files;
 using Newtonsoft.Json;
 using System;
@@ -110,6 +111,28 @@ namespace Beey.Api.WebSockets
 
                 await ws.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(fi)), WebSocketMessageType.Text, true, c);
 
+                var cts = new CancellationTokenSource();
+                var token = cts.Token;
+                var receivingUntilClosed = Task.Run(async () =>
+                {
+                    byte[] buffer = new byte[32 * 1024];
+                    ValueWebSocketReceiveResult? lastResult = null;
+                    while (!token.IsCancellationRequested)
+                    {
+                        try
+                        {
+                            lastResult = (await ws.ReceiveMessageAsync(buffer, default)).lastResult;
+                            if (lastResult.Value.MessageType == WebSocketMessageType.Close)
+                                break;
+                        }
+                        catch (Exception)
+                        {
+                            break;
+                        }
+                    }
+                    return lastResult;
+                }, token);
+
                 //send chunked
                 using (MemoryStream ms = new MemoryStream(buffer))
                 using (BinaryWriter bw = new BinaryWriter(ms))
@@ -139,12 +162,17 @@ namespace Beey.Api.WebSockets
                     }
                 }
 
-                //initiate close handshake
+                // initiate close handshake
                 await ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "file sent", c);
-                //wait for close from server
-                (bytes, res) = await ws.ReceiveMessageAsync(buffer, c);
-                if (res.MessageType != WebSocketMessageType.Close)
+                // stop listening for new messages
+                cts.Cancel();
+                // wait for close from server
+                var lastResult = await receivingUntilClosed ?? (await ws.ReceiveMessageAsync(buffer, default)).lastResult;
+                while (lastResult.MessageType != WebSocketMessageType.Close)
+                {
                     logger.Log(Logging.LogLevel.Warn, () => "data received after Websocket close handshake was intitiated");
+                    lastResult = (await ws.ReceiveMessageAsync(buffer, default)).lastResult;
+                }
 
                 return true;
             }, cancellationToken);
