@@ -24,45 +24,48 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="FFmpeg\avcodec-58.dll">
+		<None Include="..\ExternalTools\FFmpeg\avcodec-58.dll" Link="FFmpeg\avcodec-58.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="FFmpeg\avdevice-58.dll">
+		<None Include="..\ExternalTools\FFmpeg\avdevice-58.dll" Link="FFmpeg\avdevice-58.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="FFmpeg\avfilter-7.dll">
+		<None Include="..\ExternalTools\FFmpeg\avfilter-7.dll" Link="FFmpeg\avfilter-7.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="FFmpeg\avformat-58.dll">
+		<None Include="..\ExternalTools\FFmpeg\avformat-58.dll" Link="FFmpeg\avformat-58.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="FFmpeg\avutil-56.dll">
+		<None Include="..\ExternalTools\FFmpeg\avutil-56.dll" Link="FFmpeg\avutil-56.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="FFmpeg\ffmpeg">
+		<None Include="..\ExternalTools\FFmpeg\ffmpeg" Link="FFmpeg\ffmpeg">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="FFmpeg\ffmpeg.exe">
+		<None Include="..\ExternalTools\FFmpeg\ffmpeg.exe" Link="FFmpeg\ffmpeg.exe">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="FFmpeg\ffplay.exe">
+		<None Include="..\ExternalTools\FFmpeg\ffplay.exe" Link="FFmpeg\ffplay.exe">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="FFmpeg\ffprobe">
+		<None Include="..\ExternalTools\FFmpeg\ffprobe" Link="FFmpeg\ffprobe">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="FFmpeg\ffprobe.exe">
+		<None Include="..\ExternalTools\FFmpeg\ffprobe.exe" Link="FFmpeg\ffprobe.exe">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="FFmpeg\postproc-55.dll">
+		<None Include="..\ExternalTools\FFmpeg\postproc-55.dll" Link="FFmpeg\postproc-55.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="FFmpeg\swresample-3.dll">
+		<None Include="..\ExternalTools\FFmpeg\swresample-3.dll" Link="FFmpeg\swresample-3.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="FFmpeg\swscale-5.dll">
+		<None Include="..\ExternalTools\FFmpeg\swscale-5.dll" Link="FFmpeg\swscale-5.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Update="Settings.xml">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
