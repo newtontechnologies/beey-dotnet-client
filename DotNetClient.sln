@@ -33,7 +33,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediaStreamer", "MediaStrea
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatchTranscriber", "BatchTranscriber\BatchTranscriber.csproj", "{07FC8CC3-223C-4865-B541-33F4D33D96A6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobScheduling", "JobScheduling\JobScheduling.csproj", "{CD2D183B-0340-4B91-B55D-B0AB615D0AC8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JobScheduling", "JobScheduling\JobScheduling.csproj", "{CD2D183B-0340-4B91-B55D-B0AB615D0AC8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestStreamer", "TestStreamer\TestStreamer.csproj", "{CD5F5631-780F-4A3B-B622-A5B7056EE2C4}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -167,6 +169,14 @@ Global
 		{CD2D183B-0340-4B91-B55D-B0AB615D0AC8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CD2D183B-0340-4B91-B55D-B0AB615D0AC8}.Release|x86.ActiveCfg = Release|Any CPU
 		{CD2D183B-0340-4B91-B55D-B0AB615D0AC8}.Release|x86.Build.0 = Release|Any CPU
+		{CD5F5631-780F-4A3B-B622-A5B7056EE2C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD5F5631-780F-4A3B-B622-A5B7056EE2C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD5F5631-780F-4A3B-B622-A5B7056EE2C4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CD5F5631-780F-4A3B-B622-A5B7056EE2C4}.Debug|x86.Build.0 = Debug|Any CPU
+		{CD5F5631-780F-4A3B-B622-A5B7056EE2C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD5F5631-780F-4A3B-B622-A5B7056EE2C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD5F5631-780F-4A3B-B622-A5B7056EE2C4}.Release|x86.ActiveCfg = Release|Any CPU
+		{CD5F5631-780F-4A3B-B622-A5B7056EE2C4}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
