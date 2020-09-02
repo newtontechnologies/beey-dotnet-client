@@ -33,6 +33,7 @@ namespace Beey.Client
         protected ProjectApi ProjectApi { get; set; }
         protected LexiconApi LexiconApi { get; set; }
         protected WebSocketsApi WebSocketsApi { get; set; }
+        protected OrderApi OrderApi { get; set; }
 
         // Admin
         protected AdminUserApi AdminUserApi { get; set; }
@@ -45,6 +46,7 @@ namespace Beey.Client
             SpeakerApi = new SpeakerApi(url);
             ProjectApi = new ProjectApi(url);
             LexiconApi = new LexiconApi(url);
+            OrderApi = new OrderApi(url);
 
             AdminUserApi = new AdminUserApi(url);
             EmailApi = new EmailApi(url);
@@ -62,6 +64,7 @@ namespace Beey.Client
             AdminUserApi.Token = loginToken;
             EmailApi.Token = loginToken;
             WebSocketsApi.Token = loginToken;
+            OrderApi.Token = loginToken;
         }
 
         public async Task LoginAsync(string email, string password,
