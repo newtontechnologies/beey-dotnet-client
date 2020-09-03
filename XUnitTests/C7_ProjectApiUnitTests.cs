@@ -241,7 +241,7 @@ namespace XUnitTests
         [Fact, TestPriority(12.2)]
         public async Task T12_2_TranscribeUploadedFileAsync()
         {
-            createdProjectAccessToken = (await projectApi.TranscribeProjectAsync(createdProjectId, "cs-CZ", true, true, true, default)).AccessToken;
+            createdProjectAccessToken = (await projectApi.TranscribeProjectAsync(createdProjectId, "cs-CZ", true, true, true, true, default)).AccessToken;
         }
 
         [Fact, TestPriority(12.3)]
@@ -381,7 +381,7 @@ namespace XUnitTests
         [Fact, TestPriority(15)]
         public async Task T15_0_StartTranscribingAndStopAsync()
         {
-            createdProjectAccessToken = (await projectApi.TranscribeProjectAsync(createdProjectId, "cs-CZ", true, true, true, default)).AccessToken;
+            createdProjectAccessToken = (await projectApi.TranscribeProjectAsync(createdProjectId, "cs-CZ", true, true, true, true, default)).AccessToken;
 
             int retryCount = 10;
             TryValueResult<ProjectProgress> result;

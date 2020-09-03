@@ -2,7 +2,7 @@
   "profiles": {
     "LandeckStreamer": {
       "commandName": "Project",
-      "commandLineArgs": "-c \"CT 24\" -t \"ct24 live\"  -l 00:30",
+      "commandLineArgs": " -c \"CT 24\" -t \"ct24 live\"  -l 00:02",
       "environmentVariables": {
         "Key": " -s \"2020-04-28T12:38\" -l 00:05"
       }

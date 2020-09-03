@@ -133,7 +133,7 @@ namespace Beey.Api.Rest
         }       
 
         public async Task<Project> TranscribeProjectAsync(int projectId, string language,
-            bool withPpc, bool withVad, bool saveTrsx,
+            bool withPpc, bool withVad, bool withPunctuation,  bool saveTrsx,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
@@ -143,6 +143,7 @@ namespace Beey.Api.Rest
                 .AddParameter("withPPC", withPpc)
                 .AddParameter("withVAD", withVad)
                 .AddParameter("saveTrsx", saveTrsx)
+                .AddParameter("withPunctuation", withPunctuation)
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));

@@ -324,7 +324,7 @@ namespace JobScheduling
             await Task.Delay(2000);
             try
             {
-                await beey.TranscribeProjectAsync(project.Id, language, true, true, true);
+                await beey.TranscribeProjectAsync(project.Id, language, true, true, true, true);
             }
             catch (Exception)
             {

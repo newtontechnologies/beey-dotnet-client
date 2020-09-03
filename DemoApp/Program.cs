@@ -95,7 +95,7 @@ namespace DemoApp
 
             //transcribe file
             Console.WriteLine("Starting transcription.");
-            await beey.TranscribeProjectAsync(project.Id, "cs-CZ", true, true, true, default);
+            await beey.TranscribeProjectAsync(project.Id, "cs-CZ", true, true, true, true, default);
 
             //wait for transcription
             Console.WriteLine("Waiting for transcription to finish, this may take a while.");

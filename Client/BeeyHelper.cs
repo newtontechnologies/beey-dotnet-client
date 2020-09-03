@@ -31,7 +31,7 @@ namespace Beey.Client
         /// <returns></returns>
         public static async Task UploadAndTranscribe(BeeyClient beey,
             Stream data, long? length, bool saveMedia, string projectName,
-            string language = "cs-CZ", bool withPpc = true, bool withVad = true, bool saveTrsx = true,
+            string language = "cs-CZ", bool withPpc = true, bool withVad = true, bool withPunctuation = true, bool saveTrsx = true,
             int maxWaitingTimeMinutes = 60, CancellationToken cancellationToken = default)
         {
             try
@@ -79,7 +79,7 @@ namespace Beey.Client
                 try
                 {
                     log.Log(Logging.LogLevel.Info, () => "Starting transcription.");
-                    await beey.TranscribeProjectAsync(project.Id, language, withPpc, withVad, saveTrsx, cts.Token);
+                    await beey.TranscribeProjectAsync(project.Id, language, withPpc, withVad, withPunctuation, saveTrsx, cts.Token);
                 }
                 catch (Exception)
                 {
