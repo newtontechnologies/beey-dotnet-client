@@ -28,8 +28,8 @@ namespace Beey.Client
         /// <param name="saveTrsx"></param>
         /// <param name="maxWaitingTimeMinutes">Maximum waiting time to be able to start transcribing.</param>
         /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public static async Task UploadAndTranscribe(BeeyClient beey,
+        /// <returns>project id</returns>
+        public static async Task<int> UploadAndTranscribe(BeeyClient beey,
             Stream data, long? length, bool saveMedia, string projectName,
             string language = "cs-CZ", bool withPpc = true, bool withVad = true, bool withPunctuation = true, bool saveTrsx = true,
             int maxWaitingTimeMinutes = 60, CancellationToken cancellationToken = default)
@@ -89,6 +89,7 @@ namespace Beey.Client
 
                 await uploading;
                 log.Log(Logging.LogLevel.Info, () => "Upload finished.");
+                return project.Id;
             }
             finally
             {
