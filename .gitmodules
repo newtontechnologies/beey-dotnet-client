@@ -4,6 +4,3 @@
 [submodule "DataExchangeModel"]
 	path = DataExchangeModel
 	url = https://gitlab.com/newtontech/beey/dataexchangemodel.git
-[submodule "open-m3u8"]
-	path = open-m3u8
-	url = https://github.com/bzier/open-m3u8.git

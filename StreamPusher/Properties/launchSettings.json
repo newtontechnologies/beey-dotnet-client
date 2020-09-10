@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "StreamPusher": {
-      "commandName": "Project",
-      "commandLineArgs": " http://localhost:61497 ladislav.seps@newtontech.cz OVPgod 21 http://icecast1.play.cz/croplus128.mp3"
-    }
-  }
-}
