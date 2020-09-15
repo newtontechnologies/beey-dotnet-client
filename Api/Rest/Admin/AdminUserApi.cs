@@ -1,4 +1,5 @@
-﻿using Beey.DataExchangeModel;
+﻿using Beey.Api.DTO;
+using Beey.DataExchangeModel;
 using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Projects;
 using Newtonsoft.Json;
@@ -72,7 +73,7 @@ namespace Beey.Api.Rest.Admin
             return HandleResponse(result, _ => true);
         }
 
-        public async Task<TranscriptionLogItem[]> GetTranscriptionLogAsync(int id,
+        public async Task<MonthlyTranscriptionLogItem[]> GetTranscriptionLogAsync(int id,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
@@ -80,7 +81,7 @@ namespace Beey.Api.Rest.Admin
                 .AddUrlSegment("TranscriptionLog")
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<TranscriptionLogItem[]>(r.GetStringContent()));
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<MonthlyTranscriptionLogItem[]>(r.GetStringContent()));
         }
     }
 }

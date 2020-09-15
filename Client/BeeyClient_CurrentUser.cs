@@ -1,4 +1,5 @@
-﻿using Beey.DataExchangeModel.Auth;
+﻿using Beey.Api.DTO;
+using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Lexicons;
 using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Projects;
@@ -101,11 +102,11 @@ namespace Beey.Client
             }, CreatePollyContext(cancellationToken), cancellationToken);
         }
 
-        public async Task<TranscriptionLogItem[]> GetTranscriptionLogAsync(CancellationToken cancellationToken = default)
+        public async Task<MonthlyTranscriptionLogItem[]> GetTranscriptionLogAsync(CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<TranscriptionLogItem[]>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<MonthlyTranscriptionLogItem[]>();
             return await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await CurrentUserApi.GetTranscriptionLogAsync(cancellationToken);

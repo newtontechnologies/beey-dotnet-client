@@ -1,4 +1,5 @@
-﻿using Beey.DataExchangeModel.Auth;
+﻿using Beey.Api.DTO;
+using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Lexicons;
 using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Projects;
@@ -61,13 +62,13 @@ namespace Beey.Api.Rest
             HandleResponse(result);
         }
 
-        public async Task<TranscriptionLogItem[]> GetTranscriptionLogAsync(CancellationToken cancellationToken)
+        public async Task<MonthlyTranscriptionLogItem[]> GetTranscriptionLogAsync(CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("TranscriptionLog")
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<TranscriptionLogItem[]>(r.GetStringContent()));
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<MonthlyTranscriptionLogItem[]>(r.GetStringContent()));
         }
 
         public async Task<LexiconEntry[]> GetUserLexAsync(string language, CancellationToken cancellationToken)
