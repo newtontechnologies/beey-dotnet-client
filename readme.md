@@ -1,6 +1,6 @@
 # DotNetClient
 
-DotNetclient is C# (.NET Core) library to communicate with Beey API.
+DotNetclient is C# (.NET Standard) library to communicate with Beey API.
 
 ## Usage
 
