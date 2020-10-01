@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Settings>
+	<Beey-Server>
+		<Url>http://localhost:61497</Url>
+	</Beey-Server>
+	<Credentials>
+		<Email>milos.kudelka@newtontech.cz</Email>
+		<Password>OVPgod</Password>
+	</Credentials>
+</Settings>
