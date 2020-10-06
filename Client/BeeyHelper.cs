@@ -103,9 +103,13 @@ namespace Beey.Client
             var messages = await beey.ListenToMessages(projectId, cancellationToken);
 
             var progressState = await beey.GetProjectProgressStateAsync(projectId);
-            if (ProcessState.Finished.HasFlag(progressState.TranscodingAudioState))
+            if (progressState.TranscodingAudioState == ProcessState.Completed)
             {
                 return;
+            }
+            else if (progressState.TranscodingAudioState == ProcessState.Failed)
+            {
+                throw new Exception("Transcoding failed, cannot transcribe.");
             }
 
             await foreach (var strMessage in messages.WithCancellation(cancellationToken))
