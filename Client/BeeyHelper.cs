@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -95,6 +96,32 @@ namespace Beey.Client
             {
                 data.Dispose();
             }
+        }
+
+        public static async Task WaitForTranscribableAsync(BeeyClient beey, int projectId, CancellationToken cancellationToken = default)
+        {
+            var messages = await beey.ListenToMessages(projectId, cancellationToken);
+
+            var progressState = await beey.GetProjectProgressStateAsync(projectId);
+            if (ProcessState.Finished.HasFlag(progressState.TranscodingAudioState))
+            {
+                return;
+            }
+
+            await foreach (var strMessage in messages.WithCancellation(cancellationToken))
+            {
+                var message = JsonSerializer.Deserialize<Message>(strMessage, Message.CreateDefaultOptions());
+                if (message.Type == MessageType.Failed)
+                {
+                    throw new Exception($"Subsystem {message.Subsystem} failed with reason '{((FailedMessage)message).Reason}'.");
+                }
+                if (message.Subsystem == "TranscodingAudio" && message.Type == MessageType.Completed)
+                {
+                    return;
+                }
+            }
+
+            throw new Exception("No more messages, but conversion did not finish.");
         }
     }
 }
