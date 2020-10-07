@@ -134,6 +134,19 @@ namespace Beey.Client
             var messages = (await beey.ListenToMessages(projectId, cts.Token))
                 .Select(s => JsonSerializer.Deserialize<Message>(s, Message.CreateDefaultOptions()));
 
+            bool isTranscribing = false;
+
+            try
+            {
+                // Just try to transcribe straight away, nevermind if it fails.
+                await beey.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, cts.Token);
+                onTranscriptionStarted?.Invoke();
+                isTranscribing = true;
+            }
+            catch (Exception)
+            {
+            }
+
             TimeSpan duration = TimeSpan.Zero;
             try
             {
@@ -153,13 +166,23 @@ namespace Beey.Client
                         {
                             duration = data.Duration ?? TimeSpan.Zero;
                             onMediaIdentified?.Invoke(duration);
-                            await beey.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, cts.Token);
-                            onTranscriptionStarted?.Invoke();
+                            if (!isTranscribing)
+                            {
+                                await beey.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, cts.Token);
+                                isTranscribing = true;
+                                onTranscriptionStarted?.Invoke();
+                            }
                         }
                     }
                     if (message.Subsystem == "MediaFilePackaging" && message.Type == MessageType.Completed)
                     {
                         onConversionFinished?.Invoke();
+                        if (!isTranscribing)
+                        {
+                            await beey.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, cts.Token);
+                            isTranscribing = true;
+                            onTranscriptionStarted?.Invoke();
+                        }
                     }
                     if (message.Subsystem == "TranscriptionTracking" && message.Type == MessageType.Completed)
                     {
