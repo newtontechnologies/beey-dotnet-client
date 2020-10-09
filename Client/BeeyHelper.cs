@@ -217,6 +217,7 @@ namespace Beey.Client
             }
             finally
             {
+                // End listening to messages.
                 cts.Cancel();
             }
         }
