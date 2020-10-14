@@ -100,9 +100,6 @@ namespace Beey.Client
             }
         }
 
-        public delegate void Progress(int percentage);
-        public delegate void MediaIdentified(TimeSpan duration);
-
         /// <summary>
         /// Waits until project can be transcribed and calls transcription. Calls callback methods when events happen.
         /// </summary>
@@ -113,19 +110,20 @@ namespace Beey.Client
         /// <param name="withVad"></param>
         /// <param name="withPunctuation"></param>
         /// <param name="saveTrsx"></param>
-        /// <param name="onMediaIdentified">With duration. Stream has zero duration.</param>
+        /// <param name="onMediaIdentified">With duration. Stream has zero duration. Might occure second time if value in media header was incorrect.</param>
         /// <param name="onTranscriptionStarted"></param>
         /// <param name="onUploadProgress">With percentage of upload.</param>
         /// <param name="onTranscriptionProgress">With percentage of transcription. When percentage is -1, progress is invalid probably because of discrepance between duration in media file header and real dureation.</param>
-        /// <param name="onConversionFinished"></param>
+        /// <param name="onConversionCompleted"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static async Task TranscribeAsync(BeeyClient beey,
             int projectId, string language = "cs-CZ",
             bool withPpc = true, bool withVad = true, bool withPunctuation = true, bool saveTrsx = true,
-            MediaIdentified? onMediaIdentified = null, Action? onTranscriptionStarted = null,
-            Progress? onUploadProgress = null, Progress? onTranscriptionProgress = null,
-            Action? onConversionFinished = null,
+            Action<TimeSpan>? onMediaIdentified = null, Action? onTranscriptionStarted = null,
+            Action<int>? onUploadProgress = null, Action<int>? onTranscriptionProgress = null,
+            Action? onUploadCompleted = null, Action? onConversionCompleted = null,
+            Action? onTranscriptionCompleted = null,
             CancellationToken cancellationToken = default)
         {
             var cts = new CancellationTokenSource();
@@ -135,19 +133,23 @@ namespace Beey.Client
                 .Select(s => JsonSerializer.Deserialize<Message>(s, Message.CreateDefaultOptions()));
 
             bool isTranscribing = false;
-
+            TimeSpan? duration = await TryGetDurationFromProjectAsync(beey, projectId, cancellationToken);
+            if (duration != null)
+            {
+                onMediaIdentified?.Invoke(duration.Value);
+            }
             try
             {
-                // Just try to transcribe straight away, nevermind if it fails.
+                // Try to transcribe straight away.
                 await beey.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, cts.Token);
                 onTranscriptionStarted?.Invoke();
                 isTranscribing = true;
             }
             catch (Exception)
             {
+                // Nevermind if it fails.
             }
 
-            TimeSpan duration = TimeSpan.Zero;
             try
             {
                 await foreach (var message in messages.WithCancellation(cts.Token))
@@ -159,13 +161,13 @@ namespace Beey.Client
                     }
                     if (message.Subsystem == "MediaIdentification" && message.Type == MessageType.Progress)
                     {
-                        var data = MediaIdentificationData.From(message);
-                        if (data.Kind == MediaIdentificationData.DurationKind.Duration
-                            || data.Kind == MediaIdentificationData.DurationKind.ApproximateDuration
-                            || data.Kind == MediaIdentificationData.DurationKind.DurationlessStream)
+                        if (TryGetDuration(message, out var d))
                         {
-                            duration = data.Duration ?? TimeSpan.Zero;
-                            onMediaIdentified?.Invoke(duration);
+                            if (duration == null)
+                            {
+                                duration = d;
+                                onMediaIdentified?.Invoke(duration.Value);
+                            }
                             if (!isTranscribing)
                             {
                                 await beey.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, cts.Token);
@@ -174,9 +176,21 @@ namespace Beey.Client
                             }
                         }
                     }
+                    if (message.Subsystem == "MediaFileIndexing" && message.Type == MessageType.Completed)
+                    {
+                        var proj = await beey.GetProjectAsync(projectId, cancellationToken);
+                        if (duration == null
+                            || Math.Abs((duration.Value - proj.Length).TotalSeconds) > 1)
+                        {
+                            // Duration after MediaFileIndexing is correct, the one in media file header might be incorrect,
+                            // so update if needed (i.e. the saved duration differs from the one after indexing).
+                            duration = proj.Length;
+                            onMediaIdentified?.Invoke(duration.Value);
+                        }
+                    }
                     if (message.Subsystem == "MediaFilePackaging" && message.Type == MessageType.Completed)
                     {
-                        onConversionFinished?.Invoke();
+                        onConversionCompleted?.Invoke();
                         if (!isTranscribing)
                         {
                             await beey.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, cts.Token);
@@ -186,7 +200,7 @@ namespace Beey.Client
                     }
                     if (message.Subsystem == "TranscriptionTracking" && message.Type == MessageType.Completed)
                     {
-                        onTranscriptionProgress?.Invoke(100);
+                        onTranscriptionCompleted?.Invoke();
                         break;
                     }
                     if (message.Subsystem == "Upload" && message.Type == MessageType.Progress)
@@ -199,18 +213,20 @@ namespace Beey.Client
                     }
                     if (message.Subsystem == "Upload" && message.Type == MessageType.Completed)
                     {
-                        onUploadProgress?.Invoke(100);
+                        onUploadCompleted?.Invoke();
                     }
-                    if (duration > TimeSpan.Zero // not stream
-                        && message.Subsystem == "Recognition" && message.Type == MessageType.Progress)
+                    if (message.Subsystem == "Recognition" && message.Type == MessageType.Progress)
                     {
-                        var data = RecognitionData.From(message);
-                        if (data.Transcribed.HasValue)
+                        if (duration != null && duration.Value > TimeSpan.Zero)
                         {
-                            int percentage = (int)((data.Transcribed.Value.TotalSeconds * 100) / duration.TotalSeconds);
-                            if (percentage > 100)
-                                percentage = -1;
-                            onTranscriptionProgress?.Invoke(percentage);
+                            var data = RecognitionData.From(message);
+                            if (data.Transcribed.HasValue)
+                            {
+                                int percentage = (int)((data.Transcribed.Value.TotalSeconds * 100) / duration.Value.TotalSeconds);
+                                if (percentage > 100)
+                                    percentage = -1;
+                                onTranscriptionProgress?.Invoke(percentage);
+                            }
                         }
                     }
                 }
@@ -220,6 +236,41 @@ namespace Beey.Client
                 // End listening to messages.
                 cts.Cancel();
             }
+        }
+
+        private static bool TryGetDuration(Message mediaIdentificationMsg, out TimeSpan duration)
+        {
+            var data = MediaIdentificationData.From(mediaIdentificationMsg);
+            if (data.Kind == MediaIdentificationData.DurationKind.Duration
+                || data.Kind == MediaIdentificationData.DurationKind.ApproximateDuration
+                || data.Kind == MediaIdentificationData.DurationKind.DurationlessStream)
+            {
+                duration = data.Duration ?? TimeSpan.Zero;
+                return true;
+            }
+
+            duration = TimeSpan.Zero;
+            return false;
+        }
+
+        private static async Task<TimeSpan?> TryGetDurationFromProjectAsync(BeeyClient beey, int projectId, CancellationToken cancellationToken)
+        {
+            TimeSpan? result = null;
+            var proj = await beey.GetProjectAsync(projectId, cancellationToken);
+            if (proj.IndexFileId != null)
+            {
+                result = proj.Length;
+            }
+
+            if (result == null)
+            {
+                var oldMessages = await beey.GetProjectProgressMessagesAsync(projectId, cancellationToken: cancellationToken);
+                result = oldMessages.Where(message => message.Subsystem == "MediaIdentification" && message.Type == MessageType.Progress)
+                    .Select(m => new { IsDurationIdentified = TryGetDuration(m, out var d), Duration = d })
+                    .FirstOrDefault(m => m.IsDurationIdentified)?.Duration;
+            }
+
+            return result;
         }
     }
 }
