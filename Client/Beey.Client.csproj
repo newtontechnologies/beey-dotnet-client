@@ -13,6 +13,7 @@
     </PackageReference>
     <PackageReference Include="Polly" Version="7.1.0" />
     <PackageReference Include="System.Interactive.Async" Version="4.1.1" />
+    <PackageReference Include="System.Text.Json" Version="4.7.2" />
   </ItemGroup>
 
   <ItemGroup>
