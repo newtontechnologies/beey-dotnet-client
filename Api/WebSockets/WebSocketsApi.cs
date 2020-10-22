@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.WebSockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -182,7 +183,7 @@ namespace Beey.Api.WebSockets
         {
             var policy = RetryPolicies.CreateAsyncNetworkPolicy<IAsyncEnumerable<string>>(logger);
 
-            static async IAsyncEnumerable<string> receive(ClientWebSocket ws, CancellationToken c)
+            static async IAsyncEnumerable<string> receive(ClientWebSocket ws, [EnumeratorCancellation]CancellationToken c)
             {
                 byte[] buffer = new byte[32 * 1024];
                 (int bytes, ValueWebSocketReceiveResult result) res;
