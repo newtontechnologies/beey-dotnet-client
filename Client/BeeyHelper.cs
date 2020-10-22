@@ -112,7 +112,7 @@ namespace Beey.Client
         /// <param name="saveTrsx"></param>
         /// <param name="onMediaIdentified">With duration. Stream has zero duration. Might occure second time if value in media header was incorrect.</param>
         /// <param name="onTranscriptionStarted"></param>
-        /// <param name="onUploadProgress">With percentage of upload.</param>
+        /// <param name="onUploadProgress">With uploaded bytes and percentage of upload. For stream, percentage is -1.</param>
         /// <param name="onTranscriptionProgress">With percentage of transcription. When percentage is -1, progress is invalid probably because of discrepance between duration in media file header and real dureation.</param>
         /// <param name="onConversionCompleted"></param>
         /// <param name="cancellationToken"></param>
@@ -121,7 +121,7 @@ namespace Beey.Client
             int projectId, string language = "cs-CZ",
             bool withPpc = true, bool withVad = true, bool withPunctuation = true, bool saveTrsx = true,
             Action<TimeSpan>? onMediaIdentified = null, Action? onTranscriptionStarted = null,
-            Action<int>? onUploadProgress = null, Action<int>? onTranscriptionProgress = null,
+            Action<long, int?>? onUploadProgress = null, Action<int>? onTranscriptionProgress = null,
             Action? onUploadCompleted = null, Action? onConversionCompleted = null,
             Action? onTranscriptionCompleted = null,
             CancellationToken cancellationToken = default)
@@ -208,7 +208,7 @@ namespace Beey.Client
                         var data = UploadSubsystemData.From(message);
                         if (data.Kind == UploadSubsystemData.DataKind.UploadedBytes)
                         {
-                            onUploadProgress?.Invoke(data.UploadPercentage!.Value);
+                            onUploadProgress?.Invoke(data.FileOffset!.Value, data.UploadPercentage ?? -1);
                         }
                     }
                     if (message.Subsystem == "Upload" && message.Type == MessageType.Completed)
