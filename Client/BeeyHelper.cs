@@ -226,13 +226,14 @@ namespace Beey.Client
                         if (duration != null && duration.Value > TimeSpan.Zero)
                         {
                             var data = RecognitionData.From(message);
+                            int percentage = -1;
                             if (data.Transcribed.HasValue)
                             {
-                                int percentage = (int)((data.Transcribed.Value.TotalSeconds * 100) / duration.Value.TotalSeconds);
+                                percentage = (int)((data.Transcribed.Value.TotalSeconds * 100) / duration.Value.TotalSeconds);
                                 if (percentage > 100)
                                     percentage = -1;
-                                onTranscriptionProgress?.Invoke(percentage);
                             }
+                            onTranscriptionProgress?.Invoke(percentage);
                         }
                     }
 
