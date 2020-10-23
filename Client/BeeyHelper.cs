@@ -150,6 +150,7 @@ namespace Beey.Client
                 // Nevermind if it fails.
             }
 
+            string endReason = "timeout";
             try
             {
                 if (timeout.HasValue)
@@ -163,7 +164,8 @@ namespace Beey.Client
                     if (message.Type == MessageType.Failed
                         && message.Subsystem != "MediaIdentification") // TODO: Remove when backend doesn't send fail when media not in faststart.
                     {
-                        throw new Exception($"{message.Subsystem} failed with reason '{((FailedMessage)message).Reason}'.");
+                        endReason = $"{message.Subsystem} failed with reason '{((FailedMessage)message).Reason}'.";
+                        cts.Cancel();
                     }
                     if (message.Subsystem == "MediaIdentification" && message.Type == MessageType.Progress)
                     {
@@ -207,7 +209,8 @@ namespace Beey.Client
                     if (message.Subsystem == "TranscriptionTracking" && message.Type == MessageType.Completed)
                     {
                         onTranscriptionCompleted?.Invoke();
-                        break;
+                        endReason = "completed";
+                        cts.Cancel();
                     }
                     if (message.Subsystem == "Upload" && message.Type == MessageType.Progress)
                     {
@@ -245,13 +248,10 @@ namespace Beey.Client
             {
                 if (cancellationToken.IsCancellationRequested)
                     throw;
-                else
+                else if (endReason == "timeout")
                     throw new TimeoutException($"No messages in {timeout!.Value.TotalSeconds}s.");
-            }
-            finally
-            {
-                // End listening to messages.
-                cts.Cancel();
+                else if (endReason != "completed")
+                    throw new Exception(endReason);
             }
         }
 
