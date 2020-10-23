@@ -167,7 +167,7 @@ namespace Beey.Client
                         endReason = $"{message.Subsystem} failed with reason '{((FailedMessage)message).Reason}'.";
                         cts.Cancel();
                     }
-                    if (message.Subsystem == "MediaIdentification" && message.Type == MessageType.Progress)
+                    else if (message.Subsystem == "MediaIdentification" && message.Type == MessageType.Progress)
                     {
                         if (TryGetDuration(message, out var d))
                         {
@@ -184,7 +184,7 @@ namespace Beey.Client
                             }
                         }
                     }
-                    if (message.Subsystem == "MediaFileIndexing" && message.Type == MessageType.Completed)
+                    else if (message.Subsystem == "MediaFileIndexing" && message.Type == MessageType.Completed)
                     {
                         var proj = await beey.GetProjectAsync(projectId, cancellationToken);
                         if (duration == null
@@ -196,7 +196,7 @@ namespace Beey.Client
                             onMediaIdentified?.Invoke(duration.Value);
                         }
                     }
-                    if (message.Subsystem == "MediaFilePackaging" && message.Type == MessageType.Completed)
+                    else if (message.Subsystem == "MediaFilePackaging" && message.Type == MessageType.Completed)
                     {
                         onConversionCompleted?.Invoke();
                         if (!isTranscribing)
@@ -206,13 +206,13 @@ namespace Beey.Client
                             onTranscriptionStarted?.Invoke();
                         }
                     }
-                    if (message.Subsystem == "TranscriptionTracking" && message.Type == MessageType.Completed)
+                    else if (message.Subsystem == "TranscriptionTracking" && message.Type == MessageType.Completed)
                     {
                         onTranscriptionCompleted?.Invoke();
                         endReason = "completed";
                         cts.Cancel();
                     }
-                    if (message.Subsystem == "Upload" && message.Type == MessageType.Progress)
+                    else if (message.Subsystem == "Upload" && message.Type == MessageType.Progress)
                     {
                         var data = UploadSubsystemData.From(message);
                         if (data.Kind == UploadSubsystemData.DataKind.UploadedBytes)
@@ -220,11 +220,11 @@ namespace Beey.Client
                             onUploadProgress?.Invoke(data.FileOffset!.Value, data.UploadPercentage ?? -1);
                         }
                     }
-                    if (message.Subsystem == "Upload" && message.Type == MessageType.Completed)
+                    else if (message.Subsystem == "Upload" && message.Type == MessageType.Completed)
                     {
                         onUploadCompleted?.Invoke();
                     }
-                    if (message.Subsystem == "Recognition" && message.Type == MessageType.Progress)
+                    else if (message.Subsystem == "Recognition" && message.Type == MessageType.Progress)
                     {
                         var data = RecognitionData.From(message);
                         if (data.Transcribed.HasValue)
