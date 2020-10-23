@@ -113,7 +113,7 @@ namespace Beey.Client
         /// <param name="onMediaIdentified">With duration. Stream has zero duration. Might occure second time if value in media header was incorrect.</param>
         /// <param name="onTranscriptionStarted"></param>
         /// <param name="onUploadProgress">With uploaded bytes and percentage of upload. For stream, percentage is -1.</param>
-        /// <param name="onTranscriptionProgress">With percentage of transcription. When percentage is -1, progress is invalid probably because of discrepance between duration in media file header and real dureation.</param>
+        /// <param name="onTranscriptionProgress">With percentage of transcription. Percentage is -1 for streams or if progress is invalid probably because of discrepance between duration in media file header and real dureation.</param>
         /// <param name="onConversionCompleted"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
@@ -223,16 +223,17 @@ namespace Beey.Client
                     }
                     if (message.Subsystem == "Recognition" && message.Type == MessageType.Progress)
                     {
-                        if (duration != null && duration.Value > TimeSpan.Zero)
+                        var data = RecognitionData.From(message);
+                        if (data.Transcribed.HasValue)
                         {
-                            var data = RecognitionData.From(message);
-                            if (data.Transcribed.HasValue)
+                            int percentage = -1;
+                            if (duration.HasValue)
                             {
-                                int percentage = (int)((data.Transcribed.Value.TotalSeconds * 100) / duration.Value.TotalSeconds);
+                                percentage = (int)((data.Transcribed.Value.TotalSeconds * 100) / duration.Value.TotalSeconds);
                                 if (percentage > 100)
                                     percentage = -1;
-                                onTranscriptionProgress?.Invoke(percentage);
                             }
+                            onTranscriptionProgress?.Invoke(percentage);
                         }
                     }
 
