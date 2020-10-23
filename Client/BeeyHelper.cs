@@ -123,7 +123,7 @@ namespace Beey.Client
             Action<TimeSpan>? onMediaIdentified = null, Action? onTranscriptionStarted = null,
             Action<long, int?>? onUploadProgress = null, Action<int>? onTranscriptionProgress = null,
             Action? onUploadCompleted = null, Action? onConversionCompleted = null,
-            Action? onTranscriptionCompleted = null,
+            Action? onTranscriptionCompleted = null, TimeSpan? timeout = null,
             CancellationToken cancellationToken = default)
         {
             var cts = new CancellationTokenSource();
@@ -152,8 +152,14 @@ namespace Beey.Client
 
             try
             {
+                if (timeout.HasValue)
+                    cts.CancelAfter(timeout.Value);
                 await foreach (var message in messages.WithCancellation(cts.Token))
                 {
+                    // Disable cancelling while processing message.
+                    if (timeout.HasValue)
+                        cts.CancelAfter(TimeSpan.FromMilliseconds(-1));
+
                     if (message.Type == MessageType.Failed
                         && message.Subsystem != "MediaIdentification") // TODO: Remove when backend doesn't send fail when media not in faststart.
                     {
@@ -229,7 +235,17 @@ namespace Beey.Client
                             }
                         }
                     }
+
+                    if (timeout.HasValue)
+                        cts.CancelAfter(timeout.Value);
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                    throw;
+                else
+                    throw new TimeoutException($"No messages in {timeout!.Value.TotalSeconds}s.");
             }
             finally
             {
