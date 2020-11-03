@@ -150,12 +150,11 @@ namespace Beey.Client
                 // Nevermind if it fails.
             }
 
-            string endReason = "timeout";
             try
             {
                 if (timeout.HasValue)
                     cts.CancelAfter(timeout.Value);
-                await foreach (var message in messages.WithCancellation(cts.Token))
+                await foreach (var message in messages)
                 {
                     // Disable cancelling while processing message.
                     if (timeout.HasValue)
@@ -164,8 +163,7 @@ namespace Beey.Client
                     if (message.Type == MessageType.Failed
                         && message.Subsystem != "MediaIdentification") // TODO: Remove when backend doesn't send fail when media not in faststart.
                     {
-                        endReason = $"{message.Subsystem} failed with reason '{((FailedMessage)message).Reason}'.";
-                        cts.Cancel();
+                        throw new Exception($"{message.Subsystem} failed with reason '{((FailedMessage)message).Reason}'.");
                     }
                     else if (message.Subsystem == "MediaIdentification" && message.Type == MessageType.Progress)
                     {
@@ -209,8 +207,7 @@ namespace Beey.Client
                     else if (message.Subsystem == "TranscriptionTracking" && message.Type == MessageType.Completed)
                     {
                         onTranscriptionCompleted?.Invoke();
-                        endReason = "completed";
-                        cts.Cancel();
+                        break;
                     }
                     else if (message.Subsystem == "Upload" && message.Type == MessageType.Progress)
                     {
@@ -246,12 +243,9 @@ namespace Beey.Client
             }
             catch (OperationCanceledException)
             {
-                if (cancellationToken.IsCancellationRequested)
-                    throw;
-                else if (endReason == "timeout")
+                if (cts.IsCancellationRequested)
                     throw new TimeoutException($"No messages in {timeout!.Value.TotalSeconds}s.");
-                else if (endReason != "completed")
-                    throw new Exception(endReason);
+                else throw;
             }
         }
 

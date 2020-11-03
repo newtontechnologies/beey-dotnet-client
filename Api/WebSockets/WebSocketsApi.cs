@@ -179,26 +179,29 @@ namespace Beey.Api.WebSockets
             }, cancellationToken);
         }
 
-        public async Task<IAsyncEnumerable<string>> ListenToMessages(int projectId, CancellationToken cancellationToken = default)
+        public async Task<IAsyncEnumerable<string>> ListenToMessages(int projectId, CancellationToken cancellationToken)
         {
             var policy = RetryPolicies.CreateAsyncNetworkPolicy<IAsyncEnumerable<string>>(logger);
 
             static async IAsyncEnumerable<string> receive(ClientWebSocket ws, [EnumeratorCancellation]CancellationToken c)
             {
-                byte[] buffer = new byte[32 * 1024];
-                (int bytes, ValueWebSocketReceiveResult result) res;
-                do
+                try
                 {
-                    //TODO: receive async can receive only partial message...
-                    res = await ws.ReceiveMessageAsync(buffer, c);
-                    if (res.result.MessageType != WebSocketMessageType.Close)
-                        yield return Encoding.UTF8.GetString(buffer, 0, res.bytes);
-
-                    if (c.IsCancellationRequested)
+                    byte[] buffer = new byte[32 * 1024];
+                    (int bytes, ValueWebSocketReceiveResult result) res;
+                    do
                     {
-                        await ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", default);
-                    }
-                } while (res.bytes > 0 || res.result.MessageType != WebSocketMessageType.Close);
+                        c.ThrowIfCancellationRequested();
+                        //TODO: receive async can receive only partial message...
+                        res = await ws.ReceiveMessageAsync(buffer, c);
+                        if (res.result.MessageType != WebSocketMessageType.Close)
+                            yield return Encoding.UTF8.GetString(buffer, 0, res.bytes);
+                    } while (res.bytes > 0 || res.result.MessageType != WebSocketMessageType.Close);
+                }
+                finally
+                {
+                    await ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", default);
+                }
             }
 
 
