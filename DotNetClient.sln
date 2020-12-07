@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TranscriptionCore", "Transc
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Beey.DataExchangeModel", "DataExchangeModel\Beey.DataExchangeModel.shproj", "{306CEFB5-A8C2-4577-8332-13827A9EC870}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Beey.Proxy", "Beey.Proxy\Beey.Proxy.csproj", "{F249FAB5-A1ED-43EA-8083-1D017EF14461}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Beey.Proxy", "Beey.Proxy\Beey.Proxy.csproj", "{F249FAB5-A1ED-43EA-8083-1D017EF14461}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemoBeeyApp", "DemoBeeyApp\DemoBeeyApp.csproj", "{D0138B7F-BBC4-4C97-9BC2-3AA1DB54484A}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -77,6 +79,14 @@ Global
 		{F249FAB5-A1ED-43EA-8083-1D017EF14461}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F249FAB5-A1ED-43EA-8083-1D017EF14461}.Release|x86.ActiveCfg = Release|Any CPU
 		{F249FAB5-A1ED-43EA-8083-1D017EF14461}.Release|x86.Build.0 = Release|Any CPU
+		{D0138B7F-BBC4-4C97-9BC2-3AA1DB54484A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0138B7F-BBC4-4C97-9BC2-3AA1DB54484A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0138B7F-BBC4-4C97-9BC2-3AA1DB54484A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D0138B7F-BBC4-4C97-9BC2-3AA1DB54484A}.Debug|x86.Build.0 = Debug|Any CPU
+		{D0138B7F-BBC4-4C97-9BC2-3AA1DB54484A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0138B7F-BBC4-4C97-9BC2-3AA1DB54484A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0138B7F-BBC4-4C97-9BC2-3AA1DB54484A}.Release|x86.ActiveCfg = Release|Any CPU
+		{D0138B7F-BBC4-4C97-9BC2-3AA1DB54484A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

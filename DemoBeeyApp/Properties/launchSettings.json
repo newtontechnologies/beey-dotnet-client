@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DemoBeeyApp": {
+      "commandName": "Project",
+      "applicationUrl": "http://localhost:61384"
+    }
+  }
+}
