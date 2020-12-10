@@ -200,7 +200,8 @@ namespace Beey.Api.WebSockets
                 }
                 finally
                 {
-                    await ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", default);
+                    if (ws.State == WebSocketState.Open || ws.State == WebSocketState.Connecting)
+                        await ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", default);
                 }
             }
 
