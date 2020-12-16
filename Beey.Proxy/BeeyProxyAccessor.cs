@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Beey.Proxy
 {
-    internal class BeeyProxyAccessor
+    internal partial class BeeyProxyAccessor
     {
-        private static AsyncLocal<BeeyDataHolder> _beeyDataCurrent = new AsyncLocal<BeeyDataHolder>();
+        private static AsyncLocal<BeeyProxyHolder> _beeyDataCurrent = new AsyncLocal<BeeyProxyHolder>();
 
         public BeeyProxy? BeeyData
         {
@@ -29,18 +29,16 @@ namespace Beey.Proxy
                 {
                     // Use an object indirection to hold the HttpContext in the AsyncLocal,
                     // so it can be cleared in all ExecutionContexts when its cleared.
-                    _beeyDataCurrent.Value = new BeeyDataHolder(value);
+                    _beeyDataCurrent.Value = new BeeyProxyHolder(value);
                 }
             }
         }
 
-        private class BeeyDataHolder
+        public BeeyProxyHolder BeeyDataHolder
         {
-            public BeeyProxy? data;
-
-            public BeeyDataHolder(BeeyProxy value)
+            get
             {
-                data = value;
+                return _beeyDataCurrent?.Value ?? BeeyProxyHolder.Empty;
             }
         }
     }
