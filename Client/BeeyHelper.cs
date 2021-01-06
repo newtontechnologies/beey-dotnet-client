@@ -126,8 +126,7 @@ namespace Beey.Client
             Action? onTranscriptionCompleted = null, TimeSpan? timeout = null,
             CancellationToken cancellationToken = default)
         {
-            var cts = new CancellationTokenSource();
-            cancellationToken.Register(() => cts.Cancel());
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             var messages = (await beey.ListenToMessages(projectId, cts.Token))
                 .Select(s => JsonSerializer.Deserialize<Message>(s, Message.CreateDefaultOptions()));
@@ -138,6 +137,7 @@ namespace Beey.Client
             {
                 onMediaIdentified?.Invoke(duration.Value);
             }
+
             try
             {
                 // Try to transcribe straight away.
@@ -243,7 +243,7 @@ namespace Beey.Client
             }
             catch (OperationCanceledException)
             {
-                if (cts.IsCancellationRequested)
+                if (!cancellationToken.IsCancellationRequested)
                     throw new TimeoutException($"No messages in {timeout!.Value.TotalSeconds}s.");
                 else throw;
             }
