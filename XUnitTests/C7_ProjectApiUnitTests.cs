@@ -257,14 +257,14 @@ namespace XUnitTests
             TryValueResult<ProjectProgress> result;
             int retryCount = 20;
             while ((result = await projectApi.GetProgressStateAsync(createdProjectId, default).TryAsync())
-                && !ProcessState.Finished.HasFlag(result.Value.PPCState)
+                && !ProcessState.Finished.HasFlag(result.Value.SPPState)
                 && retryCount > 0)
             {
                 await Task.Delay(5000);
                 retryCount--;
             }
 
-            Assert.True(ProcessState.Finished.HasFlag(result.Value.PPCState));
+            Assert.True(ProcessState.Finished.HasFlag(result.Value.SPPState));
         }
 
         [Fact, TestPriority(13.1)]
@@ -318,7 +318,7 @@ namespace XUnitTests
                 && progress.RecognitionState == ProcessState.Finished
                 && progress.DiarizationState == ProcessState.Finished
                 && progress.SpeakerIdentificationState == ProcessState.Finished
-                && progress.PPCState == ProcessState.Finished;
+                && progress.SPPState == ProcessState.Finished;
 
             Assert.True(allFinished);
         }
