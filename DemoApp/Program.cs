@@ -36,17 +36,17 @@ namespace DemoApp
             //command line arguments: DemoApp.exe audio.mp4
             if (args.Length < 1)
             {
-                Console.WriteLine("Please specify the file to be transcribed in the following format:\nthis.exe audio.mp4.");
+                Log.Logger.Error("Please specify the file to be transcribed in the following format:\nthis.exe audio.mp4.");
                 return;
             }
             else if (!File.Exists(args[0]))
             {
-                Console.WriteLine("Audio file not found. Please make sure that the file exists.");
+                Log.Logger.Error("Audio file not found. Please make sure that the file exists.");
                 return;
             }
             else if (!File.Exists("Settings.xml"))
             {
-                Console.WriteLine("Settings.xml file not found. Please make sure that this file exists.");
+                Log.Logger.Error("Settings.xml file not found. Please make sure that this file exists.");
                 return;
             }
 
@@ -68,49 +68,55 @@ namespace DemoApp
             var beey = new BeeyClient(url); //api
 
             ////login
-            Console.WriteLine("Logging in.");
+            Log.Logger.Information("Logging in.");
             await beey.LoginAsync(email, password);
 
             //create project
-            Console.WriteLine("Creating project.");
+            Log.Logger.Information("Creating project.");
             var project = await beey.CreateProjectAsync("projectname", "projectpath", default);
 
             //upload file
-            Console.WriteLine("Uploading file.");
+            Log.Logger.Information("Uploading file.");
             var fileStream = File.Open(audioPath, FileMode.Open);
-            await beey.UploadStreamAsync(project.Id, "audioname.mp3", fileStream, fileStream.Length, false, default);
 
-            //wait for transcoding
-            Console.WriteLine("Waiting for transcoding to finish, this may take a while.");
-            int retryCount = 5;
-            TryValueResult<ProjectProgress> result;
-            //periodically checks if the server has finished a given process until true
-            while ((result = await beey.GetProjectProgressStateAsync(project.Id, default).TryAsync())
-                && !ProcessState.Finished.HasFlag(result.Value.TranscodingState)
-                && retryCount > 0)
+            using var cts = new CancellationTokenSource();
+            var uploading = beey.UploadStreamAsync(project.Id, "audioname", fileStream, fileStream.Length, false, cts.Token);
+            var transcribing = BeeyHelper.TranscribeAsync(beey, project.Id,
+                    language: "cs-CZ",
+                    withPpc: true,
+                    withVad: true,
+                    withPunctuation: true,
+                    saveTrsx: true,
+                    onMediaIdentified: d => Log.Logger.Information("Duration is {d}", d),
+                    onTranscriptionStarted: () => Log.Logger.Information("Transcription started"),
+                    onUploadProgress: (b, p) => Log.Logger.Information("Upload: {p}% ({b}B)", p, b),
+                    onTranscriptionProgress: p => Log.Logger.Information("Transcription: {p}%", p),
+                    onUploadCompleted: () => Log.Logger.Information("Upload completed"),
+                    onConversionCompleted: () => Log.Logger.Information("Conversion completed"),
+                    onTranscriptionCompleted: () => Log.Logger.Information("Transcription completed"),
+                    timeout: TimeSpan.FromSeconds(60),
+                    cancellationToken: cts.Token);
+            try
             {
-                await Task.Delay(3000);
-                retryCount--;
+                var allTasks = new List<Task>() { uploading, transcribing };
+                while (allTasks.Any())
+                {
+                    var finished = await Task.WhenAny(allTasks);
+                    if (!finished.IsCompletedSuccessfully)
+                        await finished;
+                    else
+                        allTasks.Remove(finished);
+                }
             }
-
-            //transcribe file
-            Console.WriteLine("Starting transcription.");
-            await beey.TranscribeProjectAsync(project.Id, "cs-CZ", true, true, true, true, default);
-
-            //wait for transcription
-            Console.WriteLine("Waiting for transcription to finish, this may take a while.");
-            retryCount = 20;
-            //periodically checks if the server has finished a given process until true
-            while ((result = await beey.GetProjectProgressStateAsync(project.Id, default).TryAsync())
-                && !ProcessState.Finished.HasFlag(result.Value.PPCState)
-                && retryCount > 0)
+            catch (Exception ex)
             {
-                await Task.Delay(5000);
-                retryCount--;
+                Log.Logger.Error(ex, $"Failed with error '{ex.Message}'.");
+                cts.Cancel();
+                _ = await Task.WhenAll(uploading, transcribing).TryAsync();
             }
 
             //download trsx file
-            Console.WriteLine("Downloading trsx file.");
+            Log.Logger.Information("Downloading trsx file.");
             //original is the trsx which is created from the track
             //current is the trsx which contains all the editing additions
             var stream = await beey.DownloadOriginalTrsxAsync(project.Id, default);
@@ -123,6 +129,8 @@ namespace DemoApp
             }
 
             File.WriteAllBytes("transcribed.trsx", trsx);
+
+            Log.Logger.Information("Finished");
         }
     }
 }
