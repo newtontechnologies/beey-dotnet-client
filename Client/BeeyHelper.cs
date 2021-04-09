@@ -111,6 +111,7 @@ namespace Beey.Client
         /// <param name="withPunctuation"></param>
         /// <param name="saveTrsx"></param>
         /// <param name="onMediaIdentified">With duration. Stream has zero duration. Might occure second time if value in media header was incorrect.</param>
+        /// <param name="onTranscriptionStartAttempt">Unsuccessful transcribe attempt.</param>
         /// <param name="onTranscriptionStarted"></param>
         /// <param name="onUploadProgress">With uploaded bytes and percentage of upload. For stream, percentage is -1.</param>
         /// <param name="onTranscriptionProgress">With percentage of transcription. Percentage is -1 for streams or if progress is invalid probably because of discrepance between duration in media file header and real dureation.</param>
@@ -120,10 +121,15 @@ namespace Beey.Client
         public static async Task TranscribeAsync(BeeyClient beey,
             int projectId, string language = "cs-CZ",
             bool withPpc = true, bool withVad = true, bool withPunctuation = true, bool saveTrsx = true,
-            Action<TimeSpan>? onMediaIdentified = null, Action? onTranscriptionStarted = null,
-            Action<long, int?>? onUploadProgress = null, Action<int>? onTranscriptionProgress = null,
-            Action? onUploadCompleted = null, Action? onConversionCompleted = null,
-            Action? onTranscriptionCompleted = null, TimeSpan? timeout = null,
+            Action<TimeSpan>? onMediaIdentified = null,
+            Action? onTranscriptionStartAttempt = null,
+            Action? onTranscriptionStarted = null,
+            Action<long, int?>? onUploadProgress = null,
+            Action<int>? onTranscriptionProgress = null,
+            Action? onUploadCompleted = null,
+            Action? onConversionCompleted = null,
+            Action? onTranscriptionCompleted = null,
+            TimeSpan? timeout = null,
             CancellationToken cancellationToken = default)
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -138,17 +144,7 @@ namespace Beey.Client
                 onMediaIdentified?.Invoke(duration.Value);
             }
 
-            try
-            {
-                // Try to transcribe straight away.
-                await beey.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, cts.Token);
-                onTranscriptionStarted?.Invoke();
-                isTranscribing = true;
-            }
-            catch (Exception)
-            {
-                // Nevermind if it fails.
-            }
+            isTranscribing = isTranscribing || await TryStartTranscribing(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, onTranscriptionStarted, cts);
 
             try
             {
@@ -174,12 +170,7 @@ namespace Beey.Client
                                 duration = d;
                                 onMediaIdentified?.Invoke(duration.Value);
                             }
-                            if (!isTranscribing)
-                            {
-                                await beey.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, cts.Token);
-                                isTranscribing = true;
-                                onTranscriptionStarted?.Invoke();
-                            }
+                            isTranscribing = isTranscribing || await TryStartTranscribing(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, onTranscriptionStarted, cts, onTranscriptionStartAttempt);
                         }
                     }
                     else if (message.Subsystem == "MediaFileIndexing" && message.Type == MessageType.Completed)
@@ -197,12 +188,7 @@ namespace Beey.Client
                     else if (message.Subsystem == "MediaFilePackaging" && message.Type == MessageType.Completed)
                     {
                         onConversionCompleted?.Invoke();
-                        if (!isTranscribing)
-                        {
-                            await beey.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, cts.Token);
-                            isTranscribing = true;
-                            onTranscriptionStarted?.Invoke();
-                        }
+                        isTranscribing = isTranscribing || await TryStartTranscribing(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, onTranscriptionStarted, cts, onTranscriptionStartAttempt);
                     }
                     else if (message.Subsystem == "TranscriptionTracking" && message.Type == MessageType.Completed)
                     {
@@ -246,6 +232,23 @@ namespace Beey.Client
                 if (!cancellationToken.IsCancellationRequested)
                     throw new TimeoutException($"No messages in {timeout!.Value.TotalSeconds}s.");
                 else throw;
+            }
+        }
+
+        private static async Task<bool> TryStartTranscribing(BeeyClient beey,
+            int projectId, string language, bool withPpc, bool withVad, bool withPunctuation,
+            bool saveTrsx, Action? onTranscriptionStarted, CancellationTokenSource cts, Action? onTranscriptionStartAttempt = null)
+        {
+            try
+            {
+                await beey.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, cts.Token);
+                onTranscriptionStarted?.Invoke();
+                return true;
+            }
+            catch
+            {
+                onTranscriptionStartAttempt?.Invoke();
+                return false;
             }
         }
 
