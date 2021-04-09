@@ -105,6 +105,52 @@ namespace Beey.Client
         /// </summary>
         /// <param name="beey">Client with logged user.</param>
         /// <param name="projectId"></param>
+        /// <param name="transcriptionConfig"></param>
+        /// <param name="onMediaIdentified">With duration. Stream has zero duration. Might occure second time if value in media header was incorrect.</param>
+        /// <param name="onTranscriptionStartAttempt">Unsuccessful transcribe attempt.</param>
+        /// <param name="onTranscriptionStarted"></param>
+        /// <param name="onUploadProgress">With uploaded bytes and percentage of upload. For stream, percentage is -1.</param>
+        /// <param name="onTranscriptionProgress">With percentage of transcription. Percentage is -1 for streams or if progress is invalid probably because of discrepance between duration in media file header and real dureation.</param>
+        /// <param name="onConversionCompleted"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public static Task TranscribeAsync(BeeyClient beey,
+            int projectId,
+            TranscriptionConfig transcriptionConfig,
+            Action<TimeSpan>? onMediaIdentified = null,
+            Action? onTranscriptionStartAttempt = null,
+            Action? onTranscriptionStarted = null,
+            Action<long, int?>? onUploadProgress = null,
+            Action<int>? onTranscriptionProgress = null,
+            Action? onUploadCompleted = null,
+            Action? onConversionCompleted = null,
+            Action? onTranscriptionCompleted = null,
+            TimeSpan? timeout = null,
+            CancellationToken cancellationToken = default)
+        {
+            return TranscribeAsync(beey, projectId,
+                transcriptionConfig.Language,
+                transcriptionConfig.WithPPC,
+                transcriptionConfig.WithVAD,
+                transcriptionConfig.WithPunctuation,
+                transcriptionConfig.SaveTrsx,
+                onMediaIdentified,
+                onTranscriptionStartAttempt,
+                onTranscriptionStarted,
+                onUploadProgress,
+                onTranscriptionProgress,
+                onUploadCompleted,
+                onConversionCompleted,
+                onTranscriptionCompleted,
+                timeout,
+                cancellationToken);
+        }
+
+        /// <summary>
+        /// Waits until project can be transcribed and calls transcription. Calls callback methods when events happen.
+        /// </summary>
+        /// <param name="beey">Client with logged user.</param>
+        /// <param name="projectId"></param>
         /// <param name="language"></param>
         /// <param name="withPpc"></param>
         /// <param name="withVad"></param>
@@ -119,18 +165,18 @@ namespace Beey.Client
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static async Task TranscribeAsync(BeeyClient beey,
-            int projectId, string language = "cs-CZ",
-            bool withPpc = true, bool withVad = true, bool withPunctuation = true, bool saveTrsx = true,
-            Action<TimeSpan>? onMediaIdentified = null,
-            Action? onTranscriptionStartAttempt = null,
-            Action? onTranscriptionStarted = null,
-            Action<long, int?>? onUploadProgress = null,
-            Action<int>? onTranscriptionProgress = null,
-            Action? onUploadCompleted = null,
-            Action? onConversionCompleted = null,
-            Action? onTranscriptionCompleted = null,
-            TimeSpan? timeout = null,
-            CancellationToken cancellationToken = default)
+        int projectId, string language = "cs-CZ",
+        bool withPpc = true, bool withVad = true, bool withPunctuation = true, bool saveTrsx = true,
+        Action<TimeSpan>? onMediaIdentified = null,
+        Action? onTranscriptionStartAttempt = null,
+        Action? onTranscriptionStarted = null,
+        Action<long, int?>? onUploadProgress = null,
+        Action<int>? onTranscriptionProgress = null,
+        Action? onUploadCompleted = null,
+        Action? onConversionCompleted = null,
+        Action? onTranscriptionCompleted = null,
+        TimeSpan? timeout = null,
+        CancellationToken cancellationToken = default)
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
