@@ -165,13 +165,19 @@ namespace Beey.Api.WebSockets
 
                 // initiate close handshake
                 await ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "file sent", c);
-                // stop listening for new messages
-                cts.Cancel();
+
+                //TODO: rewrite closing correctly (gitlab issue #6)
+                // This is Race condition, There can be messages in transfer, when Close is initiated.
+                //BUT receivingUntilClosed will close immediately on CT and (possibly) not even read all buffered messages..
+                cts.Cancel(); // stop listening for new messages
                 // wait for close from server
                 var lastResult = await receivingUntilClosed ?? (await ws.ReceiveMessageAsync(buffer, default)).lastResult;
+
+                //this is here probably to fix the race.. to receive messages that were in transfer before server acknowledges close..
                 while (lastResult.MessageType != WebSocketMessageType.Close)
                 {
-                    logger.Log(Logging.LogLevel.Warn, () => "data received after Websocket close handshake was intitiated");
+                    //data after close is quite ordinary because of the race condition...
+                    logger.Info("data received after Websocket close handshake was intitiated");
                     lastResult = (await ws.ReceiveMessageAsync(buffer, default)).lastResult;
                 }
 
@@ -183,7 +189,7 @@ namespace Beey.Api.WebSockets
         {
             var policy = RetryPolicies.CreateAsyncNetworkPolicy<IAsyncEnumerable<string>>(logger);
 
-            static async IAsyncEnumerable<string> receive(ClientWebSocket ws, [EnumeratorCancellation]CancellationToken c)
+            static async IAsyncEnumerable<string> receive(ClientWebSocket ws, [EnumeratorCancellation] CancellationToken c)
             {
                 try
                 {
