@@ -14,7 +14,7 @@ namespace Beey.Api.Rest
 {
     internal class RestRequestBuilder
     {
-        private static readonly HttpClient httpClient = new HttpClient();
+        private static readonly HttpClient httpClient = new HttpClient(new TimeoutHandler()) { Timeout = Timeout.InfiniteTimeSpan };
         private static readonly Logging.ILog logger = Logging.LogProvider.For<RestRequestBuilder>();
 
         private Request request;
