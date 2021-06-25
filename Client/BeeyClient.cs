@@ -34,6 +34,7 @@ namespace Beey.Client
         protected LexiconApi LexiconApi { get; set; }
         protected WebSocketsApi WebSocketsApi { get; set; }
         protected OrderApi OrderApi { get; set; }
+        protected CustomApi CustomApi { get; set; }
 
         // Admin
         protected AdminUserApi AdminUserApi { get; set; }
@@ -47,6 +48,7 @@ namespace Beey.Client
             ProjectApi = new ProjectApi(url);
             LexiconApi = new LexiconApi(url);
             OrderApi = new OrderApi(url);
+            CustomApi = new CustomApi(url);
 
             AdminUserApi = new AdminUserApi(url);
             EmailApi = new EmailApi(url);
@@ -65,6 +67,13 @@ namespace Beey.Client
             EmailApi.Token = loginToken;
             WebSocketsApi.Token = loginToken;
             OrderApi.Token = loginToken;
+            CustomApi.Token = loginToken;
+        }
+
+        public Task<string> CallAsync(string route, (string, object?)[] pars, HttpMethod httpMethod,
+            bool requiresAuthorization = true, CancellationToken cancellationToken = default)
+        {
+            return CustomApi.CallAsync(route, pars, httpMethod, requiresAuthorization, cancellationToken);
         }
 
         public async Task LoginAsync(string email, string password,
@@ -114,7 +123,7 @@ namespace Beey.Client
             this.userPassword = password;
 
             SetTokens(LoginToken);
-        }       
+        }
 
         public async Task<LexiconApi.TmpValidationError[]> ValidateLexiconEntryAsync(string text, string pronunciation, string language,
             CancellationToken cancellationToken = default)
