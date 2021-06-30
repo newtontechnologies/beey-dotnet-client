@@ -76,6 +76,18 @@ namespace Beey.Client
             return CustomApi.CallAsync(route, pars, httpMethod, requiresAuthorization, cancellationToken);
         }
 
+        public Task<string> CallAsync(string route, string body, string contentType, HttpMethod httpMethod,
+           bool requiresAuthorization = true, CancellationToken cancellationToken = default)
+        {
+            return CustomApi.CallAsync(route, body, contentType, httpMethod, requiresAuthorization, cancellationToken);
+        }
+
+        public Task<string> CallAsync(string route, (string, object?)[] pars, string body, string contentType, HttpMethod httpMethod,
+           bool requiresAuthorization = true, CancellationToken cancellationToken = default)
+        {
+            return CustomApi.CallAsync(route, pars, body, contentType, httpMethod, requiresAuthorization, cancellationToken);
+        }
+
         public async Task LoginAsync(string email, string password,
             CancellationToken cancellationToken = default)
         {

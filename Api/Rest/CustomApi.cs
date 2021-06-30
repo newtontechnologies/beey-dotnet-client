@@ -35,5 +35,26 @@ namespace Beey.Api.Rest
 
             return HandleResponse(result, r => r.GetStringContent());
         }
+
+        public async Task<string> CallAsync(string route, string body, string contentType, HttpMethod httpMethod, bool requiresAuthorization, CancellationToken cancellationToken)
+        {
+            var result = await CreateBuilder(requiresAuthorization)
+                .AddUrlSegment(route.Trim('/'))
+                .SetBody(body, contentType)
+                .ExecuteAsync(httpMethod, cancellationToken);
+
+            return HandleResponse(result, r => r.GetStringContent());
+        }
+
+        public async Task<string> CallAsync(string route, (string, object?)[] pars, string body, string contentType, HttpMethod httpMethod, bool requiresAuthorization, CancellationToken cancellationToken)
+        {
+            var result = await CreateBuilder(requiresAuthorization)
+                .AddUrlSegment(route.Trim('/'))
+                .AddParameters(pars)
+                .SetBody(body, contentType)
+                .ExecuteAsync(httpMethod, cancellationToken);
+
+            return HandleResponse(result, r => r.GetStringContent());
+        }
     }
 }
