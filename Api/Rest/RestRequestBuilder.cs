@@ -81,10 +81,10 @@ namespace Beey.Api.Rest
             return this;
         }
 
-        public RestRequestBuilder SetBody(string body, string format = "text/xml")
+        public RestRequestBuilder SetBody(string body, string contentType = "application/json")
         {
             request.Body = body;
-            request.BodyFormat = format;
+            request.BodyContentType = contentType;
             return this;
         }
 
@@ -151,7 +151,7 @@ namespace Beey.Api.Rest
 
             if (!string.IsNullOrWhiteSpace(request.Body))
             {
-                result.Content = new StringContent(request.Body, Encoding.UTF8, "application/json");
+                result.Content = new StringContent(request.Body, Encoding.UTF8, request.BodyContentType);
             }
             else
             {
@@ -184,7 +184,7 @@ namespace Beey.Api.Rest
             public Dictionary<string, System.IO.Stream> FileStreams { get; } = new Dictionary<string, System.IO.Stream>();
             public Dictionary<string, byte[]> FileBytes { get; } = new Dictionary<string, byte[]>();
             public string? Body { get; set; }
-            public string? BodyFormat { get; set; }
+            public string? BodyContentType { get; set; }
 
             public Request(string url)
             {
