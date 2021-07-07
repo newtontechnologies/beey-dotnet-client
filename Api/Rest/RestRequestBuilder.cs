@@ -124,7 +124,7 @@ namespace Beey.Api.Rest
                     var requestMessage = CreateHttpRequest(this.request, method);
                     var responseMessage = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead, c);
                     var content = await responseMessage.Content.ReadAsStreamAsync();
-                    return new Response(responseMessage.StatusCode, responseMessage.IsSuccessStatusCode, responseMessage.ReasonPhrase, content);
+                    return new Response(responseMessage, content);
                 },
                 cancellationToken);
             return result;
@@ -200,13 +200,15 @@ namespace Beey.Api.Rest
         public HttpStatusCode StatusCode { get; private set; }
         public bool IsSuccessStatusCode { get; private set; }
         public string ErrorMessage { get; private set; }
+        public HttpResponseMessage HttpResponseMessage { get; }
         public Stream Content { get; private set; }
 
-        public Response(HttpStatusCode statusCode, bool isSuccessStatusCode, string errorMessage, Stream content)
+        public Response(HttpResponseMessage httpResponseMessage, Stream content)
         {
-            StatusCode = statusCode;
-            IsSuccessStatusCode = isSuccessStatusCode;
-            ErrorMessage = errorMessage;
+            StatusCode = httpResponseMessage.StatusCode;
+            IsSuccessStatusCode = httpResponseMessage.IsSuccessStatusCode;
+            ErrorMessage = httpResponseMessage.ReasonPhrase;
+            HttpResponseMessage = httpResponseMessage;
             Content = content;
         }
 

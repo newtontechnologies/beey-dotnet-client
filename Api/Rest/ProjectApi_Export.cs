@@ -1,4 +1,5 @@
-﻿using Beey.DataExchangeModel.Export;
+﻿using Beey.Api.DTO;
+using Beey.DataExchangeModel.Export;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ namespace Beey.Api.Rest
 {
     partial class ProjectApi : BaseAuthApi<ProjectApi>
     {
-        public async Task<ExportFormat[]> GetSubtitleExportFormatsAsync(int projectId, CancellationToken cancellationToken)
+        public async Task<ExportFormat[]> GetExportFormatsAsync(int projectId, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                .AddUrlSegment(projectId.ToString())
@@ -20,16 +21,23 @@ namespace Beey.Api.Rest
             return HandleResponse(result, r => JsonConvert.DeserializeObject<ExportFormat[]>(r.GetStringContent()));
         }
 
-        public async Task<System.IO.Stream> ExportSubtitlesAsync(int projectId, string formatId,
+        public async Task<ExportFile> ExportWithFormatAsync(int projectId, string formatId,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                .AddUrlSegment(projectId.ToString())
-               .AddUrlSegment("Export/Formats")
+               .AddUrlSegment("Export")
                .AddParameter("formatId", formatId)
                .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, _ => result.Content);
+
+            return HandleResponse(result, _ =>
+            {
+                string mime = result.HttpResponseMessage.Content.Headers.ContentType?.MediaType ?? "application/json";
+                var filename = result.HttpResponseMessage.Content.Headers.ContentDisposition?.FileName ?? "invalid.name";
+
+                return new ExportFile(filename, mime, result.Content);
+            });
         }
     }
 }

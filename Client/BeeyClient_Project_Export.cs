@@ -1,4 +1,5 @@
-﻿using Beey.DataExchangeModel.Export;
+﻿using Beey.Api.DTO;
+using Beey.DataExchangeModel.Export;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,26 +11,26 @@ namespace Beey.Client
 {
     public partial class BeeyClient
     {
-        public async Task<ExportFormat[]> GetSubtitleExportFormatsAsync(CancellationToken cancellationToken)
+        public async Task<ExportFormat[]> GetExportFormatsAsync(CancellationToken cancellationToken)
         {
             this.RequireAuthorization();
 
             var policy = CreateHttpAsyncUnauthorizedPolicy<ExportFormat[]>();
             return await policy.ExecuteAsync(async (c) =>
             {
-                return await ProjectApi.GetSubtitleExportFormatsAsync(1, c);
+                return await ProjectApi.GetExportFormatsAsync(1, c);
             }, cancellationToken);
         }
 
-        public async Task<Stream> ExportSubtitlesAsync(int projectId, string formatId,
+        public async Task<ExportFile> ExportWithFormatAsync(int projectId, string formatId,
             CancellationToken cancellationToken)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Stream>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<ExportFile>();
             return (await policy.ExecuteAsync(async (c) =>
             {
-                return await ProjectApi.ExportSubtitlesAsync(projectId, formatId, c);
+                return await ProjectApi.ExportWithFormatAsync(projectId, formatId, c);
             }, cancellationToken));
         }
     }
