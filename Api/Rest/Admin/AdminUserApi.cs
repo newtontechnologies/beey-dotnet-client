@@ -73,7 +73,7 @@ namespace Beey.Api.Rest.Admin
             return HandleResponse(result, _ => true);
         }
 
-        public async Task<MonthlyTranscriptionLogItem[]> GetTranscriptionLogAsync(int id,
+        public async Task<Listing<MonthlyTranscriptionLogItem>> GetTranscriptionLogAsync(int id,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
@@ -81,7 +81,7 @@ namespace Beey.Api.Rest.Admin
                 .AddUrlSegment("TranscriptionLog")
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<MonthlyTranscriptionLogItem[]>(r.GetStringContent()));
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<MonthlyTranscriptionLogItem>>(r.GetStringContent()));
         }
     }
 }

@@ -87,12 +87,12 @@ namespace Beey.Client
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
-        public async Task<MonthlyTranscriptionLogItem[]> GetTranscriptionLogAsync(int userId, 
+        public async Task<Listing<MonthlyTranscriptionLogItem>> GetTranscriptionLogAsync(int userId, 
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<MonthlyTranscriptionLogItem[]>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<MonthlyTranscriptionLogItem>>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await AdminUserApi.GetTranscriptionLogAsync(userId, c);
