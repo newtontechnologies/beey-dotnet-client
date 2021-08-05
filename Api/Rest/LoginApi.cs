@@ -30,7 +30,7 @@ namespace Beey.Api.Rest
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("Login")
-                .AddParameters(("email", email), ("password", password))
+                .SetBody(JsonConvert.SerializeObject(new LoginData { Email = email, Password = password }), "application/json")
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<LoginToken>(r.GetStringContent()));
@@ -46,11 +46,12 @@ namespace Beey.Api.Rest
             HandleResponse(result);
         }
 
-        public async Task<LoginToken> RegisterAndLoginAsync(string email, string password,
+        public async Task<LoginToken> RegisterAndLoginAsync(string email, string password, string language,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("RegisterAndLogin")
+                .SetBody(JsonConvert.SerializeObject(new RegistrationData { Email = email, Password = password, Language = language }), "application/json")
                 .AddParameters(("email", email), ("password", password))
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 

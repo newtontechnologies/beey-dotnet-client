@@ -127,10 +127,10 @@ namespace Beey.Client
             userPassword = null;
         }
 
-        public async Task RegisterAndLoginAsync(string email, string password,
+        public async Task RegisterAndLoginAsync(string email, string password, string language,
             CancellationToken cancellationToken = default)
         {
-            LoginToken = await LoginApi.RegisterAndLoginAsync(email, password, cancellationToken);
+            LoginToken = await LoginApi.RegisterAndLoginAsync(email, password, language, cancellationToken);
             this.userEmail = email;
             this.userPassword = password;
 
