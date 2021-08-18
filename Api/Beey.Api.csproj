@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\TranscriptionCore\TranscriptionCore.csproj" />
+    <ProjectReference Include="..\TranscriptionCore\TranscriptionCore.csproj" />
   </ItemGroup>
 
 

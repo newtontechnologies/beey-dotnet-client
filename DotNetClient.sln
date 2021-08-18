@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Beey.Proxy", "Beey.Proxy\Be
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DemoBeeyApp", "DemoBeeyApp\DemoBeeyApp.csproj", "{D0138B7F-BBC4-4C97-9BC2-3AA1DB54484A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TranscriptionCore", "..\TranscriptionCore\TranscriptionCore.csproj", "{D30F5B23-1BFA-45F7-90FC-6232BEB9B643}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TranscriptionCore", "TranscriptionCore\TranscriptionCore.csproj", "{D30F5B23-1BFA-45F7-90FC-6232BEB9B643}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
