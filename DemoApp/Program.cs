@@ -19,7 +19,7 @@ namespace DemoApp
 {
     class Program
     {
-        private static IConfiguration config;
+        private static IConfiguration? config;
 
         static async Task Main(string[] args)
         {
@@ -59,6 +59,7 @@ namespace DemoApp
             config = new ConfigurationBuilder()
                   .SetBasePath(Directory.GetCurrentDirectory())
                   .AddXmlFile("Settings.xml", optional: false, reloadOnChange: true)
+                  .AddXmlFile("Settings.Overrides.xml", optional: true, reloadOnChange: true)
                   .Build();
 
             url = config.GetValue<String>("Beey-Server:Url");
