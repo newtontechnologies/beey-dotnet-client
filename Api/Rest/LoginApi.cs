@@ -22,7 +22,7 @@ namespace Beey.Api.Rest
     {
         public LoginApi(string url) : base(url)
         {
-            EndPoint = "API";
+            EndPoint = "XAPI";
         }
 
         public async Task<LoginToken> LoginAsync(string email, string password,

@@ -22,7 +22,7 @@ namespace Beey.Api.Rest
     {
         public SpeakerApi(string url) : base(url)
         {
-            EndPoint = "API/Speaker";
+            EndPoint = "XAPI/Speaker";
         }
 
         public async Task<Listing<Speaker>> ListAsync(int count, int skip, string? search,

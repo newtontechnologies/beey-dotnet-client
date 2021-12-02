@@ -14,7 +14,7 @@ namespace Beey.Api.Rest
     {
         public OrderApi(string url) : base(url)
         {
-            EndPoint = "API/Orders";
+            EndPoint = "XAPI/Orders";
         }
 
         public async Task<string> CreateCreditOrderAsync(uint credit, CancellationToken cancellationToken)

@@ -12,7 +12,7 @@ namespace Beey.Api.Rest
     {
         public LexiconApi(string url) : base(url)
         {
-            EndPoint = "API/Lexicon";
+            EndPoint = "XAPI/Lexicon";
         }
 
         public async Task<TmpValidationError[]> ValidateLexiconEntryAsync(string text, string pronunciation, string language,

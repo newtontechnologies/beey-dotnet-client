@@ -19,7 +19,7 @@ namespace Beey.Api.Rest
     {
         public CurrentUserApi(string url) : base(url)
         {
-            EndPoint = "API/CurrentUser";
+            EndPoint = "XAPI/CurrentUser";
         }
 
         public async Task ChangePasswordAsync(string oldPassword, string newPassword,

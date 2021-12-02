@@ -27,7 +27,7 @@ namespace Beey.Api.Rest
     {
         public ProjectApi(string url) : base(url)
         {
-            EndPoint = "API/Project";
+            EndPoint = "XAPI/Project";
         }
 
         public async Task<Project> CreateAsync(string name, string customPath,
@@ -145,6 +145,23 @@ namespace Beey.Api.Rest
                 .AddParameter("saveTrsx", saveTrsx)
                 .AddParameter("withPunctuation", withPunctuation)
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
+
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
+        }
+
+        public async Task<Project> EnqueueProjectAsync(int projectId, string language,
+            bool withPpc, bool withVad, bool withPunctuation, bool saveTrsx,
+            CancellationToken cancellationToken)
+        {
+            var result = await CreateBuilder()
+                .AddUrlSegment("Queue/Enqueue")
+                .AddParameter("projectId", projectId)
+                .AddParameter("lang", language)
+                .AddParameter("withPPC", withPpc)
+                .AddParameter("withVAD", withVad)
+                .AddParameter("saveTrsx", saveTrsx)
+                .AddParameter("withPunctuation", withPunctuation)
+                .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
         }
