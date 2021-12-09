@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DemoApp": {
+      "commandName": "Project",
+      "commandLineArgs": "d:\\Newtontech\\Beey\\Files\\audio-fast_cz_test01_00-00-33.mp3"
+    }
+  }
+}

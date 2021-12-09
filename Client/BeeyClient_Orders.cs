@@ -26,11 +26,11 @@ namespace Beey.Client
             }, CreatePollyContext(cancellationToken), cancellationToken);
         }
 
-        public async Task<Listing<OrderInfo>> ListOrdersAsync(CancellationToken cancellationToken = default)
+        public async Task<Listing<OrderInfoViewModel>> ListOrdersAsync(CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<OrderInfo>>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<OrderInfoViewModel>>();
             return await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await OrderApi.ListOrders(cancellationToken);

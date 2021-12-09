@@ -108,7 +108,7 @@ namespace Beey.Client
             LoginToken loginToken = await CurrentUserApi.GetUserInfoAsync(cancellationToken);
 
             this.userEmail = loginToken.User.Email;
-            this.userPassword = loginToken.User.Password;
+            // NOTE: Password is not available here, so e.g. re-login won't be possible.
 
             SetTokens(loginToken);
         }

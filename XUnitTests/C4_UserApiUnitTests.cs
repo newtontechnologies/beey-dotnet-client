@@ -48,7 +48,7 @@ namespace XUnitTests
         [Fact, TestPriority(4)]
         public async Task CreateUserAsync()
         {
-            var user = await api.CreateAsync(new User() { Email = testEmail, Password = testPassword }, default);
+            var user = await api.CreateAsync(new UserAddModel() { Email = testEmail, Password = testPassword }, default);
             createdUserId = user.Id;
         }
 
@@ -62,10 +62,12 @@ namespace XUnitTests
         public async Task UpdateUserAsync()
         {
             var user = await api.GetAsync(createdUserId, default);
-     
-            user.Password = testPassword;
-            user.CreditMinutes = creditMinutes;
-            await api.UpdateAsync(user, default);
+            await api.UpdateAsync(new UserUpdateModel()
+            {
+                Password = testPassword,
+                CreditMinutes = creditMinutes
+            },
+            default);
 
             user = await api.GetAsync(createdUserId, default);
             Assert.Equal(creditMinutes, user.CreditMinutes);
@@ -90,8 +92,11 @@ namespace XUnitTests
         {
             var listing = await api.ListAsync(100, 0, default);
             var mainUser = listing.List.Where(u => u.Email == Configuration.Email).FirstOrDefault();
-            mainUser.CreditMinutes += 10;
-            await api.UpdateAsync(mainUser, default);
+            await api.UpdateAsync(new UserUpdateModel()
+            {
+                CreditMinutes = mainUser.CreditMinutes + 10
+            },
+            default);
         }
     }
 }

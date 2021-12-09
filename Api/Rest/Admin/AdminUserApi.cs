@@ -18,7 +18,7 @@ namespace Beey.Api.Rest.Admin
             EndPoint = "API/Admin/User";
         }
 
-        public async Task<Listing<User>> ListAsync(int count, int skip, CancellationToken cancellationToken)
+        public async Task<Listing<UserViewModel>> ListAsync(int count, int skip, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
             .AddUrlSegment("List")
@@ -26,29 +26,29 @@ namespace Beey.Api.Rest.Admin
             .AddParameter("count", count)
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<User>>(r.GetStringContent()));
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<UserViewModel>>(r.GetStringContent()));
         }
 
-        public async Task<User> GetAsync(int id, CancellationToken cancellationToken)
+        public async Task<UserViewModel> GetAsync(int id, CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment(id.ToString())
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<User>(r.GetStringContent()));
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<UserViewModel>(r.GetStringContent()));
         }
 
-        public async Task<User> CreateAsync(User user,
+        public async Task<UserViewModel> CreateAsync(UserAddModel user,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .SetBody(JsonConvert.SerializeObject(user), "application/json")
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<User>(r.GetStringContent()));
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<UserViewModel>(r.GetStringContent()));
         }
 
-        public async Task UpdateAsync(User user,
+        public async Task UpdateAsync(UserUpdateModel user,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()

@@ -26,43 +26,43 @@ namespace Beey.Client
             }, CreatePollyContext(cancellationToken), cancellationToken);
         }
 
-        public async Task<Listing<User>> ListUsersAsync(int count, int skip = 0,
+        public async Task<Listing<UserViewModel>> ListUsersAsync(int count, int skip = 0,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<User>>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<UserViewModel>>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await AdminUserApi.ListAsync(count, skip, c);
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
-        public async Task<User> GetUserAsync(int id,
+        public async Task<UserViewModel> GetUserAsync(int id,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<User>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<UserViewModel>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await AdminUserApi.GetAsync(id, c);
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
-        public async Task<User> CreateUserAsync(User User,
+        public async Task<UserViewModel> CreateUserAsync(UserAddModel User,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<User>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<UserViewModel>();
             return (await policy.ExecuteAsync(async (ctx, c) =>
             {
                 return await AdminUserApi.CreateAsync(User, c);
             }, CreatePollyContext(cancellationToken), cancellationToken));
         }
 
-        public async Task UpdateUserAsync(User User,
+        public async Task UpdateUserAsync(UserUpdateModel User,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();

@@ -115,7 +115,7 @@ namespace Beey.Api.Rest
             HandleResponse(result);
         }
 
-        public async Task<Listing<ProjectAccess>> ListProjectsAsync(int count, int skip,
+        public async Task<Listing<ProjectAccessViewModel>> ListProjectsAsync(int count, int skip,
             OrderOn orderOn, bool ascending, DateTime? from, DateTime? to,
             CancellationToken cancellationToken)
         {
@@ -129,7 +129,7 @@ namespace Beey.Api.Rest
                 .AddParameter("to", to?.ToString("o"))
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<ProjectAccess>>(r.GetStringContent()));
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<ProjectAccessViewModel>>(r.GetStringContent()));
         }       
 
         public async Task<Project> TranscribeProjectAsync(int projectId, string language,

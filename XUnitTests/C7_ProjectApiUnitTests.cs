@@ -77,9 +77,9 @@ namespace XUnitTests
 
             List<int> ordered;
 
-            Func<(ProjectAccess p, int i), DateTimeOffset?> orderFunc;
-            Func<(ProjectAccess p, int i), bool> fromFunc = _ => true;
-            Func<(ProjectAccess p, int i), bool> toFunc = _ => true;
+            Func<(ProjectAccessViewModel p, int i), DateTimeOffset?> orderFunc;
+            Func<(ProjectAccessViewModel p, int i), bool> fromFunc = _ => true;
+            Func<(ProjectAccessViewModel p, int i), bool> toFunc = _ => true;
             switch (orderOn)
             {
                 case ProjectApi.OrderOn.Created:
@@ -173,8 +173,7 @@ namespace XUnitTests
         public async Task T05_7_UpdateProjectAccessAsync()
         {
             var created = await projectApi.GetProjectAccessAsync(createdProjectId, default);
-            created.CustomPath = "asdf";
-            await projectApi.UpdateProjectAccessAsync(createdProjectId, created, default);
+            await projectApi.UpdateProjectAccessAsync(createdProjectId, new ProjectAccessUpdateModel() { CustomPath = "asdf" }, default);
             created = await projectApi.GetProjectAccessAsync(createdProjectId, default);
 
             Assert.Equal("asdf", created.CustomPath);

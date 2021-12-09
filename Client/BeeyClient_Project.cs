@@ -117,14 +117,14 @@ namespace Beey.Client
                 listing.List.Select(p => p.Project).ToArray());
         }
 
-        public async Task<Listing<ProjectAccess>> ListProjectAccessesAsync(int count, int skip = 0,
+        public async Task<Listing<ProjectAccessViewModel>> ListProjectAccessesAsync(int count, int skip = 0,
             ProjectApi.OrderOn orderOn = ProjectApi.OrderOn.None,
             bool ascending = true, DateTime? from = null, DateTime? to = null,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<ProjectAccess>>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<ProjectAccessViewModel>>();
             var listing = (await policy.ExecuteAsync(async (c) =>
             {
                 return await ProjectApi.ListProjectsAsync(count, skip, orderOn, ascending, from, to, c);
@@ -132,18 +132,18 @@ namespace Beey.Client
 
             return listing;
         }
-        public async Task<ProjectAccess> GetProjectAccessAsync(int id,
+        public async Task<ProjectAccessViewModel> GetProjectAccessAsync(int id,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectAccess>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectAccessViewModel>();
             return (await policy.ExecuteAsync(async (c) =>
             {
                 return await ProjectApi.GetProjectAccessAsync(id, c);
             }, cancellationToken));
         }
-        public async Task UpdateProjectAccessAsync(int projectId, ProjectAccess projectAccess,
+        public async Task UpdateProjectAccessAsync(int projectId, ProjectAccessUpdateModel projectAccess,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
@@ -167,12 +167,12 @@ namespace Beey.Client
                 return await ProjectApi.ShareProjectAsync(id, accessToken, email, c);
             }, cancellationToken);
         }
-        public async Task<Listing<ProjectAccess>> ListProjectSharingAsync(int id,
+        public async Task<Listing<ProjectAccessViewModel>> ListProjectSharingAsync(int id,
             CancellationToken cancellationToken = default)
         {
             this.RequireAuthorization();
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<ProjectAccess>>();
+            var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<ProjectAccessViewModel>>();
             var listing = (await policy.ExecuteAsync(async (c) =>
             {
                 return await ProjectApi.ListProjectSharing(id, c);

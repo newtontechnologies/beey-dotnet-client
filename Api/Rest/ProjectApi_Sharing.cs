@@ -24,7 +24,7 @@ namespace Beey.Api.Rest
             return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
         }
 
-        public async Task<Listing<ProjectAccess>> ListProjectSharing(int id,
+        public async Task<Listing<ProjectAccessViewModel>> ListProjectSharing(int id,
             CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
@@ -32,7 +32,7 @@ namespace Beey.Api.Rest
                 .AddUrlSegment("Share/List")
                 .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<ProjectAccess>>(r.GetStringContent()));
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<ProjectAccessViewModel>>(r.GetStringContent()));
         }
     }
 }

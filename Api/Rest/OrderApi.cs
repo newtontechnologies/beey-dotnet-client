@@ -27,13 +27,13 @@ namespace Beey.Api.Rest
             return HandleResponse(result, r => r.GetStringContent());
         }
 
-        public async Task<Listing<OrderInfo>> ListOrders(CancellationToken cancellationToken)
+        public async Task<Listing<OrderInfoViewModel>> ListOrders(CancellationToken cancellationToken)
         {
             var result = await CreateBuilder()
                 .AddUrlSegment("List")
                 .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<OrderInfo>>(r.GetStringContent()));
+            return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<OrderInfoViewModel>>(r.GetStringContent()));
         }
     }
 }
