@@ -126,7 +126,8 @@ namespace Beey.Client
             Action? onConversionCompleted = null,
             Action? onTranscriptionCompleted = null,
             TimeSpan? timeout = null,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default,
+            bool useQueue = false)
         {
             return TranscribeAsync(beey, projectId,
                 transcriptionConfig.Language,
@@ -143,7 +144,8 @@ namespace Beey.Client
                 onConversionCompleted,
                 onTranscriptionCompleted,
                 timeout,
-                cancellationToken);
+                cancellationToken,
+                useQueue);
         }
 
         /// <summary>
@@ -176,21 +178,33 @@ namespace Beey.Client
         Action? onConversionCompleted = null,
         Action? onTranscriptionCompleted = null,
         TimeSpan? timeout = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        bool useQueue = false)
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             var messages = (await beey.ListenToMessages(projectId, cts.Token))
-                .Select(s => JsonSerializer.Deserialize<Message>(s, Message.CreateDefaultOptions()));
+                .Select(s =>
+                {
+                    try
+                    {
+                        return JsonSerializer.Deserialize<Message>(s, Message.CreateDefaultOptions());
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Log(Logging.LogLevel.Error, () => s, ex);
+                        throw;
+                    }
+                });
 
-            bool isTranscribing = false;
+            bool willTranscriptionStart = false;
             TimeSpan? duration = await TryGetDurationFromProjectAsync(beey, projectId, cancellationToken);
             if (duration != null)
             {
                 onMediaIdentified?.Invoke(duration.Value);
             }
 
-            isTranscribing = isTranscribing || await TryStartTranscribing(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, onTranscriptionStarted, cts);
+            willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, onTranscriptionStarted, cts, useQueue: useQueue);
 
             try
             {
@@ -216,7 +230,7 @@ namespace Beey.Client
                                 duration = d;
                                 onMediaIdentified?.Invoke(duration.Value);
                             }
-                            isTranscribing = isTranscribing || await TryStartTranscribing(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, onTranscriptionStarted, cts, onTranscriptionStartAttempt);
+                            willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, onTranscriptionStarted, cts, onTranscriptionStartAttempt, useQueue);
                         }
                     }
                     else if (message.Subsystem == "MediaFileIndexing" && message.Type == MessageType.Completed)
@@ -234,7 +248,11 @@ namespace Beey.Client
                     else if (message.Subsystem == "MediaFilePackaging" && message.Type == MessageType.Completed)
                     {
                         onConversionCompleted?.Invoke();
-                        isTranscribing = isTranscribing || await TryStartTranscribing(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, onTranscriptionStarted, cts, onTranscriptionStartAttempt);
+                        willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, onTranscriptionStarted, cts, onTranscriptionStartAttempt, useQueue);
+                    }
+                    else if (message.Subsystem == "TranscriptionTracking" && message.Type == MessageType.Started)
+                    {
+                        onTranscriptionStarted?.Invoke();
                     }
                     else if (message.Subsystem == "TranscriptionTracking" && message.Type == MessageType.Completed)
                     {
@@ -281,14 +299,16 @@ namespace Beey.Client
             }
         }
 
-        private static async Task<bool> TryStartTranscribing(BeeyClient beey,
+        private static async Task<bool> TryScheduleToTranscribeAsync(BeeyClient beey,
             int projectId, string language, bool withPpc, bool withVad, bool withPunctuation,
-            bool saveTrsx, Action? onTranscriptionStarted, CancellationTokenSource cts, Action? onTranscriptionStartAttempt = null)
+            bool saveTrsx, Action? onTranscriptionStarted, CancellationTokenSource cts, Action? onTranscriptionStartAttempt = null, bool useQueue = false)
         {
             try
             {
-                await beey.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, cts.Token);
-                onTranscriptionStarted?.Invoke();
+                if (useQueue)
+                    await beey.EnqueueProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, cts.Token);
+                else
+                    await beey.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, cts.Token);
                 return true;
             }
             catch
