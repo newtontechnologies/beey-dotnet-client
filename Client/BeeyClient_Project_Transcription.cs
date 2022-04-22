@@ -7,57 +7,58 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Beey.Client
+namespace Beey.Client;
+
+public partial class BeeyClient
 {
-    public partial class BeeyClient
+    public async Task<Message[]> GetMessagesAsync(int id, DateTime? from = null, CancellationToken cancellationToken = default)
     {
-        public async Task<Message[]> GetMessagesAsync(int id, DateTime? from = null, CancellationToken cancellationToken = default)
+        this.RequireAuthorization();
+
+        var policy = CreateHttpAsyncUnauthorizedPolicy<Message[]>();
+        return await policy.ExecuteAsync(async (c) =>
         {
-            this.RequireAuthorization();
+            return await ProjectApi.GetMessagesAsync(id, from, c);
+        }, cancellationToken);
+    }
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Message[]>();
-            return await policy.ExecuteAsync(async (c) =>
-            {
-                return await ProjectApi.GetMessagesAsync(id, from, c);
-            }, cancellationToken);
-        }
+    public async Task<Project> TranscribeProjectAsync(int projectId, string language = "cs-CZ",
+        bool withPpc = true, bool withVad = true, bool withPunctuation = true, bool saveTrsx = true,
+        string transcriptionProfile = "default",
+        CancellationToken cancellationToken = default)
+    {
+        this.RequireAuthorization();
 
-        public async Task<Project> TranscribeProjectAsync(int projectId, string language = "cs-CZ",
-            bool withPpc = true, bool withVad = true, bool withPunctuation = true, bool saveTrsx = true,
-            CancellationToken cancellationToken = default)
+        var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+        return await policy.ExecuteAsync(async (c) =>
         {
-            this.RequireAuthorization();
+            return await ProjectApi.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, cancellationToken);
+        }, cancellationToken);
+    }
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
-            return await policy.ExecuteAsync(async (c) =>
-            {
-                return await ProjectApi.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, cancellationToken);
-            }, cancellationToken);
-        }
+    public async Task<Project> EnqueueProjectAsync(int projectId, string language = "cs-CZ",
+        bool withPpc = true, bool withVad = true, bool withPunctuation = true, bool saveTrsx = true,
+        string transcriptionProfile = "default",
+        CancellationToken cancellationToken = default)
+    {
+        this.RequireAuthorization();
 
-        public async Task<Project> EnqueueProjectAsync(int projectId, string language = "cs-CZ",
-            bool withPpc = true, bool withVad = true, bool withPunctuation = true, bool saveTrsx = true,
-            CancellationToken cancellationToken = default)
+        var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+        return await policy.ExecuteAsync(async (c) =>
         {
-            this.RequireAuthorization();
+            return await ProjectApi.EnqueueProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, cancellationToken);
+        }, cancellationToken);
+    }
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
-            return await policy.ExecuteAsync(async (c) =>
-            {
-                return await ProjectApi.EnqueueProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, cancellationToken);
-            }, cancellationToken);
-        }
+    public async Task ResetProjectAsync(int projectId, CancellationToken cancellationToken = default)
+    {
+        this.RequireAuthorization();
 
-        public async Task ResetProjectAsync(int projectId, CancellationToken cancellationToken = default)
+        var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
+        await policy.ExecuteAsync(async (c) =>
         {
-            this.RequireAuthorization();
-
-            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
-            await policy.ExecuteAsync(async (c) =>
-            {
-                await ProjectApi.ResetAsync(projectId, c);
-                return true;
-            }, cancellationToken);
-        }
+            await ProjectApi.ResetAsync(projectId, c);
+            return true;
+        }, cancellationToken);
     }
 }

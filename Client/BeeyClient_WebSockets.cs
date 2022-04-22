@@ -9,59 +9,59 @@ using System.Threading.Tasks;
 using Beey.Api.WebSockets;
 using System.IO;
 
-namespace Beey.Client
+namespace Beey.Client;
+
+public partial class BeeyClient
 {
-    public partial class BeeyClient
+    public async Task<string> EchoAsync(string text,
+        CancellationToken cancellationToken = default)
     {
-        public async Task<string> EchoAsync(string text,
-            CancellationToken cancellationToken = default)
+        this.RequireAuthorization();
+
+        var policy = CreateWebSocketsAsyncUnauthorizedPolicy<string>();
+        return (await policy.ExecuteAsync(async (ctx, c) =>
         {
-            this.RequireAuthorization();
+            return await WebSocketsApi.EchoAsync(text, cancellationToken);
+        }, CreatePollyContext(cancellationToken), cancellationToken));
+    }
 
-            var policy = CreateWebSocketsAsyncUnauthorizedPolicy<string>();
-            return (await policy.ExecuteAsync(async (ctx, c) =>
-            {
-                return await WebSocketsApi.EchoAsync(text, cancellationToken);
-            }, CreatePollyContext(cancellationToken), cancellationToken));
-        }
+    public async Task<string> SpeakerSuggestionAsync(string search,
+        CancellationToken cancellationToken = default)
+    {
+        this.RequireAuthorization();
 
-        public async Task<string> SpeakerSuggestionAsync(string search,
-            CancellationToken cancellationToken = default)
+        var policy = CreateWebSocketsAsyncUnauthorizedPolicy<string>();
+        return (await policy.ExecuteAsync(async (ctx, c) =>
         {
-            this.RequireAuthorization();
+            return await WebSocketsApi.SpeakerSuggestionAsync(search, cancellationToken);
+        }, CreatePollyContext(cancellationToken), cancellationToken));
+    }
 
-            var policy = CreateWebSocketsAsyncUnauthorizedPolicy<string>();
-            return (await policy.ExecuteAsync(async (ctx, c) =>
-            {
-                return await WebSocketsApi.SpeakerSuggestionAsync(search, cancellationToken);
-            }, CreatePollyContext(cancellationToken), cancellationToken));
-        }
+    public async Task UploadStreamAsync(int projectId, string dataName, Stream data,
+        long? dataLength, bool saveMedia,
+        string transcodingProfile = "default",
+        CancellationToken cancellationToken = default)
+    {
+        this.RequireAuthorization();
 
-        public async Task UploadStreamAsync(int projectId,string dataName, Stream data,
-            long? dataLength, bool saveMedia,
-            CancellationToken cancellationToken = default)
+        var policy = CreateWebSocketsAsyncUnauthorizedPolicy<bool>();
+        await policy.ExecuteAsync(async (ctx, c) =>
         {
-            this.RequireAuthorization();
+            await WebSocketsApi.UploadStreamAsync(projectId, dataName, data, dataLength, saveMedia, transcodingProfile, cancellationToken);
+            return true;
+        }, CreatePollyContext(cancellationToken), cancellationToken);
+    }
 
-            var policy = CreateWebSocketsAsyncUnauthorizedPolicy<bool>();
-            await policy.ExecuteAsync(async (ctx, c) =>
-            {
-                await WebSocketsApi.UploadStreamAsync(projectId, dataName, data, dataLength, saveMedia, cancellationToken);
-                return true;
-            }, CreatePollyContext(cancellationToken), cancellationToken);
-        }
-
-        public async Task<IAsyncEnumerable<string>> ListenToMessages(int projectId,
-            CancellationToken cancellationToken = default)
+    public async Task<IAsyncEnumerable<string>> ListenToMessages(int projectId,
+        CancellationToken cancellationToken = default)
+    {
+        this.RequireAuthorization();
+        var policy = CreateWebSocketsAsyncUnauthorizedPolicy<IAsyncEnumerable<string>>();
+        var it = await policy.ExecuteAsync(async (ctx, c) =>
         {
-            this.RequireAuthorization();
-            var policy = CreateWebSocketsAsyncUnauthorizedPolicy<IAsyncEnumerable<string>>();
-            var it = await policy.ExecuteAsync(async (ctx, c) =>
-            {
-                return await WebSocketsApi.ListenToMessages(projectId, cancellationToken);
-            }, CreatePollyContext(cancellationToken), cancellationToken);
+            return await WebSocketsApi.ListenToMessages(projectId, cancellationToken);
+        }, CreatePollyContext(cancellationToken), cancellationToken);
 
-            return it;
-        }
+        return it;
     }
 }
