@@ -4,23 +4,22 @@ using System.Collections.Generic;
 using System.Text;
 using TranscriptionCore;
 
-namespace Beey.Api
+namespace Beey.Api;
+
+class JsonConverters
 {
-    class JsonConverters
+    public static SpeakerJsonConverter Speaker = new SpeakerJsonConverter();
+}
+
+class SpeakerJsonConverter : JsonConverter<Speaker>
+{
+    public override Speaker ReadJson(JsonReader reader, Type objectType, Speaker existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
-        public static SpeakerJsonConverter Speaker = new SpeakerJsonConverter();
+        return new Speaker(System.Xml.Linq.XElement.Parse((string)reader.Value));
     }
 
-    class SpeakerJsonConverter : JsonConverter<Speaker>
+    public override void WriteJson(JsonWriter writer, Speaker value, JsonSerializer serializer)
     {
-        public override Speaker ReadJson(JsonReader reader, Type objectType, Speaker existingValue, bool hasExistingValue, JsonSerializer serializer)
-        {
-            return new Speaker(System.Xml.Linq.XElement.Parse((string)reader.Value));
-        }
-
-        public override void WriteJson(JsonWriter writer, Speaker value, JsonSerializer serializer)
-        {
-            writer.WriteValue(value.Serialize());
-        }
+        writer.WriteValue(value.Serialize());
     }
 }

@@ -1,14 +1,13 @@
-﻿namespace Beey.Proxy
+﻿namespace Beey.Proxy;
+
+public class BeeyProxyHolder
 {
-    public class BeeyProxyHolder
+    public BeeyProxy? data;
+
+    internal BeeyProxyHolder(BeeyProxy? value)
     {
-        public BeeyProxy? data;
-
-        internal BeeyProxyHolder(BeeyProxy? value)
-        {
-            data = value;
-        }
-
-        public static BeeyProxyHolder Empty { get; } = new BeeyProxyHolder(null);
+        data = value;
     }
+
+    public static BeeyProxyHolder Empty { get; } = new BeeyProxyHolder(null);
 }

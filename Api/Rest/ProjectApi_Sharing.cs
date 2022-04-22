@@ -7,32 +7,31 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Beey.Api.Rest
+namespace Beey.Api.Rest;
+
+public partial class ProjectApi : BaseAuthApi<ProjectApi>
 {
-    public partial class ProjectApi : BaseAuthApi<ProjectApi>
+    public async Task<Project> ShareProjectAsync(int id, long accessToken, string email,
+       CancellationToken cancellationToken)
     {
-        public async Task<Project> ShareProjectAsync(int id, long accessToken, string email,
-           CancellationToken cancellationToken)
-        {
-            var result = await CreateBuilder()
-                .AddUrlSegment(id.ToString())
-                .AddUrlSegment("Share")
-                .AddParameter("shareTo", email)
-                .AddParameter("accessToken", accessToken)
-                .ExecuteAsync(HttpMethod.POST, cancellationToken);
+        var result = await CreateBuilder()
+            .AddUrlSegment(id.ToString())
+            .AddUrlSegment("Share")
+            .AddParameter("shareTo", email)
+            .AddParameter("accessToken", accessToken)
+            .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
-        }
+        return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
+    }
 
-        public async Task<Listing<ProjectAccessViewModel>> ListProjectSharing(int id,
-            CancellationToken cancellationToken)
-        {
-            var result = await CreateBuilder()
-                .AddUrlSegment(id.ToString())
-                .AddUrlSegment("Share/List")
-                .ExecuteAsync(HttpMethod.POST, cancellationToken);
+    public async Task<Listing<ProjectAccessViewModel>> ListProjectSharing(int id,
+        CancellationToken cancellationToken)
+    {
+        var result = await CreateBuilder()
+            .AddUrlSegment(id.ToString())
+            .AddUrlSegment("Share/List")
+            .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<ProjectAccessViewModel>>(r.GetStringContent()));
-        }
+        return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<ProjectAccessViewModel>>(r.GetStringContent()));
     }
 }

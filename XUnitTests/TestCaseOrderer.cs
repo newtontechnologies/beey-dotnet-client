@@ -5,24 +5,23 @@ using System.Text;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace XUnitTests
+namespace XUnitTests;
+
+class TestCaseOrderer : ITestCaseOrderer
 {
-    class TestCaseOrderer : ITestCaseOrderer
+    public IEnumerable<TTestCase> OrderTestCases<TTestCase>(IEnumerable<TTestCase> testCases) where TTestCase : ITestCase
     {
-        public IEnumerable<TTestCase> OrderTestCases<TTestCase>(IEnumerable<TTestCase> testCases) where TTestCase : ITestCase
-        {
-            return testCases.OrderBy(t => GetPriority(t));
-        }
+        return testCases.OrderBy(t => GetPriority(t));
+    }
 
-        private static double GetPriority(ITestCase testCase)
-        {
-            var priorityAttribute = testCase.TestMethod.Method
-                .GetCustomAttributes(typeof(TestPriorityAttribute))
-                .FirstOrDefault();
+    private static double GetPriority(ITestCase testCase)
+    {
+        var priorityAttribute = testCase.TestMethod.Method
+            .GetCustomAttributes(typeof(TestPriorityAttribute))
+            .FirstOrDefault();
 
-            return priorityAttribute == null
-                ? 0
-                : priorityAttribute.GetNamedArgument<double>("Priority");
-        }
+        return priorityAttribute == null
+            ? 0
+            : priorityAttribute.GetNamedArgument<double>("Priority");
     }
 }

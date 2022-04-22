@@ -7,37 +7,36 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Beey.Api.Rest
+namespace Beey.Api.Rest;
+
+partial class ProjectApi : BaseAuthApi<ProjectApi>
 {
-    partial class ProjectApi : BaseAuthApi<ProjectApi>
+    public async Task<ExportFormat[]> GetExportFormatsAsync(int projectId, CancellationToken cancellationToken)
     {
-        public async Task<ExportFormat[]> GetExportFormatsAsync(int projectId, CancellationToken cancellationToken)
+        var result = await CreateBuilder()
+           .AddUrlSegment(projectId.ToString())
+           .AddUrlSegment("Export/Formats")
+           .ExecuteAsync(HttpMethod.GET, cancellationToken);
+
+        return HandleResponse(result, r => JsonConvert.DeserializeObject<ExportFormat[]>(r.GetStringContent()));
+    }
+
+    public async Task<ExportFile> ExportWithFormatAsync(int projectId, string formatId,
+        CancellationToken cancellationToken)
+    {
+        var result = await CreateBuilder()
+           .AddUrlSegment(projectId.ToString())
+           .AddUrlSegment("Export")
+           .AddParameter("formatId", formatId)
+           .ExecuteAsync(HttpMethod.GET, cancellationToken);
+
+
+        return HandleResponse(result, _ =>
         {
-            var result = await CreateBuilder()
-               .AddUrlSegment(projectId.ToString())
-               .AddUrlSegment("Export/Formats")
-               .ExecuteAsync(HttpMethod.GET, cancellationToken);
+            string mime = result.HttpResponseMessage.Content.Headers.ContentType?.MediaType ?? "application/json";
+            var filename = result.HttpResponseMessage.Content.Headers.ContentDisposition?.FileName ?? "invalid.name";
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<ExportFormat[]>(r.GetStringContent()));
-        }
-
-        public async Task<ExportFile> ExportWithFormatAsync(int projectId, string formatId,
-            CancellationToken cancellationToken)
-        {
-            var result = await CreateBuilder()
-               .AddUrlSegment(projectId.ToString())
-               .AddUrlSegment("Export")
-               .AddParameter("formatId", formatId)
-               .ExecuteAsync(HttpMethod.GET, cancellationToken);
-
-
-            return HandleResponse(result, _ =>
-            {
-                string mime = result.HttpResponseMessage.Content.Headers.ContentType?.MediaType ?? "application/json";
-                var filename = result.HttpResponseMessage.Content.Headers.ContentDisposition?.FileName ?? "invalid.name";
-
-                return new ExportFile(filename, mime, result.Content);
-            });
-        }
+            return new ExportFile(filename, mime, result.Content);
+        });
     }
 }

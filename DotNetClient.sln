@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28803.156
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32407.343
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DemoApp", "DemoApp\DemoApp.csproj", "{01294BBA-17BE-4AA7-A655-2329CDB4B70A}"
 EndProject
@@ -11,18 +11,20 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Beey.Client", "Client\Beey.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XUnitTests", "XUnitTests\XUnitTests.csproj", "{87FE7FF1-0E49-4F20-8E52-35D989A78AC6}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Beey.DataExchangeModel", "DataExchangeModel\Beey.DataExchangeModel.shproj", "{306CEFB5-A8C2-4577-8332-13827A9EC870}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Beey.Proxy", "Beey.Proxy\Beey.Proxy.csproj", "{F249FAB5-A1ED-43EA-8083-1D017EF14461}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DemoBeeyApp", "DemoBeeyApp\DemoBeeyApp.csproj", "{D0138B7F-BBC4-4C97-9BC2-3AA1DB54484A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TranscriptionCore", "TranscriptionCore\TranscriptionCore.csproj", "{D30F5B23-1BFA-45F7-90FC-6232BEB9B643}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Beey.DataExchangeModel.Common", "DataExchangeModel\Beey.DataExchangeModel.Common\Beey.DataExchangeModel.Common.csproj", "{58AA1565-C661-4311-B820-DE9DE5D4EE48}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Beey.DataExchangeModel.Partial", "DataExchangeModel\Beey.DataExchangeModel.Partial\Beey.DataExchangeModel.Partial.shproj", "{306CEFB5-A8C2-4577-8332-13827A9EC870}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		DataExchangeModel\Beey.DataExchangeModel.projitems*{306cefb5-a8c2-4577-8332-13827a9ec870}*SharedItemsImports = 13
-		DataExchangeModel\Beey.DataExchangeModel.projitems*{328f4e0d-ef46-409f-a2cc-d7025294757f}*SharedItemsImports = 5
+		DataExchangeModel\Beey.DataExchangeModel.Partial\Beey.DataExchangeModel.projitems*{306cefb5-a8c2-4577-8332-13827a9ec870}*SharedItemsImports = 13
+		DataExchangeModel\Beey.DataExchangeModel.Partial\Beey.DataExchangeModel.projitems*{328f4e0d-ef46-409f-a2cc-d7025294757f}*SharedItemsImports = 5
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,14 @@ Global
 		{D30F5B23-1BFA-45F7-90FC-6232BEB9B643}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D30F5B23-1BFA-45F7-90FC-6232BEB9B643}.Release|x86.ActiveCfg = Release|Any CPU
 		{D30F5B23-1BFA-45F7-90FC-6232BEB9B643}.Release|x86.Build.0 = Release|Any CPU
+		{58AA1565-C661-4311-B820-DE9DE5D4EE48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58AA1565-C661-4311-B820-DE9DE5D4EE48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58AA1565-C661-4311-B820-DE9DE5D4EE48}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{58AA1565-C661-4311-B820-DE9DE5D4EE48}.Debug|x86.Build.0 = Debug|Any CPU
+		{58AA1565-C661-4311-B820-DE9DE5D4EE48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58AA1565-C661-4311-B820-DE9DE5D4EE48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58AA1565-C661-4311-B820-DE9DE5D4EE48}.Release|x86.ActiveCfg = Release|Any CPU
+		{58AA1565-C661-4311-B820-DE9DE5D4EE48}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

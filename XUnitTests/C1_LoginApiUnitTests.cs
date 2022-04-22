@@ -8,41 +8,40 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace XUnitTests
+namespace XUnitTests;
+
+[CollectionDefinition("1 - Login Collection")]
+public class C1_LoginCollectionDefinition { }
+
+
+[Collection("1 - Login Collection")]
+public class C1_LoginApiUnitTests
 {
-    [CollectionDefinition("1 - Login Collection")]
-    public class C1_LoginCollectionDefinition { }
+    private static LoginApi? api;
+    private static LoginToken? token;
 
-
-    [Collection("1 - Login Collection")]
-    public class C1_LoginApiUnitTests
+    [Fact, TestPriority(1)]
+    public async Task LoginAsync()
     {
-        private static LoginApi api;
-        private static LoginToken token;
+        api = new LoginApi(Configuration.BeeyUrl);
+        token = await api.LoginAsync(Configuration.Email, Configuration.Password, default);
+    }
 
-        [Fact, TestPriority(1)]
-        public async Task LoginAsync()
-        {
-            api = new LoginApi(Configuration.BeeyUrl);
-            token = await api.LoginAsync(Configuration.Email, Configuration.Password, default);
-        }
+    [Fact, TestPriority(2)]
+    public async Task LogoutAsync()
+    {
+        await api!.LogoutAsync(token!, default);
+    }
 
-        [Fact, TestPriority(2)]
-        public async Task LogoutAsync()
-        {
-            await api.LogoutAsync(token, default);
-        }
+    [Fact, TestPriority(3)]
+    public async Task GetVersionAsync()
+    {
+        await api!.GetContentVersionAsync(default);
+    }
 
-        [Fact, TestPriority(3)]
-        public async Task GetVersionAsync()
-        {
-            await api.GetContentVersionAsync(default);
-        }
-
-        [Fact, TestPriority(4)]
-        public async Task GetPasswordSettingsAsync()
-        {
-            await api.GetPasswordSettingsAsync(default);
-        }
+    [Fact, TestPriority(4)]
+    public async Task GetPasswordSettingsAsync()
+    {
+        await api!.GetPasswordSettingsAsync(default);
     }
 }

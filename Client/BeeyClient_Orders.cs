@@ -11,30 +11,29 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Beey.Client
-{
-    public partial class BeeyClient
-    {        
-        public async Task<string> CreateCreditOrderAsync(uint credit, CancellationToken cancellationToken = default)
+namespace Beey.Client;
+
+public partial class BeeyClient
+{        
+    public async Task<string> CreateCreditOrderAsync(uint credit, CancellationToken cancellationToken = default)
+    {
+        this.RequireAuthorization();
+
+        var policy = CreateHttpAsyncUnauthorizedPolicy<string>();
+        return await policy.ExecuteAsync(async (ctx, c) =>
         {
-            this.RequireAuthorization();
+            return await OrderApi.CreateCreditOrderAsync(credit, cancellationToken);
+        }, CreatePollyContext(cancellationToken), cancellationToken);
+    }
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<string>();
-            return await policy.ExecuteAsync(async (ctx, c) =>
-            {
-                return await OrderApi.CreateCreditOrderAsync(credit, cancellationToken);
-            }, CreatePollyContext(cancellationToken), cancellationToken);
-        }
+    public async Task<Listing<OrderInfoViewModel>> ListOrdersAsync(CancellationToken cancellationToken = default)
+    {
+        this.RequireAuthorization();
 
-        public async Task<Listing<OrderInfoViewModel>> ListOrdersAsync(CancellationToken cancellationToken = default)
+        var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<OrderInfoViewModel>>();
+        return await policy.ExecuteAsync(async (ctx, c) =>
         {
-            this.RequireAuthorization();
-
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<OrderInfoViewModel>>();
-            return await policy.ExecuteAsync(async (ctx, c) =>
-            {
-                return await OrderApi.ListOrders(cancellationToken);
-            }, CreatePollyContext(cancellationToken), cancellationToken);
-        }
+            return await OrderApi.ListOrders(cancellationToken);
+        }, CreatePollyContext(cancellationToken), cancellationToken);
     }
 }

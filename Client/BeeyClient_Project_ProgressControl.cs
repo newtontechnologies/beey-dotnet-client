@@ -6,47 +6,46 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Beey.Client
+namespace Beey.Client;
+
+public partial class BeeyClient
 {
-    public partial class BeeyClient
+    public async Task<ProjectProgress> GetProjectProgressStateAsync(int id,
+      CancellationToken cancellationToken = default)
     {
-        public async Task<ProjectProgress> GetProjectProgressStateAsync(int id,
-          CancellationToken cancellationToken = default)
+        this.RequireAuthorization();
+
+        var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectProgress>();
+        return await policy.ExecuteAsync(async (c) =>
         {
-            this.RequireAuthorization();
+            return await ProjectApi.GetProgressStateAsync(id, c);
+        }, cancellationToken);
+    }
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectProgress>();
-            return await policy.ExecuteAsync(async (c) =>
-            {
-                return await ProjectApi.GetProgressStateAsync(id, c);
-            }, cancellationToken);
-        }
+    public async Task<Message[]> GetProjectProgressMessagesAsync(int id,
+        int? count = null, int? skip = null,
+        int? fromId = null, int? toId = null,
+    CancellationToken cancellationToken = default)
+    {
+        this.RequireAuthorization();
 
-        public async Task<Message[]> GetProjectProgressMessagesAsync(int id,
-            int? count = null, int? skip = null,
-            int? fromId = null, int? toId = null,
-        CancellationToken cancellationToken = default)
+        var policy = CreateHttpAsyncUnauthorizedPolicy<Message[]>();
+        return await policy.ExecuteAsync(async (c) =>
         {
-            this.RequireAuthorization();
+            return await ProjectApi.GetProgressMessagesAsync(id, count, skip, fromId, toId, c);
+        }, cancellationToken);
+    }
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<Message[]>();
-            return await policy.ExecuteAsync(async (c) =>
-            {
-                return await ProjectApi.GetProgressMessagesAsync(id, count, skip, fromId, toId, c);
-            }, cancellationToken);
-        }
+    public async Task StopProjectAsync(int id,
+       CancellationToken cancellationToken = default)
+    {
+        this.RequireAuthorization();
 
-        public async Task StopProjectAsync(int id,
-           CancellationToken cancellationToken = default)
+        var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
+        await policy.ExecuteAsync(async (c) =>
         {
-            this.RequireAuthorization();
-
-            var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
-            await policy.ExecuteAsync(async (c) =>
-            {
-                await ProjectApi.StopAsync(id, c);
-                return true;
-            }, cancellationToken);
-        }
+            await ProjectApi.StopAsync(id, c);
+            return true;
+        }, cancellationToken);
     }
 }

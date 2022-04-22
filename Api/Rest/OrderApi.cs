@@ -8,32 +8,31 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Beey.Api.Rest
+namespace Beey.Api.Rest;
+
+public class OrderApi : BaseAuthApi<OrderApi>
 {
-    public class OrderApi : BaseAuthApi<OrderApi>
+    public OrderApi(string url) : base(url)
     {
-        public OrderApi(string url) : base(url)
-        {
-            EndPoint = "XAPI/Orders";
-        }
+        EndPoint = "XAPI/Orders";
+    }
 
-        public async Task<string> CreateCreditOrderAsync(uint credit, CancellationToken cancellationToken)
-        {
-            var result = await CreateBuilder()
-                .AddUrlSegment("Create")
-                .AddParameter("credit", credit)
-                .ExecuteAsync(HttpMethod.GET, cancellationToken);
+    public async Task<string> CreateCreditOrderAsync(uint credit, CancellationToken cancellationToken)
+    {
+        var result = await CreateBuilder()
+            .AddUrlSegment("Create")
+            .AddParameter("credit", credit)
+            .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => r.GetStringContent());
-        }
+        return HandleResponse(result, r => r.GetStringContent());
+    }
 
-        public async Task<Listing<OrderInfoViewModel>> ListOrders(CancellationToken cancellationToken)
-        {
-            var result = await CreateBuilder()
-                .AddUrlSegment("List")
-                .ExecuteAsync(HttpMethod.GET, cancellationToken);
+    public async Task<Listing<OrderInfoViewModel>> ListOrders(CancellationToken cancellationToken)
+    {
+        var result = await CreateBuilder()
+            .AddUrlSegment("List")
+            .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<OrderInfoViewModel>>(r.GetStringContent()));
-        }
+        return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<OrderInfoViewModel>>(r.GetStringContent()));
     }
 }

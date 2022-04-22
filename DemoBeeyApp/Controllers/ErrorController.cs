@@ -7,23 +7,22 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DemoBeeyApp.Controllers
+namespace DemoBeeyApp.Controllers;
+
+[Route("/")]
+public class ErrorController : Controller
 {
-    [Route("/")]
-    public class ErrorController : Controller
+    private readonly ILogger<ErrorController> _logger;
+
+    public ErrorController(ILogger<ErrorController> logger)
     {
-        private readonly ILogger<ErrorController> _logger;
+        _logger = logger;
+    }
 
-        public ErrorController(ILogger<ErrorController> logger)
-        {
-            _logger = logger;
-        }
-
-        [HttpGet("Error")]
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return Json("Error, probably not requested through Beey instance");
-        }
+    [HttpGet("Error")]
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    public IActionResult Error()
+    {
+        return Json("Error, probably not requested through Beey instance");
     }
 }

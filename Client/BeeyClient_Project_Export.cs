@@ -7,31 +7,30 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Beey.Client
+namespace Beey.Client;
+
+public partial class BeeyClient
 {
-    public partial class BeeyClient
+    public async Task<ExportFormat[]> GetExportFormatsAsync(CancellationToken cancellationToken)
     {
-        public async Task<ExportFormat[]> GetExportFormatsAsync(CancellationToken cancellationToken)
+        this.RequireAuthorization();
+
+        var policy = CreateHttpAsyncUnauthorizedPolicy<ExportFormat[]>();
+        return await policy.ExecuteAsync(async (c) =>
         {
-            this.RequireAuthorization();
+            return await ProjectApi.GetExportFormatsAsync(1, c);
+        }, cancellationToken);
+    }
 
-            var policy = CreateHttpAsyncUnauthorizedPolicy<ExportFormat[]>();
-            return await policy.ExecuteAsync(async (c) =>
-            {
-                return await ProjectApi.GetExportFormatsAsync(1, c);
-            }, cancellationToken);
-        }
+    public async Task<ExportFile> ExportWithFormatAsync(int projectId, string formatId,
+        CancellationToken cancellationToken)
+    {
+        this.RequireAuthorization();
 
-        public async Task<ExportFile> ExportWithFormatAsync(int projectId, string formatId,
-            CancellationToken cancellationToken)
+        var policy = CreateHttpAsyncUnauthorizedPolicy<ExportFile>();
+        return (await policy.ExecuteAsync(async (c) =>
         {
-            this.RequireAuthorization();
-
-            var policy = CreateHttpAsyncUnauthorizedPolicy<ExportFile>();
-            return (await policy.ExecuteAsync(async (c) =>
-            {
-                return await ProjectApi.ExportWithFormatAsync(projectId, formatId, c);
-            }, cancellationToken));
-        }
+            return await ProjectApi.ExportWithFormatAsync(projectId, formatId, c);
+        }, cancellationToken));
     }
 }

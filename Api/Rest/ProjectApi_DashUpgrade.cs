@@ -4,28 +4,27 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Beey.Api.Rest
+namespace Beey.Api.Rest;
+
+public partial class ProjectApi : BaseAuthApi<ProjectApi>
 {
-    public partial class ProjectApi : BaseAuthApi<ProjectApi>
+    public async Task<string> GetDashConversionStateAsync(int id, CancellationToken cancellationToken)
     {
-        public async Task<string> GetDashConversionStateAsync(int id, CancellationToken cancellationToken)
-        {
-            var result = await CreateBuilder()
-               .AddUrlSegment(id.ToString())
-               .AddUrlSegment("DashUpgrade/State")
-               .ExecuteAsync(HttpMethod.GET, cancellationToken);
+        var result = await CreateBuilder()
+           .AddUrlSegment(id.ToString())
+           .AddUrlSegment("DashUpgrade/State")
+           .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            return HandleResponse(result, r => r.GetStringContent());
-        }
+        return HandleResponse(result, r => r.GetStringContent());
+    }
 
-        public async Task ConvertToDashAsync(int id, CancellationToken cancellationToken)
-        {
-            var result = await CreateBuilder()
-               .AddUrlSegment(id.ToString())
-               .AddUrlSegment("DashUpgrade/Convert")
-               .ExecuteAsync(HttpMethod.GET, cancellationToken);
+    public async Task ConvertToDashAsync(int id, CancellationToken cancellationToken)
+    {
+        var result = await CreateBuilder()
+           .AddUrlSegment(id.ToString())
+           .AddUrlSegment("DashUpgrade/Convert")
+           .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-            HandleResponse(result);
-        }
+        HandleResponse(result);
     }
 }

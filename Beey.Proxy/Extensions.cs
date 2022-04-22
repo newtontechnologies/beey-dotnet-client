@@ -4,21 +4,20 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Beey.Proxy
-{
-    public static class Extensions
-    {
-        public static IApplicationBuilder UseBeeyProxy(this IApplicationBuilder builder)
-        {
-            return builder.UseMiddleware<BeeyProxyMiddleware>();
-        }
+namespace Beey.Proxy;
 
-        public static IServiceCollection AddBeeyProxy(this IServiceCollection services)
-        {
-            services.AddSingleton<BeeyProxyAccessor>();
-            services.AddTransient<BeeyProxyHolder>(services => services.GetRequiredService<BeeyProxyAccessor>().BeeyDataHolder);
-            services.AddTransient<BeeyProxy>(services => services.GetRequiredService<BeeyProxyAccessor>().BeeyData ?? throw new NullReferenceException("Beey data not set"));
-            return services;
-        }
+public static class Extensions
+{
+    public static IApplicationBuilder UseBeeyProxy(this IApplicationBuilder builder)
+    {
+        return builder.UseMiddleware<BeeyProxyMiddleware>();
+    }
+
+    public static IServiceCollection AddBeeyProxy(this IServiceCollection services)
+    {
+        services.AddSingleton<BeeyProxyAccessor>();
+        services.AddTransient<BeeyProxyHolder>(services => services.GetRequiredService<BeeyProxyAccessor>().BeeyDataHolder);
+        services.AddTransient<BeeyProxy>(services => services.GetRequiredService<BeeyProxyAccessor>().BeeyData ?? throw new NullReferenceException("Beey data not set"));
+        return services;
     }
 }
