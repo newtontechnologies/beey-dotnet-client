@@ -23,9 +23,9 @@ internal class RestRequestBuilder
         request = new Request(url);
     }
 
-    public RestRequestBuilder Url(string url)
+    public RestRequestBuilder EndPoint(string endPoint)
     {
-        request.Url = url.TrimStart('/').TrimEnd('/');
+        request.EndPoint = "/" + endPoint.TrimStart('/').TrimEnd('/');
 
         return this;
     }

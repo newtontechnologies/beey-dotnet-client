@@ -4,6 +4,7 @@ using Beey.DataExchangeModel.Lexicons;
 using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Projects;
 using Beey.DataExchangeModel.Serialization.JsonConverters;
+using Beey.DataExchangeModel.Users;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -93,6 +94,16 @@ public class CurrentUserApi : BaseAuthApi<CurrentUserApi>
         HandleResponse(result);
     }
 
+    public async Task<List<string>> ListUserLexLanguagesAsync(CancellationToken cancellationToken)
+    {
+        var result = await CreateBuilder()
+            .AddUrlSegment("Lexicon")
+            .AddUrlSegment("ListLanguages")
+            .ExecuteAsync(HttpMethod.GET, cancellationToken);
+
+        return HandleResponse(result, r => JsonConvert.DeserializeObject<List<string>>(r.GetStringContent()));
+    }
+
     public async Task<Message[]> GetUserMessagesAsync(DateTime? from, CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
@@ -101,6 +112,48 @@ public class CurrentUserApi : BaseAuthApi<CurrentUserApi>
             .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
         return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<Message[]>(r.GetStringContent(), GetJsonSerializerOptions()));
+    }
+
+    public async Task<PaymentInfoViewModel> GetPaymentInfoAsync(CancellationToken cancellationToken)
+    {
+        var result = await CreateBuilder()
+            .EndPoint("XAPI/User")
+            .AddUrlSegment("PaymentInfo")
+            .ExecuteAsync(HttpMethod.GET, cancellationToken);
+
+        return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<PaymentInfoViewModel>(r.GetStringContent(), GetJsonSerializerOptions()));
+    }
+
+    public async Task<PaymentInfoViewModel> SetPaymentInfoAsync(PaymentInfoViewModel paymentInfo, CancellationToken cancellationToken)
+    {
+        var result = await CreateBuilder()
+            .EndPoint("XAPI/User")
+            .AddUrlSegment("PaymentInfo")
+            .SetBody(System.Text.Json.JsonSerializer.Serialize(paymentInfo))
+            .ExecuteAsync(HttpMethod.POST, cancellationToken);
+
+        return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<PaymentInfoViewModel>(r.GetStringContent(), GetJsonSerializerOptions()));
+    }
+
+    public async Task<bool> GetDataProtectionConsentAsync(CancellationToken cancellationToken)
+    {
+        var result = await CreateBuilder()
+            .EndPoint("XAPI/User")
+            .AddUrlSegment("DataProtectionConsent")
+            .ExecuteAsync(HttpMethod.GET, cancellationToken);
+
+        return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<bool>(r.GetStringContent(), GetJsonSerializerOptions()));
+    }
+
+    public async Task<UserViewModel> SetDataProtectionConsentAsync(bool consent, CancellationToken cancellationToken)
+    {
+        var result = await CreateBuilder()
+            .EndPoint("XAPI/User")
+            .AddUrlSegment("DataProtectionConsent")
+            .AddParameter("consent", consent)
+            .ExecuteAsync(HttpMethod.POST, cancellationToken);
+
+        return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<UserViewModel>(r.GetStringContent(), GetJsonSerializerOptions()));
     }
 
     private static JsonSerializerOptions GetJsonSerializerOptions()

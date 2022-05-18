@@ -3,6 +3,7 @@ using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Lexicons;
 using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Projects;
+using Beey.DataExchangeModel.Users;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -79,6 +80,17 @@ public partial class BeeyClient
         }, CreatePollyContext(cancellationToken), cancellationToken);
     }
 
+    public async Task<List<string>> ListUserLexLanguagesAsync(CancellationToken cancellationToken = default)
+    {
+        this.RequireAuthorization();
+
+        var policy = CreateHttpAsyncUnauthorizedPolicy<List<string>>();
+        return await policy.ExecuteAsync(async (ctx, c) =>
+        {
+            return await CurrentUserApi.ListUserLexLanguagesAsync(cancellationToken);
+        }, CreatePollyContext(cancellationToken), cancellationToken);
+    }
+
     public async Task SetUserLexAsync(string language, IEnumerable<LexiconEntry> userLex, CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
@@ -110,6 +122,51 @@ public partial class BeeyClient
         return await policy.ExecuteAsync(async (ctx, c) =>
         {
             return await CurrentUserApi.GetTranscriptionLogAsync(cancellationToken);
+        }, CreatePollyContext(cancellationToken), cancellationToken);
+    }
+
+    public async Task<PaymentInfoViewModel> GetPaymentInfoAsync(CancellationToken cancellationToken = default)
+    {
+        this.RequireAuthorization();
+
+        var policy = CreateHttpAsyncUnauthorizedPolicy<PaymentInfoViewModel>();
+        return await policy.ExecuteAsync(async (ctx, c) =>
+        {
+            return await CurrentUserApi.GetPaymentInfoAsync(cancellationToken);
+        }, CreatePollyContext(cancellationToken), cancellationToken);
+    }
+
+    public async Task SetPaymentInfoAsync(PaymentInfoViewModel paymentInfo, CancellationToken cancellationToken = default)
+    {
+        this.RequireAuthorization();
+
+        var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
+        await policy.ExecuteAsync(async (ctx, c) =>
+        {
+            await CurrentUserApi.SetPaymentInfoAsync(paymentInfo, cancellationToken);
+            return true;
+        }, CreatePollyContext(cancellationToken), cancellationToken);
+    }
+
+    public async Task<bool> GetDataProtectionConsentAsync(CancellationToken cancellationToken = default)
+    {
+        this.RequireAuthorization();
+
+        var policy = CreateHttpAsyncUnauthorizedPolicy<bool>();
+        return await policy.ExecuteAsync(async (ctx, c) =>
+        {
+            return await CurrentUserApi.GetDataProtectionConsentAsync(cancellationToken);
+        }, CreatePollyContext(cancellationToken), cancellationToken);
+    }
+
+    public async Task<UserViewModel> SetDataProtectionConsentAsync(bool consent, CancellationToken cancellationToken = default)
+    {
+        this.RequireAuthorization();
+
+        var policy = CreateHttpAsyncUnauthorizedPolicy<UserViewModel>();
+        return await policy.ExecuteAsync(async (ctx, c) =>
+        {
+            return await CurrentUserApi.SetDataProtectionConsentAsync(consent, cancellationToken);
         }, CreatePollyContext(cancellationToken), cancellationToken);
     }
 }
