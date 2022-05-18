@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -157,5 +158,5 @@ public class CurrentUserApi : BaseAuthApi<CurrentUserApi>
     }
 
     private static JsonSerializerOptions GetJsonSerializerOptions()
-        => new JsonSerializerOptions().AddConverters(new JsonMessageConverter());
+        => new JsonSerializerOptions().AddConverters(new JsonMessageConverter(), new JsonStringEnumConverter());
 }
