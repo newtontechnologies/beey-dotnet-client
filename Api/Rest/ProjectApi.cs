@@ -133,7 +133,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
     }       
 
     public async Task<Project> TranscribeProjectAsync(int projectId, string language,
-        bool withPpc, bool withVad, bool withPunctuation,  bool saveTrsx,
+        bool withPpc, bool withVad, bool withPunctuation, bool withSpeakerId, bool saveTrsx,
         string transcriptionProfile,
         CancellationToken cancellationToken)
     {
@@ -143,6 +143,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddParameter("lang", language)
             .AddParameter("withPPC", withPpc)
             .AddParameter("withVAD", withVad)
+            .AddParameter("withSpeakerId", withSpeakerId)
             .AddParameter("saveTrsx", saveTrsx)
             .AddParameter("withPunctuation", withPunctuation)
             .AddParameter("transcriptionProfile", transcriptionProfile)
@@ -152,7 +153,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
     }
 
     public async Task<Project> EnqueueProjectAsync(int projectId, string language,
-        bool withPpc, bool withVad, bool withPunctuation, bool saveTrsx,
+        bool withPpc, bool withVad, bool withPunctuation, bool withSpeakerId, bool saveTrsx,
         string transcriptionProfile,
         CancellationToken cancellationToken)
     {
@@ -162,6 +163,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddParameter("lang", language)
             .AddParameter("withPPC", withPpc)
             .AddParameter("withVAD", withVad)
+            .AddParameter("withSpeakerId", withSpeakerId)
             .AddParameter("saveTrsx", saveTrsx)
             .AddParameter("withPunctuation", withPunctuation)
             .AddParameter("transcriptionProfile", transcriptionProfile)

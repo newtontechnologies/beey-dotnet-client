@@ -187,7 +187,7 @@ public class BeeyHelper
     Action<Message>? onMessage = null,
     TimeSpan? timeout = null,
     CancellationToken cancellationToken = default,
-    bool useQueue = false)
+    bool useQueue = false, bool withSpeakerId = false)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
@@ -212,7 +212,7 @@ public class BeeyHelper
             onMediaIdentified?.Invoke(duration.Value);
         }
 
-        willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, onTranscriptionStarted, cts, useQueue: useQueue);
+        willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, onTranscriptionStarted, cts, useQueue: useQueue, withSpeakerId:withSpeakerId);
 
         try
         {
@@ -238,7 +238,7 @@ public class BeeyHelper
                             duration = d;
                             onMediaIdentified?.Invoke(duration.Value);
                         }
-                        willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, onTranscriptionStarted, cts, onTranscriptionStartAttempt, useQueue);
+                        willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, onTranscriptionStarted, cts, onTranscriptionStartAttempt, useQueue, withSpeakerId: withSpeakerId);
                     }
                 }
                 else if (message.Subsystem == "MediaFileIndexing" && message.Type == MessageType.Completed)
@@ -256,7 +256,7 @@ public class BeeyHelper
                 else if (message.Subsystem == "MediaFilePackaging" && message.Type == MessageType.Completed)
                 {
                     onConversionCompleted?.Invoke();
-                    willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, onTranscriptionStarted, cts, onTranscriptionStartAttempt, useQueue);
+                    willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, onTranscriptionStarted, cts, onTranscriptionStartAttempt, useQueue, withSpeakerId: withSpeakerId);
                 }
                 else if (message.Subsystem == "TranscriptionTracking" && message.Type == MessageType.Started)
                 {
@@ -311,14 +311,14 @@ public class BeeyHelper
 
     private static async Task<bool> TryScheduleToTranscribeAsync(BeeyClient beey,
         int projectId, string language, bool withPpc, bool withVad, bool withPunctuation,
-        bool saveTrsx, string transcriptionProfile, Action? onTranscriptionStarted, CancellationTokenSource cts, Action? onTranscriptionStartAttempt = null, bool useQueue = false)
+        bool saveTrsx, string transcriptionProfile, Action? onTranscriptionStarted, CancellationTokenSource cts, Action? onTranscriptionStartAttempt = null, bool useQueue = false, bool withSpeakerId = false)
     {
         try
         {
             if (useQueue)
-                await beey.EnqueueProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, cts.Token);
+                await beey.EnqueueProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, cts.Token, withSpeakerId: withSpeakerId);
             else
-                await beey.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, cts.Token);
+                await beey.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, cts.Token, withSpeakerId: withSpeakerId);
             return true;
         }
         catch

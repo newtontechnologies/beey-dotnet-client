@@ -25,28 +25,28 @@ public partial class BeeyClient
     public async Task<Project> TranscribeProjectAsync(int projectId, string language = "cs-CZ",
         bool withPpc = true, bool withVad = true, bool withPunctuation = true, bool saveTrsx = true,
         string transcriptionProfile = "default",
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default, bool withSpeakerId = false)
     {
         this.RequireAuthorization();
 
         var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
         return await policy.ExecuteAsync(async (c) =>
         {
-            return await ProjectApi.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, cancellationToken);
+            return await ProjectApi.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, withSpeakerId, saveTrsx, transcriptionProfile, cancellationToken);
         }, cancellationToken);
     }
 
     public async Task<Project> EnqueueProjectAsync(int projectId, string language = "cs-CZ",
         bool withPpc = true, bool withVad = true, bool withPunctuation = true, bool saveTrsx = true,
         string transcriptionProfile = "default",
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default, bool withSpeakerId = false)
     {
         this.RequireAuthorization();
 
         var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
         return await policy.ExecuteAsync(async (c) =>
         {
-            return await ProjectApi.EnqueueProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, cancellationToken);
+            return await ProjectApi.EnqueueProjectAsync(projectId, language, withPpc, withVad, withPunctuation, withSpeakerId, saveTrsx, transcriptionProfile, cancellationToken);
         }, cancellationToken);
     }
 
