@@ -119,7 +119,6 @@ public class BeeyHelper
     public static Task TranscribeAsync(BeeyClient beey,
         int projectId,
         TranscriptionConfig transcriptionConfig,
-        string transcriptionProfile = "default",
         Action<TimeSpan>? onMediaIdentified = null,
         Action? onTranscriptionStartAttempt = null,
         Action? onTranscriptionStarted = null,
@@ -139,7 +138,7 @@ public class BeeyHelper
             transcriptionConfig.WithVAD,
             transcriptionConfig.WithPunctuation,
             transcriptionConfig.SaveTrsx,
-            transcriptionProfile,
+            transcriptionConfig.Profile,
             onMediaIdentified,
             onTranscriptionStartAttempt,
             onTranscriptionStarted,
@@ -151,7 +150,8 @@ public class BeeyHelper
             onMessage,
             timeout,
             cancellationToken,
-            useQueue);
+            useQueue,
+            transcriptionConfig.WithSpeakerId);
     }
 
     /// <summary>
