@@ -240,7 +240,7 @@ public class C7_ProjectApiUnitTests
     [Fact, TestPriority(12.2)]
     public async Task T12_2_TranscribeUploadedFileAsync()
     {
-        createdProjectAccessToken = (await projectApi.TranscribeProjectAsync(createdProjectId, "cs-CZ", true, true, true, true, "default", default)).AccessToken;
+        createdProjectAccessToken = (await projectApi.TranscribeProjectAsync(createdProjectId, "cs-CZ", true, true, true, true, false, true, "default", default)).AccessToken;
     }
 
     [Fact, TestPriority(12.3)]
@@ -381,7 +381,7 @@ public class C7_ProjectApiUnitTests
     [Fact, TestPriority(15)]
     public async Task T15_0_StartTranscribingAndStopAsync()
     {
-        createdProjectAccessToken = (await projectApi.TranscribeProjectAsync(createdProjectId, "cs-CZ", true, true, true, true, "default", default)).AccessToken;
+        createdProjectAccessToken = (await projectApi.TranscribeProjectAsync(createdProjectId, "cs-CZ", true, true, true, true, false, true, "default", default)).AccessToken;
 
         int retryCount = 10;
         TryValueResult<ProjectProgress> result;

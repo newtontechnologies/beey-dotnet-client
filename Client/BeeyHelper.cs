@@ -36,7 +36,7 @@ public class BeeyHelper
         Stream data, long? length, bool saveMedia, string projectName,
         string transcodingProfile = "default",
         string language = "cs-CZ", bool withPpc = true, bool withVad = true, bool withPunctuation = true, bool saveTrsx = true,
-        string transcriptionProfile = "default",
+        string transcriptionProfile = "default", bool withDiarization = true,
         int maxWaitingTimeMinutes = 60, CancellationToken cancellationToken = default)
     {
         try
@@ -84,7 +84,7 @@ public class BeeyHelper
             try
             {
                 log.Log(Logging.LogLevel.Info, () => "Starting transcription.");
-                await beey.TranscribeProjectAsync(project.Id, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, cts.Token);
+                await beey.TranscribeProjectAsync(project.Id, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, cts.Token, withDiarization: withDiarization);
             }
             catch (Exception)
             {
@@ -151,7 +151,8 @@ public class BeeyHelper
             timeout,
             cancellationToken,
             useQueue,
-            transcriptionConfig.WithSpeakerId);
+            transcriptionConfig.WithSpeakerId,
+            transcriptionConfig.WithDiarization);
     }
 
     /// <summary>
@@ -187,7 +188,7 @@ public class BeeyHelper
     Action<Message>? onMessage = null,
     TimeSpan? timeout = null,
     CancellationToken cancellationToken = default,
-    bool useQueue = false, bool withSpeakerId = false)
+    bool useQueue = false, bool withSpeakerId = false, bool withDiarization = true)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
@@ -212,7 +213,7 @@ public class BeeyHelper
             onMediaIdentified?.Invoke(duration.Value);
         }
 
-        willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, onTranscriptionStarted, cts, useQueue: useQueue, withSpeakerId:withSpeakerId);
+        willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, onTranscriptionStarted, cts, useQueue: useQueue, withSpeakerId:withSpeakerId, withDiarization: withDiarization);
 
         try
         {
@@ -238,7 +239,7 @@ public class BeeyHelper
                             duration = d;
                             onMediaIdentified?.Invoke(duration.Value);
                         }
-                        willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, onTranscriptionStarted, cts, onTranscriptionStartAttempt, useQueue, withSpeakerId: withSpeakerId);
+                        willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, onTranscriptionStarted, cts, onTranscriptionStartAttempt, useQueue, withSpeakerId: withSpeakerId, withDiarization: withDiarization);
                     }
                 }
                 else if (message.Subsystem == "MediaFileIndexing" && message.Type == MessageType.Completed)
@@ -256,7 +257,7 @@ public class BeeyHelper
                 else if (message.Subsystem == "MediaFilePackaging" && message.Type == MessageType.Completed)
                 {
                     onConversionCompleted?.Invoke();
-                    willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, onTranscriptionStarted, cts, onTranscriptionStartAttempt, useQueue, withSpeakerId: withSpeakerId);
+                    willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, onTranscriptionStarted, cts, onTranscriptionStartAttempt, useQueue, withSpeakerId: withSpeakerId, withDiarization: withDiarization);
                 }
                 else if (message.Subsystem == "TranscriptionTracking" && message.Type == MessageType.Started)
                 {
@@ -311,14 +312,14 @@ public class BeeyHelper
 
     private static async Task<bool> TryScheduleToTranscribeAsync(BeeyClient beey,
         int projectId, string language, bool withPpc, bool withVad, bool withPunctuation,
-        bool saveTrsx, string transcriptionProfile, Action? onTranscriptionStarted, CancellationTokenSource cts, Action? onTranscriptionStartAttempt = null, bool useQueue = false, bool withSpeakerId = false)
+        bool saveTrsx, string transcriptionProfile, Action? onTranscriptionStarted, CancellationTokenSource cts, Action? onTranscriptionStartAttempt = null, bool useQueue = false, bool withSpeakerId = false, bool withDiarization = true)
     {
         try
         {
             if (useQueue)
-                await beey.EnqueueProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, cts.Token, withSpeakerId: withSpeakerId);
+                await beey.EnqueueProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, cts.Token, withSpeakerId: withSpeakerId, withDiarization: withDiarization);
             else
-                await beey.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, cts.Token, withSpeakerId: withSpeakerId);
+                await beey.TranscribeProjectAsync(projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, cts.Token, withSpeakerId: withSpeakerId, withDiarization: withDiarization);
             return true;
         }
         catch
