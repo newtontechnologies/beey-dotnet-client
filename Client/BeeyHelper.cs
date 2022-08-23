@@ -270,7 +270,7 @@ public class BeeyHelper
                 }
                 else if (message.Subsystem == "Upload" && message.Type == MessageType.Progress)
                 {
-                    var data = UploadSubsystemData.From(message);
+                    var data = UploadSubsystemData.From((ProgressMessage)message);
                     if (data.Kind == UploadSubsystemData.DataKind.UploadedBytes)
                     {
                         onUploadProgress?.Invoke(data.FileOffset!.Value, data.UploadPercentage ?? -1);
@@ -282,7 +282,7 @@ public class BeeyHelper
                 }
                 else if (message.Subsystem == "Recognition" && message.Type == MessageType.Progress)
                 {
-                    var data = RecognitionData.From(message);
+                    var data = RecognitionData.From((ProgressMessage)message);
                     if (data.Transcribed.HasValue)
                     {
                         int percentage = -1;
@@ -331,7 +331,7 @@ public class BeeyHelper
 
     private static bool TryGetDuration(Message mediaIdentificationMsg, out TimeSpan duration)
     {
-        var data = MediaIdentificationData.From(mediaIdentificationMsg);
+        var data = MediaIdentificationData.From((ProgressMessage)mediaIdentificationMsg);
         if (data.Kind == MediaIdentificationData.DurationKind.Duration
             || data.Kind == MediaIdentificationData.DurationKind.ApproximateDuration
             || data.Kind == MediaIdentificationData.DurationKind.DurationlessStream)

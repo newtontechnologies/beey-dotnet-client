@@ -470,7 +470,7 @@ public class C7_ProjectApiUnitTests
         var project = await projectApi.AddTagAsync(createdProjectId, createdProjectAccessToken, testTag, default);
         createdProjectAccessToken = project.AccessToken;
 
-        Assert.Contains(project.Tags, t => t.Value<string>() == testTag);
+        Assert.Contains(project.Tags, t => t.GetValue<string>() == testTag);
         Assert.Contains(JArray.Parse(await projectApi.GetTagsAsync(createdProjectId, default)), t => t.Value<string>() == testTag);
     }
 
@@ -480,7 +480,7 @@ public class C7_ProjectApiUnitTests
         var project = await projectApi.RemoveTagAsync(createdProjectId, createdProjectAccessToken, testTag, default);
         createdProjectAccessToken = project.AccessToken;
 
-        Assert.DoesNotContain(project.Tags, t => t.Value<string>() == testTag);
+        Assert.DoesNotContain(project.Tags, t => t.GetValue<string>() == testTag);
         Assert.DoesNotContain(JArray.Parse(await projectApi.GetTagsAsync(createdProjectId, default)), t => t.Value<string>() == testTag);
     }
 

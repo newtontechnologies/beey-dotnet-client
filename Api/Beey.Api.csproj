@@ -22,10 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TranscriptionCore\TranscriptionCore.csproj" />
     <ProjectReference Include="..\DataExchangeModel\Beey.DataExchangeModel.Common\Beey.DataExchangeModel.Common.csproj" />
   </ItemGroup>
-
-  <Import Project="..\DataExchangeModel\Beey.DataExchangeModel.Partial\Beey.DataExchangeModel.projitems" Label="Shared" />
 
 </Project>
