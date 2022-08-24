@@ -4,7 +4,6 @@ using Beey.DataExchangeModel.Lexicons;
 using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Orders;
 using Beey.DataExchangeModel.Projects;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;

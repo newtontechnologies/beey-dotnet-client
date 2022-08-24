@@ -1,10 +1,7 @@
 ﻿using Beey.DataExchangeModel.Auth;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
 using System.Collections.Generic;
-using System.Net;
-using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,10 +27,10 @@ public class LoginApi : BaseApi<LoginApi>
     {
         var result = await CreateBuilder()
             .AddUrlSegment("Login")
-            .SetBody(JsonConvert.SerializeObject(new LoginData { Email = email, Password = password }), "application/json")
+            .SetBody(JsonSerializer.Serialize(new LoginData { Email = email, Password = password }), "application/json")
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<LoginToken>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<LoginToken>(r.GetStringContent()));
     }
 
     public async Task LogoutAsync(LoginToken token, CancellationToken cancellationToken)
@@ -51,7 +48,7 @@ public class LoginApi : BaseApi<LoginApi>
     {
         var result = await CreateBuilder()
             .AddUrlSegment("RegisterAndLogin")
-            .SetBody(JsonConvert.SerializeObject(new RegistrationData { Email = email, Password = password, Language = language }), "application/json")
+            .SetBody(JsonSerializer.Serialize(new RegistrationData { Email = email, Password = password, Language = language }), "application/json")
             .AddParameters(("email", email), ("password", password))
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
@@ -65,15 +62,15 @@ public class LoginApi : BaseApi<LoginApi>
             .AddUrlSegment("ContentVersion")
             .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => JObject.Parse(r.GetStringContent()).GetValue("Main").Value<string>());
+        return HandleResponse(result, r => ((JsonObject)JsonNode.Parse(r.GetStringContent())).TryGetPropertyValue("Main", out var value) && value.GetValue<string>() is { } v ? v : null);
     }
 
-    public async Task<JObject> GetPasswordSettingsAsync(CancellationToken cancellationToken)
+    public async Task<JsonObject> GetPasswordSettingsAsync(CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
             .AddUrlSegment("PasswordSettings")
             .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => JObject.Parse(r.GetStringContent()));
+        return HandleResponse(result, r => (JsonObject)JsonNode.Parse(r.GetStringContent()));
     }
 }

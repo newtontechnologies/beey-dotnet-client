@@ -1,5 +1,4 @@
 ﻿using Beey.DataExchangeModel;
-using Newtonsoft.Json;
 using Polly;
 using Polly.Retry;
 using System;
@@ -7,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,7 +28,7 @@ public abstract class BaseApi<TApi> where TApi : BaseApi<TApi>
         LastErrorData = null;
         try
         {
-            var error = JsonConvert.DeserializeObject<Error>(content);
+            var error = JsonSerializer.Deserialize<Error>(content);
             LastErrorData = error?.Data;
             errorMessage = error?.Message ?? content;
         }

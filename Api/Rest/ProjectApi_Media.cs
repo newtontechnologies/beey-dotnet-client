@@ -1,12 +1,12 @@
 ﻿using Beey.DataExchangeModel;
 using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Projects;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,7 +34,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
 
         var result = await builder.ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
     }
     public async Task<Project> UploadMediaFileAsync(int projectId, long fileSize, string fileName, byte[] fileContent,
         CancellationToken cancellationToken)

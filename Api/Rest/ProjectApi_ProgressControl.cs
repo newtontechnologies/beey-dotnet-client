@@ -2,13 +2,12 @@
 using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Projects;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,7 +31,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddUrlSegment("ProgressControl/State")
             .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<ProjectProgress>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<ProjectProgress>(r.GetStringContent()));
     }
 
     // TODO: implement correct deserialization
@@ -49,7 +48,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddParameter("toId", toId)
             .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<Message[]>(r.GetStringContent(), GetDefaultJsonSerializerOptions()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Message[]>(r.GetStringContent(), GetDefaultJsonSerializerOptions()));
     }
 
     public async Task StopAsync(int id,

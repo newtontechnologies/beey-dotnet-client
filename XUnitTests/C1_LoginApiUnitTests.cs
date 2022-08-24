@@ -1,7 +1,5 @@
 ﻿using Beey.Api.Rest;
 using Beey.DataExchangeModel.Auth;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;

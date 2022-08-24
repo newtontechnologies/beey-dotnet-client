@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Beey.Api.Rest;
 using System.Net;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
 
 namespace Beey.Client;
 
@@ -25,8 +25,8 @@ public partial class BeeyClient
             return await ProjectApi.GetTagsAsync(id, c);
         }, CreatePollyContext(cancellationToken), cancellationToken));
 
-        var jTags = JArray.Parse(tags);
-        return jTags.Select(t => t.Value<string>());
+        var jTags = (JsonArray)JsonNode.Parse(tags)!;
+        return jTags.Select(t => t.GetValue<string>());
     }
     public async Task<Project> AddTagAsync(int id, long accessToken, string tag,
         CancellationToken cancellationToken = default)

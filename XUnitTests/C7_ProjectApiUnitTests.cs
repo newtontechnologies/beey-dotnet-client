@@ -7,10 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
-using Newtonsoft.Json.Linq;
 using System.IO;
 using Beey.DataExchangeModel.Messaging;
 using System.Diagnostics;
+using System.Text.Json.Nodes;
 
 namespace XUnitTests;
 
@@ -234,7 +234,7 @@ public class C7_ProjectApiUnitTests
         await WaitForTranscodedAsync();
         var project = await projectApi.GetAsync(createdProjectId, default);
         createdProjectAccessToken = project.AccessToken;
-        Assert.NotNull(project.MediaFileId);
+        Assert.NotNull(project.RecordingId);
     }
 
     [Fact, TestPriority(12.2)]
@@ -406,6 +406,8 @@ public class C7_ProjectApiUnitTests
             retryCount--;
         }
 
+        // Wait for Beey to make any changes to access token.
+        await Task.Delay(3000);
         createdProjectAccessToken = (await projectApi.GetAsync(createdProjectId, default)).AccessToken;
 
         Assert.True(retryCount > 0);
@@ -471,7 +473,7 @@ public class C7_ProjectApiUnitTests
         createdProjectAccessToken = project.AccessToken;
 
         Assert.Contains(project.Tags, t => t.GetValue<string>() == testTag);
-        Assert.Contains(JArray.Parse(await projectApi.GetTagsAsync(createdProjectId, default)), t => t.Value<string>() == testTag);
+        Assert.Contains((JsonArray)JsonNode.Parse(await projectApi.GetTagsAsync(createdProjectId, default))!, t => t.GetValue<string>() == testTag);
     }
 
     [Fact, TestPriority(18)]
@@ -481,7 +483,7 @@ public class C7_ProjectApiUnitTests
         createdProjectAccessToken = project.AccessToken;
 
         Assert.DoesNotContain(project.Tags, t => t.GetValue<string>() == testTag);
-        Assert.DoesNotContain(JArray.Parse(await projectApi.GetTagsAsync(createdProjectId, default)), t => t.Value<string>() == testTag);
+        Assert.DoesNotContain((JsonArray)JsonNode.Parse(await projectApi.GetTagsAsync(createdProjectId, default))!, t => t.GetValue<string>() == testTag);
     }
 
     [Fact, TestPriority(19)]
@@ -543,6 +545,6 @@ public class C7_ProjectApiUnitTests
             await Task.Delay(3000);
             retryCount--;
         }
-        Assert.Equal(ProcessState.Completed, result.Value.TranscodingState);
+        Assert.Equal(ProcessState.Finished, result.Value.TranscodingState);
     }
 }

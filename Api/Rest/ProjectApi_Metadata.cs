@@ -1,11 +1,11 @@
 ﻿using Beey.DataExchangeModel;
 using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Projects;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -42,7 +42,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddParameter("tag", tag)
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
     }
 
     public async Task<Project> RemoveTagAsync(int id, long accessToken, string tag,
@@ -55,7 +55,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddParameter("tag", tag)
             .ExecuteAsync(HttpMethod.DELETE, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
     }
 
     public async Task<ProjectMetadata> GetMetadataAsync(int id, string key,
@@ -67,7 +67,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddParameter("key", key)
             .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<ProjectMetadata>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<ProjectMetadata>(r.GetStringContent()));
     }
 
     public async Task<Project> AddMetadataAsync(int id, long accessToken,
@@ -82,7 +82,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .SetBody(value)
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
     }
 
     public async Task<Project> RemoveMetadataAsync(int id, long accessToken, string key,
@@ -95,6 +95,6 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddParameter("key", key)
             .ExecuteAsync(HttpMethod.DELETE, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
     }
 }

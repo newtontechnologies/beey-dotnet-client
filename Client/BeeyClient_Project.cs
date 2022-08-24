@@ -11,7 +11,6 @@ using System.Net;
 using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Export;
 using System.IO;
-using Newtonsoft.Json.Linq;
 
 namespace Beey.Client;
 

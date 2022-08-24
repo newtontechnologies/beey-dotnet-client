@@ -1,13 +1,14 @@
 ﻿using Beey.Api.DTO;
+using Beey.DataExchangeModel;
 using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Lexicons;
 using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Projects;
 using Beey.DataExchangeModel.Users;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -39,11 +40,11 @@ public partial class BeeyClient
         }, CreatePollyContext(cancellationToken), cancellationToken);
     }
 
-    public async Task<JObject> GetUserSettingsAsync(CancellationToken cancellationToken = default)
+    public async Task<JsonObject> GetUserSettingsAsync(CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<JObject>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<JsonObject>();
         return await policy.ExecuteAsync(async (ctx, c) =>
         {
             return await CurrentUserApi.GetUserSettingsAsync(cancellationToken);
@@ -53,10 +54,10 @@ public partial class BeeyClient
     public async Task PostUserSettingsAsync(string settings,
         CancellationToken cancellationToken = default)
     {
-        JObject jSettings = JObject.Parse(settings);
+        var jSettings = (JsonObject)JsonNode.Parse(settings)!;
         await PostUserSettingsAsync(jSettings, cancellationToken);
     }
-    public async Task PostUserSettingsAsync(JObject settings,
+    public async Task PostUserSettingsAsync(JsonObject settings,
         CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
@@ -114,11 +115,11 @@ public partial class BeeyClient
         }, CreatePollyContext(cancellationToken), cancellationToken);
     }
 
-    public async Task<MonthlyTranscriptionLogItem[]> GetTranscriptionLogAsync(CancellationToken cancellationToken = default)
+    public async Task<AggregatedListing<TranscriptionLogItemViewModel, decimal>> GetTranscriptionLogAsync(CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<MonthlyTranscriptionLogItem[]>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<AggregatedListing<TranscriptionLogItemViewModel, decimal>>();
         return await policy.ExecuteAsync(async (ctx, c) =>
         {
             return await CurrentUserApi.GetTranscriptionLogAsync(cancellationToken);

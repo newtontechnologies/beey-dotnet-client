@@ -1,9 +1,9 @@
 ﻿using Beey.Api.DTO;
 using Beey.DataExchangeModel.Export;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,7 +18,7 @@ partial class ProjectApi : BaseAuthApi<ProjectApi>
            .AddUrlSegment("Export/Formats")
            .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<ExportFormat[]>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<ExportFormat[]>(r.GetStringContent()));
     }
 
     public async Task<ExportFile> ExportWithFormatAsync(int projectId, string formatId,

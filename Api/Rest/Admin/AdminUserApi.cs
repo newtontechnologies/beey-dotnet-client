@@ -2,10 +2,10 @@
 using Beey.DataExchangeModel;
 using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Projects;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +26,7 @@ public class AdminUserApi : BaseAuthApi<AdminUserApi>
         .AddParameter("count", count)
         .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<UserViewModel>>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Listing<UserViewModel>>(r.GetStringContent()));
     }
 
     public async Task<UserViewModel> GetAsync(int id, CancellationToken cancellationToken)
@@ -35,24 +35,24 @@ public class AdminUserApi : BaseAuthApi<AdminUserApi>
             .AddUrlSegment(id.ToString())
             .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<UserViewModel>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<UserViewModel>(r.GetStringContent()));
     }
 
     public async Task<UserViewModel> CreateAsync(UserAddModel user,
         CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
-            .SetBody(JsonConvert.SerializeObject(user), "application/json")
+            .SetBody(JsonSerializer.Serialize(user), "application/json")
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<UserViewModel>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<UserViewModel>(r.GetStringContent()));
     }
 
     public async Task UpdateAsync(UserUpdateModel user,
         CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
-            .SetBody(JsonConvert.SerializeObject(user, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }), "application/json")
+            .SetBody(JsonSerializer.Serialize(user), "application/json")
             .ExecuteAsync(HttpMethod.PUT, cancellationToken);
 
         HandleResponse(result);
@@ -81,6 +81,6 @@ public class AdminUserApi : BaseAuthApi<AdminUserApi>
             .AddUrlSegment("TranscriptionLog")
             .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<MonthlyTranscriptionLogItem>>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Listing<MonthlyTranscriptionLogItem>>(r.GetStringContent()));
     }
 }

@@ -1,8 +1,6 @@
 ﻿using Beey.Api.Rest;
 using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Lexicons;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;

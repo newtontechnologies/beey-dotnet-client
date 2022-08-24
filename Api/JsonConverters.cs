@@ -1,7 +1,8 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using TranscriptionCore;
 
 namespace Beey.Api;
@@ -13,13 +14,13 @@ class JsonConverters
 
 class SpeakerJsonConverter : JsonConverter<Speaker>
 {
-    public override Speaker ReadJson(JsonReader reader, Type objectType, Speaker existingValue, bool hasExistingValue, JsonSerializer serializer)
+    public override Speaker? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return new Speaker(System.Xml.Linq.XElement.Parse((string)reader.Value));
+        return new Speaker(System.Xml.Linq.XElement.Parse(reader.GetString()));
     }
 
-    public override void WriteJson(JsonWriter writer, Speaker value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, Speaker value, JsonSerializerOptions options)
     {
-        writer.WriteValue(value.Serialize());
+        writer.WriteStringValue(value.Serialize().ToString());
     }
 }

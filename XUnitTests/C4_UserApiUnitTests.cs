@@ -64,6 +64,7 @@ public class C4_UserApiUnitTests
         var user = await api.GetAsync(createdUserId, default);
         await api.UpdateAsync(new UserUpdateModel()
         {
+            Id = createdUserId,
             Password = testPassword,
             CreditMinutes = creditMinutes
         },
@@ -94,6 +95,7 @@ public class C4_UserApiUnitTests
         var mainUser = listing.List.Where(u => u.Email == Configuration.Email).First();
         await api.UpdateAsync(new UserUpdateModel()
         {
+            Id = mainUser.Id,
             CreditMinutes = mainUser.CreditMinutes + 10
         },
         default);

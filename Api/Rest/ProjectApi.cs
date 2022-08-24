@@ -3,8 +3,6 @@ using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Projects;
 using Beey.DataExchangeModel.Serialization.JsonConverters;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -44,10 +42,10 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
         CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
-            .SetBody(JsonConvert.SerializeObject(init), "application/json")
+            .SetBody(JsonSerializer.Serialize(init), "application/json")
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
     }
 
     public async Task<Project> GetAsync(int id,
@@ -57,7 +55,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddUrlSegment(id.ToString())
             .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
     }
 
     public async Task<Project> UpdateAsync(Project project,
@@ -65,10 +63,10 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
     {
         var result = await CreateBuilder()
             .AddUrlSegment(project.Id.ToString())
-            .SetBody(JsonConvert.SerializeObject(project, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }), "application/json")
+            .SetBody(JsonSerializer.Serialize(project, new JsonSerializerOptions() { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }), "application/json")
             .ExecuteAsync(HttpMethod.PUT, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
     }
 
     public async Task<Project> UpdateAsync(int id, long accessToken, Dictionary<string, object> properties,
@@ -85,10 +83,10 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
 
         var result = await CreateBuilder()
             .AddUrlSegment(id.ToString())
-            .SetBody(JsonConvert.SerializeObject(properties, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }), "application/json")
+            .SetBody(JsonSerializer.Serialize(properties, new JsonSerializerOptions() { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }), "application/json")
             .ExecuteAsync(HttpMethod.PUT, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
     }
 
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken)
@@ -129,7 +127,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddParameter("to", to?.ToString("o"))
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<ProjectAccessViewModel>>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Listing<ProjectAccessViewModel>>(r.GetStringContent()));
     }       
 
     public async Task<Project> TranscribeProjectAsync(int projectId, string language,
@@ -150,7 +148,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddParameter("transcriptionProfile", transcriptionProfile)
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
     }
 
     public async Task<Project> EnqueueProjectAsync(int projectId, string language,
@@ -171,7 +169,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddParameter("transcriptionProfile", transcriptionProfile)
             .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
     }
 
     public async Task<Message[]> GetMessagesAsync(int id, DateTime? from, CancellationToken cancellationToken)
@@ -182,7 +180,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddParameter("from", from)
             .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => System.Text.Json.JsonSerializer.Deserialize<Message[]>(r.GetStringContent(), GetDefaultJsonSerializerOptions()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Message[]>(r.GetStringContent(), GetDefaultJsonSerializerOptions()));
     }
 
     public enum OrderOn { Created, Updated, None }

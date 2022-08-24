@@ -1,10 +1,10 @@
 ﻿using Beey.DataExchangeModel;
 using Beey.DataExchangeModel.Orders;
 using Beey.DataExchangeModel.Projects;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,6 +33,6 @@ public class OrderApi : BaseAuthApi<OrderApi>
             .AddUrlSegment("List")
             .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<OrderInfoViewModel>>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Listing<OrderInfoViewModel>>(r.GetStringContent()));
     }
 }

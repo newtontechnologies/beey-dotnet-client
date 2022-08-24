@@ -1,13 +1,13 @@
 ﻿using Beey.Api.Logging;
 using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Files;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -100,7 +100,7 @@ public class WebSocketsApi
             var starttime = DateTime.Now;
 
             var (bytes, res) = await ws.ReceiveMessageAsync(buffer, c);
-            var fi = JsonConvert.DeserializeObject<FileStateInfo>(Encoding.UTF8.GetString(buffer, 0, bytes));
+            var fi = JsonSerializer.Deserialize<FileStateInfo>(Encoding.UTF8.GetString(buffer, 0, bytes));
             if (fi.BufferSize > buffer.Length)
                 buffer = new byte[fi.BufferSize];
 
@@ -111,7 +111,7 @@ public class WebSocketsApi
                 BufferSize = buffer.Length,
             };
 
-            await ws.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(fi)), WebSocketMessageType.Text, true, c);
+            await ws.SendAsync(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(fi)), WebSocketMessageType.Text, true, c);
 
             var cts = new CancellationTokenSource();
             var token = cts.Token;

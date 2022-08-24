@@ -1,9 +1,9 @@
 ﻿using Beey.DataExchangeModel;
 using Beey.DataExchangeModel.Projects;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,7 +21,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddParameter("accessToken", accessToken)
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
     }
 
     public async Task<Listing<ProjectAccessViewModel>> ListProjectSharing(int id,
@@ -32,6 +32,6 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddUrlSegment("Share/List")
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<ProjectAccessViewModel>>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Listing<ProjectAccessViewModel>>(r.GetStringContent()));
     }
 }

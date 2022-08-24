@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Beey.Api.Rest;
 using Beey.Api.WebSockets;
 using Beey.Api.Rest.Admin;
-using Newtonsoft.Json.Linq;
 using Beey.DataExchangeModel.Projects;
 using Beey.DataExchangeModel.Lexicons;
 using System.Collections.Generic;

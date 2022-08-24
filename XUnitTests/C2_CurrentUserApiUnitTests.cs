@@ -1,10 +1,10 @@
 ﻿using Beey.Api.Rest;
 using Beey.Client;
 using Beey.DataExchangeModel.Lexicons;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -17,7 +17,7 @@ public class C2_CurrentUserCollectionDefinition : ICollectionFixture<LoginFixtur
 public class C2_CurrentUserApiUnitTests
 {
     private const string testPassword = "ASDF___ASDF";
-    private static JObject? testSettings;
+    private static JsonObject? testSettings;
     private static readonly CurrentUserApi api = new CurrentUserApi(Configuration.BeeyUrl);
 
     public C2_CurrentUserApiUnitTests(LoginFixture fixture)
@@ -35,8 +35,8 @@ public class C2_CurrentUserApiUnitTests
     [Fact, TestPriority(3)]
     public async Task PostUserSettingsAsync()
     {
-        testSettings = JObject.Parse($"{{ Name: \"Value_{DateTime.Now}\" }}");
-        await api.PostUserSettingsAsync(testSettings, default);
+        testSettings = (JsonObject)JsonNode.Parse($"{{ \"Name\": \"Value_{DateTime.Now}\" }}")!;
+        await api.PostUserSettingsAsync(testSettings!, default);
     }
 
     [Fact, TestPriority(4)]
@@ -44,7 +44,7 @@ public class C2_CurrentUserApiUnitTests
     {
         var jSettings = await api.GetUserSettingsAsync(default);
 
-        Assert.Equal(testSettings, jSettings);
+        Assert.Equal(testSettings!.ToString(), jSettings.ToString());
     }
 
     [Fact, TestPriority(5)]

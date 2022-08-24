@@ -1,8 +1,8 @@
 ﻿using Beey.DataExchangeModel.Projects;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,7 +18,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddUrlSegment("Access")
             .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<ProjectAccessViewModel>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<ProjectAccessViewModel>(r.GetStringContent()));
     }
 
     public async Task UpdateProjectAccessAsync(int projectId, ProjectAccessUpdateModel projectAccess,
@@ -27,7 +27,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
         var result = await CreateBuilder()
             .AddUrlSegment(projectId.ToString())
             .AddUrlSegment("Access")
-            .SetBody(JsonConvert.SerializeObject(projectAccess), "application/json")
+            .SetBody(JsonSerializer.Serialize(projectAccess), "application/json")
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
         HandleResponse(result);

@@ -1,8 +1,8 @@
 ﻿using Beey.DataExchangeModel.Lexicons;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,7 +25,7 @@ public class LexiconApi : BaseAuthApi<LexiconApi>
             .AddParameter("language", language)
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<TmpValidationError[]>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<TmpValidationError[]>(r.GetStringContent(), new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
     }
 
     public async Task<TmpValidationError[]> ValidateLexiconAsync(IEnumerable<LexiconEntry> lexicon, string language,
@@ -34,10 +34,10 @@ public class LexiconApi : BaseAuthApi<LexiconApi>
         var result = await CreateBuilder()
             .AddUrlSegment("Validate")
             .AddParameter("language", language)
-            .SetBody(JsonConvert.SerializeObject(lexicon))
+            .SetBody(JsonSerializer.Serialize(lexicon))
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<TmpValidationError[]>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<TmpValidationError[]>(r.GetStringContent(), new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
     }
 
     // TODO: remove when created in backend

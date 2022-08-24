@@ -1,9 +1,9 @@
 ﻿using Beey.DataExchangeModel;
 using Beey.DataExchangeModel.Auth;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using TranscriptionCore;
@@ -37,7 +37,7 @@ public class SpeakerApi : BaseAuthApi<SpeakerApi>
 
          var result = await bld.ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonConvert.DeserializeObject<Listing<Speaker>>(r.GetStringContent(), JsonConverters.Speaker));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Listing<Speaker>>(r.GetStringContent(), new JsonSerializerOptions() { Converters = { JsonConverters.Speaker } }));
     }
 
     public async Task<Speaker> GetAsync(string dbId, CancellationToken cancellationToken)
