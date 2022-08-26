@@ -179,4 +179,16 @@ public partial class BeeyClient
 
         return listing;
     }
+
+    public async Task<Project> CopyProjectAsync(int id,
+        CancellationToken cancellationToken = default)
+    {
+        this.RequireAuthorization();
+
+        var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+        return await policy.ExecuteAsync(async (c) =>
+        {
+            return await ProjectApi.CopyProjectAsync(id, c);
+        }, cancellationToken);
+    }
 }

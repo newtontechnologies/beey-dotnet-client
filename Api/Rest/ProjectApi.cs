@@ -183,6 +183,16 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
         return HandleResponse(result, r => JsonSerializer.Deserialize<Message[]>(r.GetStringContent(), GetDefaultJsonSerializerOptions()));
     }
 
+    public async Task<Project> CopyProjectAsync(int id, CancellationToken cancellationToken)
+    {
+        var result = await CreateBuilder()
+            .AddUrlSegment(id.ToString())
+            .AddUrlSegment("Copy")
+            .ExecuteAsync(HttpMethod.POST, cancellationToken);
+
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
+    }
+
     public enum OrderOn { Created, Updated, None }
     private static string GetOrderOn(OrderOn orderOn)
     {
