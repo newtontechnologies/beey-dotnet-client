@@ -203,5 +203,5 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
         };
     }
 
-    private static JsonSerializerOptions GetDefaultJsonSerializerOptions() => Message.CreateDefaultOptions();
+    private static JsonSerializerOptions GetDefaultJsonSerializerOptions() => Message.DefaultJsonSerializerOptions;
 }

@@ -157,5 +157,5 @@ public class CurrentUserApi : BaseAuthApi<CurrentUserApi>
         return HandleResponse(result, r => JsonSerializer.Deserialize<UserViewModel>(r.GetStringContent(), GetJsonSerializerOptions()));
     }
 
-    private static JsonSerializerOptions GetJsonSerializerOptions() => Message.CreateDefaultOptions();
+    private static JsonSerializerOptions GetJsonSerializerOptions() => Message.DefaultJsonSerializerOptions;
 }

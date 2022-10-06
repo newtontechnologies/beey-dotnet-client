@@ -197,7 +197,7 @@ public class BeeyHelper
             {
                 try
                 {
-                    return JsonSerializer.Deserialize<Message>(s, Message.CreateDefaultOptions());
+                    return JsonSerializer.Deserialize<Message>(s, Message.DefaultJsonSerializerOptions);
                 }
                 catch (Exception ex)
                 {
