@@ -194,15 +194,22 @@ public class WebSocketsApi
         {
             try
             {
-                byte[] buffer = new byte[32 * 1024];
+                byte[] buffer = new byte[1024 * 1024];
+                int count = 0;
                 (int bytes, ValueWebSocketReceiveResult result) res;
+
                 do
                 {
                     c.ThrowIfCancellationRequested();
-                    //TODO: receive async can receive only partial message...
-                    res = await ws.ReceiveMessageAsync(buffer, c);
-                    if (res.result.MessageType != WebSocketMessageType.Close)
-                        yield return Encoding.UTF8.GetString(buffer, 0, res.bytes);
+                    res = await ws.ReceiveMessageAsync(buffer.AsMemory(count), c);
+                    count += res.bytes;
+                    if (res.result.EndOfMessage)
+                    {
+                        if (res.result.MessageType != WebSocketMessageType.Close)
+                            yield return Encoding.UTF8.GetString(buffer.AsSpan(..count));
+
+                        count = 0;
+                    }
                 } while (res.bytes > 0 || res.result.MessageType != WebSocketMessageType.Close);
             }
             finally
