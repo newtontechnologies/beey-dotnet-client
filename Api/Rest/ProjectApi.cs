@@ -123,8 +123,8 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddParameter("count", count)
             .AddParameter("orderOn", GetOrderOn(orderOn))
             .AddParameter("orderBy", ascending ? "ascending" : "descending")
-            .AddParameter("from", from?.ToString("o"))
-            .AddParameter("to", to?.ToString("o"))
+            .AddParameter("from", from?.ToString("s"))
+            .AddParameter("to", to?.ToString("s"))
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
         return HandleResponse(result, r => JsonSerializer.Deserialize<Listing<ProjectAccessViewModel>>(r.GetStringContent()));
