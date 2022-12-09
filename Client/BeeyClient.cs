@@ -92,7 +92,7 @@ public partial class BeeyClient
         return CustomApi.CallAsync(route, pars, body, contentType, httpMethod, requiresAuthorization, cancellationToken);
     }
 
-    public async Task LoginAsync(string email, string password,
+    public async Task<LoginToken> LoginAsync(string email, string password,
         CancellationToken cancellationToken = default)
     {
         LoginToken = await LoginApi.LoginAsync(email, password, cancellationToken);
@@ -100,9 +100,10 @@ public partial class BeeyClient
         this.userPassword = password;
 
         SetTokens(LoginToken);
+        return LoginToken;
     }
 
-    public async Task LoginAsync(string token, CancellationToken cancellationToken = default)
+    public async Task<LoginToken> LoginAsync(string token, CancellationToken cancellationToken = default)
     {
         LoginToken temporaryLoginToken = new LoginToken();
         temporaryLoginToken.Token = token;
@@ -115,6 +116,7 @@ public partial class BeeyClient
         // NOTE: Password is not available here, so e.g. re-login won't be possible.
 
         SetTokens(loginToken);
+        return loginToken;
     }
 
     public async Task LogoutAsync(CancellationToken cancellationToken = default)
