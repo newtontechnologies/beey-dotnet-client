@@ -73,7 +73,7 @@ public class BeeyHelper
                 cts.Cancel();
                 throw new Exception("File indexing failed.");
             }
-            else if (result.Value.FileIndexingState != ProcessState.Completed && result.Value.MediaIdentificationState != ProcessState.Completed)
+            else if (result.Value.FileIndexingState != ProcessState.Finished && result.Value.MediaIdentificationState != ProcessState.Completed)
             {
                 cts.Cancel();
                 throw new Exception($"File indexing did not finish in {(maxWaitingTimeMs / 1000) / 60} minutes.");
