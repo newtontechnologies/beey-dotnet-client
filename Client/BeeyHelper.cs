@@ -32,6 +32,7 @@ public class BeeyHelper
     /// <param name="maxWaitingTimeMinutes">Maximum waiting time to be able to start transcribing.</param>
     /// <param name="cancellationToken"></param>
     /// <returns>project id</returns>
+    [Obsolete("Use UploadMediaFileAsync() on BeeyClient class for upload and BeeyHelper.TranscribeAsync() for transcription (this method may not work properly)")]
     public static async Task<int> UploadAndTranscribe(BeeyClient beey,
         Stream data, long? length, bool saveMedia, string projectName,
         string transcodingProfile = "default",
