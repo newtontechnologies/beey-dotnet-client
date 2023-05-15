@@ -113,6 +113,7 @@ public class BeeyHelper
     /// <param name="onTranscriptionStarted"></param>
     /// <param name="onUploadProgress">With uploaded bytes and percentage of upload. For stream, percentage is -1.</param>
     /// <param name="onTranscriptionProgress">With percentage of transcription. Percentage is -1 for streams or if progress is invalid probably because of discrepance between duration in media file header and real dureation.</param>
+    /// <param name="onTranscriptionProgress2">Progress (percentage and duration) of transcription. Percentage is null for streams and -1 if progress is invalid probably because of discrepance between duration in media file header and real dureation.</param>
     /// <param name="onConversionCompleted"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
@@ -124,6 +125,7 @@ public class BeeyHelper
         Action? onTranscriptionStarted = null,
         Action<long, int?>? onUploadProgress = null,
         Action<int>? onTranscriptionProgress = null,
+        Action<int?, TimeSpan>? onTranscriptionProgress2 = null,
         Action? onUploadCompleted = null,
         Action? onConversionCompleted = null,
         Action? onTranscriptionCompleted = null,
@@ -144,6 +146,7 @@ public class BeeyHelper
             onTranscriptionStarted,
             onUploadProgress,
             onTranscriptionProgress,
+            onTranscriptionProgress2,
             onUploadCompleted,
             onConversionCompleted,
             onTranscriptionCompleted,
@@ -170,6 +173,7 @@ public class BeeyHelper
     /// <param name="onTranscriptionStarted"></param>
     /// <param name="onUploadProgress">With uploaded bytes and percentage of upload. For stream, percentage is -1.</param>
     /// <param name="onTranscriptionProgress">With percentage of transcription. Percentage is -1 for streams or if progress is invalid probably because of discrepance between duration in media file header and real dureation.</param>
+    /// <param name="onTranscriptionProgress2">Progress (percentage and duration) of transcription. Percentage is null for streams and -1 if progress is invalid probably because of discrepance between duration in media file header and real dureation.</param>
     /// <param name="onConversionCompleted"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
@@ -182,6 +186,7 @@ public class BeeyHelper
     Action? onTranscriptionStarted = null,
     Action<long, int?>? onUploadProgress = null,
     Action<int>? onTranscriptionProgress = null,
+    Action<int?, TimeSpan>? onTranscriptionProgress2 = null,
     Action? onUploadCompleted = null,
     Action? onConversionCompleted = null,
     Action? onTranscriptionCompleted = null,
@@ -213,7 +218,7 @@ public class BeeyHelper
             onMediaIdentified?.Invoke(duration.Value);
         }
 
-        willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, onTranscriptionStarted, cts, useQueue: useQueue, withSpeakerId:withSpeakerId, withDiarization: withDiarization);
+        willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, onTranscriptionStarted, cts, useQueue: useQueue, withSpeakerId: withSpeakerId, withDiarization: withDiarization);
 
         try
         {
@@ -283,16 +288,17 @@ public class BeeyHelper
                 else if (message.Subsystem == "Recognition" && message.Type == MessageType.Progress)
                 {
                     var data = RecognitionData.From((ProgressMessage)message);
-                    if (data.Transcribed.HasValue)
+                    if (data?.Transcribed.HasValue == true)
                     {
-                        int percentage = -1;
+                        int? percentage = null;
                         if (duration.HasValue)
                         {
                             percentage = (int)((data.Transcribed.Value.TotalSeconds * 100) / duration.Value.TotalSeconds);
                             if (percentage > 100)
                                 percentage = -1;
                         }
-                        onTranscriptionProgress?.Invoke(percentage);
+                        onTranscriptionProgress?.Invoke(percentage ?? -1);
+                        onTranscriptionProgress2?.Invoke(percentage, data.Transcribed.Value);
                     }
                 }
 
