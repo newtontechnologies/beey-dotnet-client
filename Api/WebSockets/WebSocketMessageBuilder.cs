@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Beey.Api.WebSockets;
 
 internal class WebSocketMessageBuilder
 {
-    private static readonly Logging.ILog logger = Logging.LogProvider.For<WebSocketMessageBuilder>();
+    private static readonly ILogger<WebSocketMessageBuilder> logger = LoggerFactoryProvider.LoggerFactory!.CreateLogger<WebSocketMessageBuilder>();
 
     internal const int bufferSize = 1024 * 4;
     private WebSocketMessage webSocketMessage;

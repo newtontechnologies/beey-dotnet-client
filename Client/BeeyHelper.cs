@@ -1,7 +1,8 @@
-﻿using Beey.Client.Logging.LogProviders;
+﻿using Beey.Api;
 using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Messaging.Subsystems;
 using Beey.DataExchangeModel.Projects;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,7 +16,7 @@ namespace Beey.Client;
 
 public class BeeyHelper
 {
-    private static readonly Logging.ILog log = Logging.LogProvider.For<BeeyHelper>();
+    private static readonly ILogger<BeeyHelper> log = LoggerFactoryProvider.LoggerFactory!.CreateLogger<BeeyHelper>();
 
     /// <summary>
     /// Uploads stream and starts transcribing when ready.
@@ -41,13 +42,13 @@ public class BeeyHelper
     {
         try
         {
-            log.Log(Logging.LogLevel.Info, () => "Creating project.");
+            log.LogInformation("Creating project.");
             var project = await beey.CreateProjectAsync(projectName, "");
-            log.Log(Logging.LogLevel.Info, () => "Project {id} created.", null, project.Id);
+            log.LogInformation("Project {id} created.", project.Id);
 
             var cts = new CancellationTokenSource();
             cancellationToken.Register(() => cts.Cancel());
-            log.Log(Logging.LogLevel.Info, () => "Uploading stream.");
+            log.LogInformation("Uploading stream.");
             var uploading = beey.UploadStreamAsync(project.Id, projectName, data, length, saveMedia, transcodingProfile, cts.Token);
 
             // Wait for an hour at max.
@@ -58,7 +59,7 @@ public class BeeyHelper
             // Apparently, progress in backend can be created a bit late, so wait for a bit.
             await Task.Delay(2000);
 
-            log.Log(Logging.LogLevel.Info, () => "Waiting to be able to transcribe.");
+            log.LogInformation("Waiting to be able to transcribe.");
             while ((result = await beey.GetProjectProgressStateAsync(project.Id).TryAsync())
                 && !ProcessState.Finished.HasFlag(result.Value.FileIndexingState)
                 && result.Value.MediaIdentificationState != ProcessState.Completed
@@ -83,7 +84,7 @@ public class BeeyHelper
             await Task.Delay(2000);
             try
             {
-                log.Log(Logging.LogLevel.Info, () => "Starting transcription.");
+                log.LogInformation("Starting transcription.");
                 await beey.TranscribeProjectAsync(project.Id, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, cts.Token, withDiarization: withDiarization);
             }
             catch (Exception)
@@ -93,7 +94,7 @@ public class BeeyHelper
             }
 
             await uploading;
-            log.Log(Logging.LogLevel.Info, () => "Upload finished.");
+            log.LogInformation("Upload finished.");
             return project.Id;
         }
         finally
@@ -113,7 +114,6 @@ public class BeeyHelper
     /// <param name="onTranscriptionStarted"></param>
     /// <param name="onUploadProgress">With uploaded bytes and percentage of upload. For stream, percentage is -1.</param>
     /// <param name="onTranscriptionProgress">With percentage of transcription. Percentage is -1 for streams or if progress is invalid probably because of discrepance between duration in media file header and real dureation.</param>
-    /// <param name="onTranscriptionProgress2">Progress (percentage and duration) of transcription. Percentage is null for streams and -1 if progress is invalid probably because of discrepance between duration in media file header and real dureation.</param>
     /// <param name="onConversionCompleted"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
@@ -125,7 +125,6 @@ public class BeeyHelper
         Action? onTranscriptionStarted = null,
         Action<long, int?>? onUploadProgress = null,
         Action<int>? onTranscriptionProgress = null,
-        Action<int?, TimeSpan>? onTranscriptionProgress2 = null,
         Action? onUploadCompleted = null,
         Action? onConversionCompleted = null,
         Action? onTranscriptionCompleted = null,
@@ -146,7 +145,6 @@ public class BeeyHelper
             onTranscriptionStarted,
             onUploadProgress,
             onTranscriptionProgress,
-            onTranscriptionProgress2,
             onUploadCompleted,
             onConversionCompleted,
             onTranscriptionCompleted,
@@ -173,7 +171,6 @@ public class BeeyHelper
     /// <param name="onTranscriptionStarted"></param>
     /// <param name="onUploadProgress">With uploaded bytes and percentage of upload. For stream, percentage is -1.</param>
     /// <param name="onTranscriptionProgress">With percentage of transcription. Percentage is -1 for streams or if progress is invalid probably because of discrepance between duration in media file header and real dureation.</param>
-    /// <param name="onTranscriptionProgress2">Progress (percentage and duration) of transcription. Percentage is null for streams and -1 if progress is invalid probably because of discrepance between duration in media file header and real dureation.</param>
     /// <param name="onConversionCompleted"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
@@ -186,7 +183,6 @@ public class BeeyHelper
     Action? onTranscriptionStarted = null,
     Action<long, int?>? onUploadProgress = null,
     Action<int>? onTranscriptionProgress = null,
-    Action<int?, TimeSpan>? onTranscriptionProgress2 = null,
     Action? onUploadCompleted = null,
     Action? onConversionCompleted = null,
     Action? onTranscriptionCompleted = null,
@@ -206,7 +202,7 @@ public class BeeyHelper
                 }
                 catch (Exception ex)
                 {
-                    log.Log(Logging.LogLevel.Error, () => s, ex);
+                    log.LogError(ex, s, ex);
                     throw;
                 }
             });
@@ -218,7 +214,7 @@ public class BeeyHelper
             onMediaIdentified?.Invoke(duration.Value);
         }
 
-        willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, onTranscriptionStarted, cts, useQueue: useQueue, withSpeakerId: withSpeakerId, withDiarization: withDiarization);
+        willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, onTranscriptionStarted, cts, useQueue: useQueue, withSpeakerId:withSpeakerId, withDiarization: withDiarization);
 
         try
         {
@@ -288,17 +284,16 @@ public class BeeyHelper
                 else if (message.Subsystem == "Recognition" && message.Type == MessageType.Progress)
                 {
                     var data = RecognitionData.From((ProgressMessage)message);
-                    if (data?.Transcribed.HasValue == true)
+                    if (data.Transcribed.HasValue)
                     {
-                        int? percentage = null;
+                        int percentage = -1;
                         if (duration.HasValue)
                         {
                             percentage = (int)((data.Transcribed.Value.TotalSeconds * 100) / duration.Value.TotalSeconds);
                             if (percentage > 100)
                                 percentage = -1;
                         }
-                        onTranscriptionProgress?.Invoke(percentage ?? -1);
-                        onTranscriptionProgress2?.Invoke(percentage, data.Transcribed.Value);
+                        onTranscriptionProgress?.Invoke(percentage);
                     }
                 }
 

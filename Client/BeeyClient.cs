@@ -14,11 +14,13 @@ using Beey.DataExchangeModel.Projects;
 using Beey.DataExchangeModel.Lexicons;
 using System.Collections.Generic;
 using Beey.DataExchangeModel.Messaging;
+using Microsoft.Extensions.Logging;
+
 namespace Beey.Client;
 
 public partial class BeeyClient
 {
-    private static readonly Logging.ILog logger = Logging.LogProvider.For<BeeyClient>();
+    private static readonly ILogger<BeeyClient> logger = LoggerFactoryProvider.LoggerFactory!.CreateLogger<BeeyClient>();
 
     private string? userEmail;
     // TODO get rid of password in plaintext and still be able to re-login?
@@ -175,7 +177,7 @@ public partial class BeeyClient
     {
         if (LoginToken == null)
         {
-            logger.Log(Logging.LogLevel.Error, () => unauthorizedErrorMessage);
+            logger.LogError(unauthorizedErrorMessage);
             throw new UnauthorizedAccessException();
         }
     }
@@ -201,7 +203,7 @@ public partial class BeeyClient
     #region Polly retry policies
 
     private const int unauthorizedRetryLoginCount = 1;
-    private const string retryUnauthorizedErrorMessage = "Attempt {0} - Request was not authorized with message '{2}'. Trying to relogin and waiting {1}s before retry.";
+    private const string retryUnauthorizedErrorMessage = "Attempt {retryAttempt} - Request was not authorized with message '{message}'. Trying to relogin and waiting {delay}s before retry.";
     private const string unauthorizedErrorMessage = "Request was not authorized.";
     private Context CreatePollyContext(CancellationToken cancellationToken = default)
     {
@@ -220,7 +222,7 @@ public partial class BeeyClient
                 i => TimeSpan.FromSeconds(i),
                 async (result, timeSpan, retryCount, context) =>
                 {
-                    logger.Log(Logging.LogLevel.Info, () => string.Format(retryUnauthorizedErrorMessage, retryCount, timeSpan, result.Exception.Message));
+                    logger.LogInformation(result.Exception, retryUnauthorizedErrorMessage, retryCount, result.Exception.Message, timeSpan);
 
                     if (context.TryGetValue("cancellationToken", out var cto)
                         && cto is CancellationToken ct)
@@ -243,7 +245,7 @@ public partial class BeeyClient
                 i => TimeSpan.FromSeconds(i),
                 async (result, timeSpan, retryCount, context) =>
                 {
-                    logger.Log(Logging.LogLevel.Info, () => string.Format(retryUnauthorizedErrorMessage, retryCount, timeSpan.TotalSeconds, result.Exception.Message));
+                    logger.LogInformation(result.Exception, retryUnauthorizedErrorMessage, retryCount, result.Exception.Message, timeSpan.TotalSeconds);
 
                     if (context.TryGetValue("cancellationToken", out var cto)
                         && cto is CancellationToken ct)

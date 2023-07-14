@@ -1,4 +1,5 @@
 ﻿using Beey.DataExchangeModel;
+using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
 using System;
@@ -16,7 +17,8 @@ public abstract class BaseApi<TApi> where TApi : BaseApi<TApi>
 {
     public static Error NoError { get; } = new Error("OK", true);
 
-    internal Logging.ILog Logger = Logging.LogProvider.For<TApi>();
+    protected static readonly ILogger<TApi> Logger = LoggerFactoryProvider.LoggerFactory!.CreateLogger<TApi>();
+
     protected string Url { get; set; }
     protected string? EndPoint { get; set; }
 
@@ -62,7 +64,7 @@ public abstract class BaseApi<TApi> where TApi : BaseApi<TApi>
             string serverError = GetServerErrorMessage(response.GetStringContent());
             string errMsg = $"Server error: {response.StatusCode.ToString()} ({(int)response.StatusCode}){Environment.NewLine}{serverError}";
 
-            Logger.Log(Logging.LogLevel.Error, () => errMsg);
+            Logger.LogError(errMsg);
             if (response.StatusCode == HttpStatusCode.Unauthorized
                 || response.StatusCode == HttpStatusCode.Forbidden)
             {
@@ -90,7 +92,7 @@ public abstract class BaseApi<TApi> where TApi : BaseApi<TApi>
             string serverError = GetServerErrorMessage(response.GetStringContent()); ;
             string errMsg = $"Server error: {response.StatusCode.ToString()}({(int)response.StatusCode}){Environment.NewLine}{serverError}";
 
-            Logger.Log(Logging.LogLevel.Error, () => errMsg);
+            Logger.LogError(errMsg);
             if (response.StatusCode == HttpStatusCode.Unauthorized
                 || response.StatusCode == HttpStatusCode.Forbidden)
             {

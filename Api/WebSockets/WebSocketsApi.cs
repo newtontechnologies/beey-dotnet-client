@@ -1,6 +1,6 @@
-﻿using Beey.Api.Logging;
-using Beey.DataExchangeModel.Auth;
+﻿using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Files;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,7 +15,7 @@ namespace Beey.Api.WebSockets;
 
 public class WebSocketsApi
 {
-    private Logging.ILog logger = Logging.LogProvider.For<WebSocketsApi>();
+    private static readonly ILogger<WebSocketsApi> logger = LoggerFactoryProvider.LoggerFactory!.CreateLogger<WebSocketsApi>();
 
     public LoginToken? Token { get; set; }
     private string url;
@@ -158,7 +158,7 @@ public class WebSocketsApi
                     var tdelta = DateTime.Now - lastreporttime;
                     if (tdelta > TimeSpan.FromSeconds(10))
                     {
-                        logger.Log(Logging.LogLevel.Info, () => $"written: {totalRead}B seconds: {DateTime.Now - starttime}:");
+                        logger.LogInformation("written: {totalRead}B seconds: {seconds}:", totalRead, DateTime.Now - starttime);
                         lastreporttime = DateTime.Now;
                     }
                 }
@@ -178,7 +178,7 @@ public class WebSocketsApi
             while (lastResult.MessageType != WebSocketMessageType.Close)
             {
                 //data after close is quite ordinary because of the race condition...
-                logger.Info("data received after Websocket close handshake was intitiated");
+                logger.LogInformation("data received after Websocket close handshake was intitiated");
                 lastResult = (await ws.ReceiveMessageAsync(buffer, default)).lastResult;
             }
 
