@@ -16,8 +16,6 @@ namespace Beey.Client;
 
 public class BeeyHelper
 {
-    private readonly ILogger<BeeyHelper> logger = LoggerFactoryProvider.LoggerFactory!.CreateLogger<BeeyHelper>();
-
     /// <summary>
     /// Uploads stream and starts transcribing when ready.
     /// </summary>
@@ -40,6 +38,8 @@ public class BeeyHelper
         string transcriptionProfile = "default", bool withDiarization = true,
         int maxWaitingTimeMinutes = 60, CancellationToken cancellationToken = default)
     {
+        ILogger<BeeyHelper> logger = LoggerFactoryProvider.LoggerFactory!.CreateLogger<BeeyHelper>();
+
         try
         {
             logger.LogInformation("Creating project.");
@@ -191,6 +191,7 @@ public class BeeyHelper
     CancellationToken cancellationToken = default,
     bool useQueue = false, bool withSpeakerId = false, bool withDiarization = true)
     {
+        ILogger<BeeyHelper> logger = LoggerFactoryProvider.LoggerFactory!.CreateLogger<BeeyHelper>();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
         var messages = (await beey.ListenToMessages(projectId, cts.Token))
@@ -214,7 +215,7 @@ public class BeeyHelper
             onMediaIdentified?.Invoke(duration.Value);
         }
 
-        willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, onTranscriptionStarted, cts, useQueue: useQueue, withSpeakerId:withSpeakerId, withDiarization: withDiarization);
+        willTranscriptionStart = willTranscriptionStart || await TryScheduleToTranscribeAsync(beey, projectId, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, onTranscriptionStarted, cts, useQueue: useQueue, withSpeakerId: withSpeakerId, withDiarization: withDiarization);
 
         try
         {
