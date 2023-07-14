@@ -16,7 +16,7 @@ namespace Beey.Client;
 
 public class BeeyHelper
 {
-    private static readonly ILogger<BeeyHelper> log = LoggerFactoryProvider.LoggerFactory!.CreateLogger<BeeyHelper>();
+    private readonly ILogger<BeeyHelper> logger = LoggerFactoryProvider.LoggerFactory!.CreateLogger<BeeyHelper>();
 
     /// <summary>
     /// Uploads stream and starts transcribing when ready.
@@ -42,13 +42,13 @@ public class BeeyHelper
     {
         try
         {
-            log.LogInformation("Creating project.");
+            logger.LogInformation("Creating project.");
             var project = await beey.CreateProjectAsync(projectName, "");
-            log.LogInformation("Project {id} created.", project.Id);
+            logger.LogInformation("Project {id} created.", project.Id);
 
             var cts = new CancellationTokenSource();
             cancellationToken.Register(() => cts.Cancel());
-            log.LogInformation("Uploading stream.");
+            logger.LogInformation("Uploading stream.");
             var uploading = beey.UploadStreamAsync(project.Id, projectName, data, length, saveMedia, transcodingProfile, cts.Token);
 
             // Wait for an hour at max.
@@ -59,7 +59,7 @@ public class BeeyHelper
             // Apparently, progress in backend can be created a bit late, so wait for a bit.
             await Task.Delay(2000);
 
-            log.LogInformation("Waiting to be able to transcribe.");
+            logger.LogInformation("Waiting to be able to transcribe.");
             while ((result = await beey.GetProjectProgressStateAsync(project.Id).TryAsync())
                 && !ProcessState.Finished.HasFlag(result.Value.FileIndexingState)
                 && result.Value.MediaIdentificationState != ProcessState.Completed
@@ -84,7 +84,7 @@ public class BeeyHelper
             await Task.Delay(2000);
             try
             {
-                log.LogInformation("Starting transcription.");
+                logger.LogInformation("Starting transcription.");
                 await beey.TranscribeProjectAsync(project.Id, language, withPpc, withVad, withPunctuation, saveTrsx, transcriptionProfile, cts.Token, withDiarization: withDiarization);
             }
             catch (Exception)
@@ -94,7 +94,7 @@ public class BeeyHelper
             }
 
             await uploading;
-            log.LogInformation("Upload finished.");
+            logger.LogInformation("Upload finished.");
             return project.Id;
         }
         finally
@@ -202,7 +202,7 @@ public class BeeyHelper
                 }
                 catch (Exception ex)
                 {
-                    log.LogError(ex, s, ex);
+                    logger.LogError(ex, s, ex);
                     throw;
                 }
             });

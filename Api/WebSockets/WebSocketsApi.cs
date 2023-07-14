@@ -15,7 +15,7 @@ namespace Beey.Api.WebSockets;
 
 public class WebSocketsApi
 {
-    private static readonly ILogger<WebSocketsApi> logger = LoggerFactoryProvider.LoggerFactory!.CreateLogger<WebSocketsApi>();
+    private readonly ILogger<WebSocketsApi> logger = LoggerFactoryProvider.LoggerFactory!.CreateLogger<WebSocketsApi>();
 
     public LoginToken? Token { get; set; }
     private string url;

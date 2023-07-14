@@ -20,7 +20,7 @@ namespace Beey.Client;
 
 public partial class BeeyClient
 {
-    private static readonly ILogger<BeeyClient> logger = LoggerFactoryProvider.LoggerFactory!.CreateLogger<BeeyClient>();
+    private readonly ILogger<BeeyClient> logger = LoggerFactoryProvider.LoggerFactory!.CreateLogger<BeeyClient>();
 
     private string? userEmail;
     // TODO get rid of password in plaintext and still be able to re-login?
