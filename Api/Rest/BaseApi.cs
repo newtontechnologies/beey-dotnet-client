@@ -17,7 +17,7 @@ public abstract class BaseApi<TApi> where TApi : BaseApi<TApi>
 {
     public static Error NoError { get; } = new Error("OK", true);
 
-    protected readonly ILogger<TApi> Logger = LoggerFactoryProvider.LoggerFactory!.CreateLogger<TApi>();
+    protected readonly ILogger<TApi> Logger = LoggerFactoryProvider.LoggerFactory.CreateLogger<TApi>();
 
     protected string Url { get; set; }
     protected string? EndPoint { get; set; }

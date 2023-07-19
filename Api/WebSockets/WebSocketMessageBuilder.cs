@@ -9,7 +9,7 @@ namespace Beey.Api.WebSockets;
 
 internal class WebSocketMessageBuilder
 {
-    private readonly ILogger<WebSocketMessageBuilder> logger = LoggerFactoryProvider.LoggerFactory!.CreateLogger<WebSocketMessageBuilder>();
+    private readonly ILogger<WebSocketMessageBuilder> logger = LoggerFactoryProvider.LoggerFactory.CreateLogger<WebSocketMessageBuilder>();
 
     internal const int bufferSize = 1024 * 4;
     private WebSocketMessage webSocketMessage;

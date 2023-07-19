@@ -38,7 +38,7 @@ public class BeeyHelper
         string transcriptionProfile = "default", bool withDiarization = true,
         int maxWaitingTimeMinutes = 60, CancellationToken cancellationToken = default)
     {
-        ILogger<BeeyHelper> logger = LoggerFactoryProvider.LoggerFactory!.CreateLogger<BeeyHelper>();
+        ILogger<BeeyHelper> logger = LoggerFactoryProvider.LoggerFactory.CreateLogger<BeeyHelper>();
 
         try
         {
@@ -191,7 +191,7 @@ public class BeeyHelper
     CancellationToken cancellationToken = default,
     bool useQueue = false, bool withSpeakerId = false, bool withDiarization = true)
     {
-        ILogger<BeeyHelper> logger = LoggerFactoryProvider.LoggerFactory!.CreateLogger<BeeyHelper>();
+        ILogger<BeeyHelper> logger = LoggerFactoryProvider.LoggerFactory.CreateLogger<BeeyHelper>();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
         var messages = (await beey.ListenToMessages(projectId, cts.Token))

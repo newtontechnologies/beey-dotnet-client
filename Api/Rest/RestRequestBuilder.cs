@@ -17,7 +17,7 @@ internal class RestRequestBuilder
 {
     private static readonly HttpClient httpClient = new HttpClient(new TimeoutHandler()) { Timeout = Timeout.InfiniteTimeSpan };
     
-    private readonly ILogger<RestRequestBuilder> logger = LoggerFactoryProvider.LoggerFactory!.CreateLogger<RestRequestBuilder>();
+    private readonly ILogger<RestRequestBuilder> logger = LoggerFactoryProvider.LoggerFactory.CreateLogger<RestRequestBuilder>();
 
     private Request request;
     public RestRequestBuilder(string url)
