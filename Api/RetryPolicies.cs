@@ -1,4 +1,5 @@
-﻿using Polly;
+﻿using Microsoft.Extensions.Logging;
+using Polly;
 using Polly.Retry;
 using Polly.Wrap;
 using System;
@@ -9,7 +10,7 @@ namespace Beey.Api;
 
 internal class RetryPolicies
 {
-    private const string retryWarningMessage = "Attempt {0} failed with exception '{1}'. Waiting {2}s before retry.";
+    private const string retryWarningMessage = "Attempt {retryNumber} failed with exception '{message}'. Waiting {delay}s before retry.";
     private const int networkErrorRetryCount = 3;
 
     private static TimeSpan CalculateWaitTime(int attempt)
@@ -17,7 +18,7 @@ internal class RetryPolicies
         return TimeSpan.FromSeconds(attempt);
     }
 
-    internal static AsyncPolicy<T> CreateAsyncNetworkPolicy<T>(Logging.ILog logger)
+    internal static AsyncPolicy<T> CreateAsyncNetworkPolicy<T>(ILogger logger)
     {
         return Policy.WrapAsync(
             Policy<T>.Handle<Exception>()
@@ -30,9 +31,14 @@ internal class RetryPolicies
             Policy<T>.Handle<Exception>(IsRetriableException)
             .WaitAndRetryAsync(networkErrorRetryCount,
                 i => CalculateWaitTime(i),
-                (ex, timeSpan, retryCount, context) =>
+                (result, timeSpan, retryCount, context) =>
                 {
-                    logger.Log(Logging.LogLevel.Warn, () => string.Format(retryWarningMessage, retryCount, ex.Exception.Message, timeSpan.TotalSeconds));
+                    logger.LogWarning(
+                        result.Exception,
+                        retryWarningMessage,
+                        retryCount,
+                        result.Exception.Message,
+                        timeSpan.TotalSeconds);
                 })
             );
     }

@@ -1,4 +1,5 @@
 ﻿using Beey.Api.WebSockets;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -10,15 +11,19 @@ namespace Beey.Api;
 
 internal class Utility
 {
-    internal static void LogApiException(Exception ex, Logging.ILog logger)
+    internal static void LogApiException(Exception ex, ILogger logger)
     {
         if (ex is WebSocketClosedException wsEx && wsEx.CloseStatus.HasValue)
         {
-            logger.Log(Logging.LogLevel.Error, () => $"Error in Beey API, WebSocket closed ({wsEx.CloseStatus?.ToString()}) with message '{wsEx.Message}'.", wsEx);
+            logger.LogError(
+                wsEx,
+                "Error in Beey API, WebSocket closed ({closedStatus}) with message '{message}'.",
+                wsEx.CloseStatus?.ToString(),
+                wsEx.Message);
         }
         else
         {
-            logger.Log(Logging.LogLevel.Error, () => $"Error in Beey API: '{ex.Message}'", ex);
-        }           
+            logger.LogError(ex, "Error in Beey API: '{message}'", ex.Message);
+        }
     }
 }
