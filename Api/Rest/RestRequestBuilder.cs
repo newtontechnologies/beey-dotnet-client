@@ -3,7 +3,6 @@ using Polly;
 using Polly.Wrap;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -13,13 +12,14 @@ using System.Threading.Tasks;
 
 namespace Beey.Api.Rest;
 
-internal class RestRequestBuilder
+public class RestRequestBuilder
 {
     private static readonly HttpClient httpClient = new HttpClient(new TimeoutHandler()) { Timeout = Timeout.InfiniteTimeSpan };
     
     private readonly ILogger<RestRequestBuilder> logger = LoggerFactoryProvider.LoggerFactory.CreateLogger<RestRequestBuilder>();
 
     private Request request;
+
     public RestRequestBuilder(string url)
     {
         request = new Request(url);
@@ -49,6 +49,7 @@ internal class RestRequestBuilder
         }
         return this;
     }
+
     public RestRequestBuilder AddHeaders((string name, string value)[] headers)
     {
         foreach (var p in headers)
@@ -65,6 +66,7 @@ internal class RestRequestBuilder
         }
         return this;
     }
+
     public RestRequestBuilder AddParameter(string name, object? value) => AddParameter(name, value?.ToString());
 
     public RestRequestBuilder AddParameters(params (string name, string? value)[] pars)
@@ -82,6 +84,7 @@ internal class RestRequestBuilder
 
         return this;
     }
+
     public RestRequestBuilder SetContent(HttpContent content)
     {
         request.Content = content;
@@ -108,6 +111,7 @@ internal class RestRequestBuilder
 
         return this;
     }
+
     public RestRequestBuilder AddFile(string name, Stream stream)
     {
         if (!request.FileStreams.ContainsKey(name))
@@ -141,7 +145,7 @@ internal class RestRequestBuilder
     {
         var uri = new UriBuilder(request.Url + request.EndPoint ?? "");
 
-        var query = System.Web.HttpUtility.ParseQueryString("");
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
         foreach (var parameter in request.Parameters)
         {
             query.Add(parameter.Key, parameter.Value);
