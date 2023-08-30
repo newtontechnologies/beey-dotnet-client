@@ -1,7 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Polly;
-using Polly.Wrap;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -9,13 +6,14 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Beey.Api.Rest;
 
 public class RestRequestBuilder
 {
-    private static readonly HttpClient httpClient = new HttpClient(new TimeoutHandler()) { Timeout = Timeout.InfiniteTimeSpan };
-    
+    public static HttpClient httpClient = new HttpClient(new TimeoutHandler()) { Timeout = Timeout.InfiniteTimeSpan };
+
     private readonly ILogger<RestRequestBuilder> logger = LoggerFactoryProvider.LoggerFactory.CreateLogger<RestRequestBuilder>();
 
     private Request request;
