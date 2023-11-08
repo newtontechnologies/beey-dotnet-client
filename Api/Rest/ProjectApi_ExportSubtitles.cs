@@ -46,7 +46,6 @@ partial class ProjectApi : BaseAuthApi<ProjectApi>
            .AddParameter("useSpeakerName", useSpeakerName)
            .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-
         return HandleResponse(result, _ =>
         {
             string mime = result.HttpResponseMessage.Content.Headers.ContentType?.MediaType ?? "application/json";
@@ -84,7 +83,22 @@ partial class ProjectApi : BaseAuthApi<ProjectApi>
         return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
     }
 
+    public async Task<ExportFile> ExportLabeledTrsxAsync(int projectId, string fileFormatId, CancellationToken cancellationToken)
+    {
+        var result = await CreateBuilder()
+           .AddUrlSegment(projectId.ToString())
+           .AddUrlSegment("Export/Subtitles")
+           .AddParameter("fileFormatId", fileFormatId)
+           .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
+        return HandleResponse(result, _ =>
+        {
+            string mime = result.HttpResponseMessage.Content.Headers.ContentType?.MediaType ?? "application/json";
+            var filename = result.HttpResponseMessage.Content.Headers.ContentDisposition?.FileName ?? "invalid.name";
+
+            return new ExportFile(filename, mime, result.Content);
+        });
+    }
 
 }
 
