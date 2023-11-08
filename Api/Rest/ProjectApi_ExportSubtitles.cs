@@ -1,5 +1,6 @@
 ﻿using Beey.Api.DTO;
 using Beey.DataExchangeModel.Export;
+using Beey.DataExchangeModel.Projects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,7 +12,7 @@ namespace Beey.Api.Rest;
 
 partial class ProjectApi : BaseAuthApi<ProjectApi>
 {
-    public async Task<ExportFile> ExportSubtitleWithFileFormatAsync(int projectId, string fileFormatId, CancellationToken cancellationToken,
+    public async Task<ExportFile> ExportSubtitlesWithFileFormatAsync(int projectId, string fileFormatId, CancellationToken cancellationToken,
         string? variantId = null,
         int? subtitleLineLength = null,
         bool keepStripped = false,
@@ -31,7 +32,7 @@ partial class ProjectApi : BaseAuthApi<ProjectApi>
            .AddUrlSegment("Export/Subtitles")
            .AddParameter("fileFormatId", fileFormatId)
            .AddParameter("variantId", variantId)
-           .AddParameter("subtitleLineLength", subtitleLineLength.ToString())
+           .AddParameter("subtitleLineLength", subtitleLineLength)
            .AddParameter("keepStripped", keepStripped)
            .AddParameter("codePageNumber", codePageNumber)
            .AddParameter("diskFormatCode", diskFormatCode)
@@ -54,5 +55,36 @@ partial class ProjectApi : BaseAuthApi<ProjectApi>
             return new ExportFile(filename, mime, result.Content);
         });
     }
+
+    public async Task<Project> LabelTrsxAsync(int projectId, CancellationToken cancellationToken,
+        string? variantId = null,
+        int? subtitleLineLength = null,
+        bool keepStripped = false,
+        bool forceSingleLine = false,
+        bool enablePresegmentation = false,
+        string? speakerSignPlacement = null,  // TODO: use enum from SubtitleMaker?
+        int pauseBetweenCaptionsMs = 80,
+        int autofillPauseBetweenCaptionsMs = 0,
+        bool useSpeakerName = false)
+    {
+        var result = await CreateBuilder()
+          .AddUrlSegment(projectId.ToString())
+          .AddUrlSegment("Export/Subtitles")
+          .AddParameter("variantId", variantId)
+          .AddParameter("subtitleLineLength", subtitleLineLength)
+          .AddParameter("keepStripped", keepStripped)
+          .AddParameter("forceSingleLine", forceSingleLine)
+          .AddParameter("enablePresegmentation", enablePresegmentation)
+          .AddParameter("speakerSignPlacement", speakerSignPlacement)
+          .AddParameter("pauseBetweenCaptionsMs", pauseBetweenCaptionsMs)
+          .AddParameter("autofillPauseBetweenCaptionsMs", autofillPauseBetweenCaptionsMs)
+          .AddParameter("useSpeakerName", useSpeakerName)
+          .ExecuteAsync(HttpMethod.POST, cancellationToken);
+
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
+    }
+
+
+
 }
 
