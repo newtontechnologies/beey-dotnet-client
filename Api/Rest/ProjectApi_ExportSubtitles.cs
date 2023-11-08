@@ -1,12 +1,8 @@
-﻿using Beey.Api.DTO;
-using Beey.DataExchangeModel.Export;
-using Beey.DataExchangeModel.Projects;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Beey.Api.DTO;
+using Beey.DataExchangeModel.Projects;
 
 namespace Beey.Api.Rest;
 
@@ -99,6 +95,5 @@ partial class ProjectApi : BaseAuthApi<ProjectApi>
             return new ExportFile(filename, mime, result.Content);
         });
     }
-
 }
 
