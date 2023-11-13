@@ -7,7 +7,7 @@ namespace Beey.Client;
 
 public partial class BeeyClient
 {
-    public async Task<Project> LabelTrsxAsync(int projectId, CancellationToken cancellationToken,
+    public async Task<Project> LabelTrsxAsync(int projectId,
         string? variantId = null,
         int? subtitleLineLength = null,
         bool keepStripped = false,
@@ -16,7 +16,8 @@ public partial class BeeyClient
         string? speakerSignPlacement = null,  // TODO: use enum from SubtitleMaker?
         int pauseBetweenCaptionsMs = 80,
         int autofillPauseBetweenCaptionsMs = 0,
-        bool useSpeakerName = false)
+        bool useSpeakerName = false,
+        CancellationToken cancellationToken = default)
     {
         RequireAuthorization();
         var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
@@ -27,7 +28,7 @@ public partial class BeeyClient
         }, cancellationToken);
     }
 
-    public async Task<ExportFile> ExportSubtitlesWithFileFormatAsync(int projectId, string formatId, CancellationToken cancellationToken,
+    public async Task<ExportFile> ExportSubtitlesWithFileFormatAsync(int projectId, string formatId,
         string? variantId = null,
         int? subtitleLineLength = null,
         bool keepStripped = false,
@@ -40,7 +41,8 @@ public partial class BeeyClient
         string? speakerSignPlacement = "utteranceStartOnly", // TODO: use enum from SubtitleMaker?
         int pauseBetweenCaptionsMs = 80,
         int autofillPauseBetweenCaptionsMs = 0,
-        bool useSpeakerName = false)
+        bool useSpeakerName = false,
+        CancellationToken cancellationToken = default)
     {
         RequireAuthorization();
         var policy = CreateHttpAsyncUnauthorizedPolicy<ExportFile>();
@@ -51,7 +53,7 @@ public partial class BeeyClient
         }, cancellationToken));
     }
 
-    public async Task<ExportFile> ExportLabeledTrsxAsync(int projectId, string formatId, CancellationToken cancellationToken)
+    public async Task<ExportFile> ExportLabeledTrsxAsync(int projectId, string formatId, CancellationToken cancellationToken = default)
     {
         RequireAuthorization();
         var policy = CreateHttpAsyncUnauthorizedPolicy<ExportFile>();
