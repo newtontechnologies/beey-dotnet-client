@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Beey.Api.DTO;
 using Beey.DataExchangeModel.Projects;
@@ -17,14 +18,52 @@ public partial class BeeyClient
         int pauseBetweenCaptionsMs = 80,
         int autofillPauseBetweenCaptionsMs = 0,
         bool useSpeakerName = false,
+        double automaticSpeed = 16.0,
+        int minLineDurationMs = 2000,
+        string ellipsis = "... ",
+        int ellipsisGapDurationMs = 300,
+        string speakerSign = "  -",
+        TimeSpan? feMaxDuration = null,
+        double? feSpeedWarning = null,
+        double? feSpeedCriticalWarning = null,
+        string? feTemplateName = null,
+        string? defaultCaptionPosition = null,
+        string? defaultFontSize = null,
+        string? defaultColor = null,
+        string? defaultFontName = null,
+        string? defaultBackgroundColor = null,
+        double? defaultBackgroundTransparency = null,
         CancellationToken cancellationToken = default)
     {
         RequireAuthorization();
         var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
         return await policy.ExecuteAsync(async (c) =>
         {
-            return await ProjectApi.LabelTrsxAsync(projectId, cancellationToken, variantId, subtitleLineLength, keepStripped, forceSingleLine,
-                enablePresegmentation, speakerSignPlacement, pauseBetweenCaptionsMs, autofillPauseBetweenCaptionsMs, useSpeakerName);
+            return await ProjectApi.LabelTrsxAsync(projectId, cancellationToken,
+                variantId: variantId,
+                subtitleLineLength: subtitleLineLength,
+                keepStripped: keepStripped,
+                forceSingleLine: forceSingleLine,
+                enablePresegmentation: enablePresegmentation,
+                speakerSignPlacement: speakerSignPlacement,
+                pauseBetweenCaptionsMs: pauseBetweenCaptionsMs,
+                autofillPauseBetweenCaptionsMs: autofillPauseBetweenCaptionsMs,
+                useSpeakerName: useSpeakerName,
+                automaticSpeed: automaticSpeed,
+                minLineDurationMs: minLineDurationMs,
+                ellipsis: ellipsis,
+                ellipsisGapDurationMs: ellipsisGapDurationMs,
+                speakerSign: speakerSign,
+                feMaxDuration: feMaxDuration,
+                feSpeedWarning: feSpeedWarning,
+                feSpeedCriticalWarning: feSpeedCriticalWarning,
+                feTemplateName: feTemplateName,
+                defaultCaptionPosition: defaultCaptionPosition,
+                defaultFontSize: defaultFontSize,
+                defaultColor: defaultColor,
+                defaultFontName: defaultFontName,
+                defaultBackgroundColor: defaultBackgroundColor,
+                defaultBackgroundTransparency: defaultBackgroundTransparency);
         }, cancellationToken);
     }
 

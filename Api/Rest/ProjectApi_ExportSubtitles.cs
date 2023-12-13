@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Beey.Api.DTO;
@@ -60,7 +61,22 @@ partial class ProjectApi : BaseAuthApi<ProjectApi>
         string? speakerSignPlacement = null,  // TODO: use enum from SubtitleMaker?
         int pauseBetweenCaptionsMs = 80,
         int autofillPauseBetweenCaptionsMs = 0,
-        bool useSpeakerName = false)
+        bool useSpeakerName = false,
+        double automaticSpeed = 16.0,
+        int minLineDurationMs = 2000,
+        string ellipsis = "... ",
+        int ellipsisGapDurationMs = 300,
+        string speakerSign = "  -",
+        TimeSpan? feMaxDuration = null,
+        double? feSpeedWarning = null,
+        double? feSpeedCriticalWarning = null,
+        string? feTemplateName = null,
+        string? defaultCaptionPosition = null,
+        string? defaultFontSize = null,
+        string? defaultColor = null,
+        string? defaultFontName = null,
+        string? defaultBackgroundColor = null,
+        double? defaultBackgroundTransparency = null)
     {
         var result = await CreateBuilder()
           .AddUrlSegment(projectId.ToString())
@@ -74,6 +90,21 @@ partial class ProjectApi : BaseAuthApi<ProjectApi>
           .AddParameter("pauseBetweenCaptionsMs", pauseBetweenCaptionsMs)
           .AddParameter("autofillPauseBetweenCaptionsMs", autofillPauseBetweenCaptionsMs)
           .AddParameter("useSpeakerName", useSpeakerName)
+          .AddParameter("automaticSpeed", automaticSpeed)
+          .AddParameter("minLineDurationMs", minLineDurationMs)
+          .AddParameter("ellipsis", ellipsis)
+          .AddParameter("ellipsisGapDurationMs", ellipsisGapDurationMs)
+          .AddParameter("speakerSign", speakerSign)
+          .AddParameter("feMaxDuration", feMaxDuration)
+          .AddParameter("feSpeedWarning", feSpeedWarning)
+          .AddParameter("feSpeedCriticalWarning", feSpeedCriticalWarning)
+          .AddParameter("feTemplateName", feTemplateName)
+          .AddParameter("defaultCaptionPosition", defaultCaptionPosition)
+          .AddParameter("defaultFontSize", defaultFontSize)
+          .AddParameter("defaultColor", defaultColor)
+          .AddParameter("defaultFontName", defaultFontName)
+          .AddParameter("defaultBackgroundColor", defaultBackgroundColor)
+          .AddParameter("defaultBackgroundTransparency", defaultBackgroundTransparency)
           .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
         return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
