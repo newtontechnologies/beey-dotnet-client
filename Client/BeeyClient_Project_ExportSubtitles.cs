@@ -9,6 +9,7 @@ namespace Beey.Client;
 public partial class BeeyClient
 {
     public async Task<Project> LabelTrsxAsync(int projectId,
+        long accessToken,
         string? variantId = null,
         int? subtitleLineLength = null,
         bool keepStripped = false,
@@ -39,7 +40,7 @@ public partial class BeeyClient
         var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
         return await policy.ExecuteAsync(async (c) =>
         {
-            return await ProjectApi.LabelTrsxAsync(projectId, cancellationToken,
+            return await ProjectApi.LabelTrsxAsync(projectId, accessToken, cancellationToken,
                 variantId: variantId,
                 subtitleLineLength: subtitleLineLength,
                 keepStripped: keepStripped,

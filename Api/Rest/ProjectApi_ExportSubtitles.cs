@@ -52,7 +52,7 @@ partial class ProjectApi : BaseAuthApi<ProjectApi>
         });
     }
 
-    public async Task<Project> LabelTrsxAsync(int projectId, CancellationToken cancellationToken,
+    public async Task<Project> LabelTrsxAsync(int projectId, long accessToken, CancellationToken cancellationToken,
         string? variantId = null,
         int? subtitleLineLength = null,
         bool keepStripped = false,
@@ -80,7 +80,8 @@ partial class ProjectApi : BaseAuthApi<ProjectApi>
     {
         var result = await CreateBuilder()
           .AddUrlSegment(projectId.ToString())
-          .AddUrlSegment("Export/Subtitles")
+          .AddUrlSegment("Export/Subtitles/LabelTrsx")
+          .AddParameter("accessToken", accessToken)
           .AddParameter("variantId", variantId)
           .AddParameter("subtitleLineLength", subtitleLineLength)
           .AddParameter("keepStripped", keepStripped)
@@ -105,7 +106,7 @@ partial class ProjectApi : BaseAuthApi<ProjectApi>
           .AddParameter("defaultFontName", defaultFontName)
           .AddParameter("defaultBackgroundColor", defaultBackgroundColor)
           .AddParameter("defaultBackgroundTransparency", defaultBackgroundTransparency)
-          .ExecuteAsync(HttpMethod.POST, cancellationToken);
+          .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
         return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
     }
