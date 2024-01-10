@@ -78,6 +78,11 @@ partial class ProjectApi : BaseAuthApi<ProjectApi>
         string? defaultBackgroundColor = null,
         double? defaultBackgroundTransparency = null)
     {
+        // by default double is converted to string with comma sepparator ',' which cause problems in API as parameter, this ensure dot sepparator '.'
+        var automaticSpeedStr = automaticSpeed.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var feSpeedWarningStr = feSpeedWarning is { } fsw ? fsw.ToString(System.Globalization.CultureInfo.InvariantCulture) : null;
+        var feSpeedCriticalWarningStr = feSpeedCriticalWarning is { } fscw ? fscw.ToString(System.Globalization.CultureInfo.InvariantCulture) : null;
+        var defaultBackgroundTransparencyStr = defaultBackgroundTransparency is { } dbt ? dbt.ToString(System.Globalization.CultureInfo.InvariantCulture) : null;
         var result = await CreateBuilder()
           .AddUrlSegment(projectId.ToString())
           .AddUrlSegment("Export/Subtitles/LabelTrsx")
@@ -91,21 +96,21 @@ partial class ProjectApi : BaseAuthApi<ProjectApi>
           .AddParameter("pauseBetweenCaptionsMs", pauseBetweenCaptionsMs)
           .AddParameter("autofillPauseBetweenCaptionsMs", autofillPauseBetweenCaptionsMs)
           .AddParameter("useSpeakerName", useSpeakerName)
-          .AddParameter("automaticSpeed", automaticSpeed)
+          .AddParameter("automaticSpeed", automaticSpeedStr)
           .AddParameter("minLineDurationMs", minLineDurationMs)
           .AddParameter("ellipsis", ellipsis)
           .AddParameter("ellipsisGapDurationMs", ellipsisGapDurationMs)
           .AddParameter("speakerSign", speakerSign)
           .AddParameter("feMaxDuration", feMaxDuration)
-          .AddParameter("feSpeedWarning", feSpeedWarning)
-          .AddParameter("feSpeedCriticalWarning", feSpeedCriticalWarning)
+          .AddParameter("feSpeedWarning", feSpeedWarningStr)
+          .AddParameter("feSpeedCriticalWarning", feSpeedCriticalWarningStr)
           .AddParameter("feTemplateName", feTemplateName)
           .AddParameter("defaultCaptionPosition", defaultCaptionPosition)
           .AddParameter("defaultFontSize", defaultFontSize)
           .AddParameter("defaultColor", defaultColor)
           .AddParameter("defaultFontName", defaultFontName)
           .AddParameter("defaultBackgroundColor", defaultBackgroundColor)
-          .AddParameter("defaultBackgroundTransparency", defaultBackgroundTransparency)
+          .AddParameter("defaultBackgroundTransparency", defaultBackgroundTransparencyStr)
           .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
         return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
