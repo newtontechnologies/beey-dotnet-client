@@ -1,11 +1,8 @@
-﻿using Beey.DataExchangeModel.Projects;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Beey.DataExchangeModel.Projects;
 
 namespace Beey.Api.Rest;
 
@@ -21,6 +18,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
 
         return HandleResponse(result, _ => result.Content);
     }
+
     public async Task<Stream> DownloadOriginalTrsxAsync(int projectId,
        CancellationToken cancellationToken)
     {
@@ -32,27 +30,31 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
         return HandleResponse(result, _ => result.Content);
     }
 
-    public Task<Project> UploadCurrentTrsxAsync(int projectId, long accessToken, string fileName, Stream fileContent,
+    public Task<ProjectDto> UploadCurrentTrsxAsync(int projectId, long accessToken, string fileName, Stream fileContent,
         CancellationToken cancellationToken)
         => UploadTrsxAsync(projectId, accessToken, false, fileName, fileContent, cancellationToken);
-    public Task<Project> UploadCurrentTrsxAsync(int projectId, long accessToken, string fileName, byte[] fileContent,
+
+    public Task<ProjectDto> UploadCurrentTrsxAsync(int projectId, long accessToken, string fileName, byte[] fileContent,
         CancellationToken cancellationToken)
         => UploadTrsxAsync(projectId, accessToken, false, fileName, fileContent, cancellationToken);
-    public Task<Project> UploadCurrentTrsxAsync(int projectId, long accessToken, FileInfo fileInfo,
+
+    public Task<ProjectDto> UploadCurrentTrsxAsync(int projectId, long accessToken, FileInfo fileInfo,
         CancellationToken cancellationToken)
         => UploadTrsxAsync(projectId, accessToken, false, fileInfo, cancellationToken);
 
-    public Task<Project> UploadOriginalTrsxAsync(int projectId, long accessToken, string fileName, Stream fileContent,
+    public Task<ProjectDto> UploadOriginalTrsxAsync(int projectId, long accessToken, string fileName, Stream fileContent,
         CancellationToken cancellationToken)
         => UploadTrsxAsync(projectId, accessToken, true, fileName, fileContent, cancellationToken);
-    public Task<Project> UploadOriginalTrsxAsync(int projectId, long accessToken, string fileName, byte[] fileContent,
+
+    public Task<ProjectDto> UploadOriginalTrsxAsync(int projectId, long accessToken, string fileName, byte[] fileContent,
         CancellationToken cancellationToken)
         => UploadTrsxAsync(projectId, accessToken, true, fileName, fileContent, cancellationToken);
-    public Task<Project> UploadOriginalTrsxAsync(int projectId, long accessToken, FileInfo fileInfo,
+
+    public Task<ProjectDto> UploadOriginalTrsxAsync(int projectId, long accessToken, FileInfo fileInfo,
         CancellationToken cancellationToken)
         => UploadTrsxAsync(projectId, accessToken, true, fileInfo, cancellationToken);
 
-    private async Task<Project> UploadTrsxAsync(int projectId, long accessToken, bool original, string fileName, Stream fileContent,
+    private async Task<ProjectDto> UploadTrsxAsync(int projectId, long accessToken, bool original, string fileName, Stream fileContent,
         CancellationToken cancellationToken)
     {
         var builder = CreateBuilder()
@@ -64,9 +66,10 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
 
         var result = await builder.ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<ProjectDto>(r.GetStringContent()));
     }
-    private async Task<Project> UploadTrsxAsync(int projectId, long accessToken, bool original, string fileName, byte[] fileContent,
+
+    private async Task<ProjectDto> UploadTrsxAsync(int projectId, long accessToken, bool original, string fileName, byte[] fileContent,
         CancellationToken cancellationToken)
     {
         MemoryStream memoryStream = CreateMemoryStream(fileContent);
@@ -74,7 +77,8 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
         try { return await UploadTrsxAsync(projectId, accessToken, original, fileName, memoryStream, cancellationToken); }
         finally { memoryStream.Close(); }
     }
-    private async Task<Project> UploadTrsxAsync(int projectId, long accessToken, bool original, FileInfo fileInfo,
+
+    private async Task<ProjectDto> UploadTrsxAsync(int projectId, long accessToken, bool original, FileInfo fileInfo,
         CancellationToken cancellationToken)
     {
         FileStream fileStream = CreateFileStream(fileInfo);

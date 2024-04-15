@@ -34,46 +34,46 @@ public partial class BeeyClient
         }, cancellationToken));
     }
 
-    public async Task<Project> UploadCurrentTrsxAsync(int projectId, long accessToken, string fileName, byte[] trsx,
+    public async Task<ProjectDto> UploadCurrentTrsxAsync(int projectId, long accessToken, string fileName, byte[] trsx,
         CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectDto>();
         return await policy.ExecuteAsync(async (c) =>
         {
             return await ProjectApi.UploadCurrentTrsxAsync(projectId, accessToken, fileName, trsx, c);
         }, cancellationToken);
     }
-    public async Task<Project> UploadCurrentTrsxAsync(int projectId, long accessToken, string fileName, Stream trsx,
+    public async Task<ProjectDto> UploadCurrentTrsxAsync(int projectId, long accessToken, string fileName, Stream trsx,
         CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectDto>();
         return await policy.ExecuteAsync(async (c) =>
         {
             return await ProjectApi.UploadCurrentTrsxAsync(projectId, accessToken, fileName, trsx, c);
         }, cancellationToken);
     }
 
-    public async Task<Project> UploadOriginalTrsxAsync(int projectId, long accessToken, string fileName, byte[] trsx,
+    public async Task<ProjectDto> UploadOriginalTrsxAsync(int projectId, long accessToken, string fileName, byte[] trsx,
         CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectDto>();
         return await policy.ExecuteAsync(async (c) =>
         {
             return await ProjectApi.UploadOriginalTrsxAsync(projectId, accessToken, fileName, trsx, c);
         }, cancellationToken);
     }
-    public async Task<Project> UploadOriginalTrsxAsync(int projectId, long accessToken, string fileName, Stream trsx,
+    public async Task<ProjectDto> UploadOriginalTrsxAsync(int projectId, long accessToken, string fileName, Stream trsx,
         CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectDto>();
         return await policy.ExecuteAsync(async (c) =>
         {
             return await ProjectApi.UploadOriginalTrsxAsync(projectId, accessToken, fileName, trsx, c);

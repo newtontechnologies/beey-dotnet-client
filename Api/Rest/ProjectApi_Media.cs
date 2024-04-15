@@ -22,7 +22,7 @@ namespace Beey.Api.Rest;
 /// </summary>
 public partial class ProjectApi : BaseAuthApi<ProjectApi>
 {
-    public async Task<Project> UploadMediaFileAsync(int projectId, long fileSize, string fileName, Stream fileContent,
+    public async Task<ProjectDto> UploadMediaFileAsync(int projectId, long fileSize, string fileName, Stream fileContent,
         CancellationToken cancellationToken)
     {
         var builder = CreateBuilder()
@@ -34,9 +34,9 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
 
         var result = await builder.ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<ProjectDto>(r.GetStringContent()));
     }
-    public async Task<Project> UploadMediaFileAsync(int projectId, long fileSize, string fileName, byte[] fileContent,
+    public async Task<ProjectDto> UploadMediaFileAsync(int projectId, long fileSize, string fileName, byte[] fileContent,
         CancellationToken cancellationToken)
     {
         MemoryStream memoryStream = CreateMemoryStream(fileContent);
@@ -44,7 +44,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
         try { return await UploadMediaFileAsync(projectId, fileSize, fileName, memoryStream, cancellationToken); }
         finally { memoryStream.Close(); }
     }
-    public async Task<Project> UploadMediaFileAsync(int projectId, long fileSize, System.IO.FileInfo fileInfo,
+    public async Task<ProjectDto> UploadMediaFileAsync(int projectId, long fileSize, System.IO.FileInfo fileInfo,
         CancellationToken cancellationToken)
     {
         FileStream fileStream = CreateFileStream(fileInfo);

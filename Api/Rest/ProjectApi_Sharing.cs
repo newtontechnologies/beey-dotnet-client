@@ -1,17 +1,14 @@
-﻿using Beey.DataExchangeModel;
-using Beey.DataExchangeModel.Projects;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Beey.DataExchangeModel;
+using Beey.DataExchangeModel.Projects;
 
 namespace Beey.Api.Rest;
 
 public partial class ProjectApi : BaseAuthApi<ProjectApi>
 {
-    public async Task<Project> ShareProjectAsync(int id, long accessToken, string email,
+    public async Task<ProjectDto> ShareProjectAsync(int id, long accessToken, string email,
        CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
@@ -21,10 +18,10 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddParameter("accessToken", accessToken)
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<ProjectDto>(r.GetStringContent()));
     }
 
-    public async Task<Listing<ProjectAccessViewModel>> ListProjectSharing(int id,
+    public async Task<Listing<ProjectAccessDto>> ListProjectSharing(int id,
         CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
@@ -32,6 +29,6 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddUrlSegment("Share/List")
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonSerializer.Deserialize<Listing<ProjectAccessViewModel>>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Listing<ProjectAccessDto>>(r.GetStringContent()));
     }
 }

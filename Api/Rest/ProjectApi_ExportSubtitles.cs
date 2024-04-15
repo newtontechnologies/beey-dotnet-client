@@ -52,7 +52,7 @@ partial class ProjectApi : BaseAuthApi<ProjectApi>
         });
     }
 
-    public async Task<Project> LabelTrsxAsync(int projectId, long accessToken, CancellationToken cancellationToken,
+    public async Task<ProjectDto> LabelTrsxAsync(int projectId, long accessToken, CancellationToken cancellationToken,
         string? variantId = null,
         int? subtitleLineLength = null,
         bool keepStripped = false,
@@ -113,7 +113,7 @@ partial class ProjectApi : BaseAuthApi<ProjectApi>
           .AddParameter("defaultBackgroundTransparency", defaultBackgroundTransparencyStr)
           .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<ProjectDto>(r.GetStringContent()));
     }
 
     public async Task<ExportFile> ExportLabeledTrsxAsync(int projectId, string fileFormatId, CancellationToken cancellationToken)
@@ -133,4 +133,3 @@ partial class ProjectApi : BaseAuthApi<ProjectApi>
         });
     }
 }
-

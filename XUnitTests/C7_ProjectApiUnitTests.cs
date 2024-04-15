@@ -1,16 +1,15 @@
-﻿using Beey.DataExchangeModel.Projects;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json.Nodes;
+using System.Threading.Tasks;
 using Beey.Api.Rest;
 using Beey.Api.WebSockets;
 using Beey.Client;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Xunit;
-using System.IO;
 using Beey.DataExchangeModel.Messaging;
-using System.Diagnostics;
-using System.Text.Json.Nodes;
+using Beey.DataExchangeModel.Projects;
+using Xunit;
 
 namespace XUnitTests;
 
@@ -77,14 +76,15 @@ public class C7_ProjectApiUnitTests
 
         List<int> ordered;
 
-        Func<(ProjectAccessViewModel p, int i), DateTimeOffset?> orderFunc;
-        Func<(ProjectAccessViewModel p, int i), bool> fromFunc = _ => true;
-        Func<(ProjectAccessViewModel p, int i), bool> toFunc = _ => true;
+        Func<(ProjectAccessDto p, int i), DateTimeOffset?> orderFunc;
+        Func<(ProjectAccessDto p, int i), bool> fromFunc = _ => true;
+        Func<(ProjectAccessDto p, int i), bool> toFunc = _ => true;
         switch (orderOn)
         {
             case ProjectApi.OrderOn.Created:
                 orderFunc = t => t.p.Created;
                 break;
+
             case ProjectApi.OrderOn.Updated:
             default:
                 orderFunc = t => t.p.Project.Updated;
@@ -124,6 +124,7 @@ public class C7_ProjectApiUnitTests
 
     [Flags]
     public enum ListProjectsType { From, To }
+
     [Theory, TestPriority(4)]
     [InlineData(ListProjectsType.From)]
     [InlineData(ListProjectsType.To)]
@@ -270,7 +271,7 @@ public class C7_ProjectApiUnitTests
     public async Task T13_1_CheckOriginalTrsxAsync()
     {
         int retryCount = 3;
-        TryValueResult<Project> result;
+        TryValueResult<ProjectDto> result;
         while ((result = await projectApi.GetAsync(createdProjectId, default).TryAsync())
             && result.Value.OriginalTrsxId == null
             && retryCount > 0)
@@ -325,7 +326,6 @@ public class C7_ProjectApiUnitTests
     [Fact, TestPriority(13.6)]
     public async Task T13_6_GetSubtitleExportFormats()
     {
-
         var formats = await projectApi.GetExportFormatsAsync(createdProjectId, default);
     }
 
@@ -357,6 +357,7 @@ public class C7_ProjectApiUnitTests
         //var video = await projectApi.DownloadVideoInitAsync(createdProjectId, default);
         //Assert.True(video.ReadByte() > -1);
     }
+
     [Fact, TestPriority(13.82)]
     public async Task T13_82_DownloadManfiest()
     {
@@ -466,7 +467,6 @@ public class C7_ProjectApiUnitTests
     }
 
     [Fact, TestPriority(17)]
-
     public async Task T17_AddTagAsync()
     {
         var project = await projectApi.AddTagAsync(createdProjectId, createdProjectAccessToken, testTag, default);
@@ -493,7 +493,6 @@ public class C7_ProjectApiUnitTests
     }
 
     [Fact, TestPriority(20)]
-
     public async Task T20_AddMetadataAsync()
     {
         var project = await projectApi.AddMetadataAsync(createdProjectId, createdProjectAccessToken,

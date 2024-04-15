@@ -1,20 +1,16 @@
-﻿using Beey.DataExchangeModel.Auth;
-using Beey.Api;
-using Polly;
-using Polly.Retry;
-using Polly.Wrap;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Beey.Api;
 using Beey.Api.Rest;
-using Beey.Api.WebSockets;
 using Beey.Api.Rest.Admin;
-using Beey.DataExchangeModel.Projects;
+using Beey.Api.WebSockets;
+using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Lexicons;
-using System.Collections.Generic;
-using Beey.DataExchangeModel.Messaging;
 using Microsoft.Extensions.Logging;
+using Polly;
 
 namespace Beey.Client;
 
@@ -23,6 +19,7 @@ public partial class BeeyClient
     private readonly ILogger<BeeyClient> logger = LoggerFactoryProvider.LoggerFactory.CreateLogger<BeeyClient>();
 
     private string? userEmail;
+
     // TODO get rid of password in plaintext and still be able to re-login?
     private string? userPassword;
 
@@ -38,6 +35,7 @@ public partial class BeeyClient
 
     // Admin
     protected AdminUserApi AdminUserApi { get; set; }
+
     protected EmailApi EmailApi { get; set; }
 
     public BeeyClient(string url)
@@ -157,11 +155,11 @@ public partial class BeeyClient
         }, CreatePollyContext(cancellationToken), cancellationToken);
     }
 
-    public Task<LexiconApi.TmpValidationError[]> ValidateLexiconEntryAsync(LexiconEntry entry, string language,
+    public Task<LexiconApi.TmpValidationError[]> ValidateLexiconEntryAsync(LexiconEntryDto entry, string language,
         CancellationToken cancellationToken = default)
-        => ValidateLexiconEntryAsync(entry.Text, entry.Pronunciation, language, cancellationToken);
+        => ValidateLexiconEntryAsync(entry.Text, entry.IncorrectTranscription, language, cancellationToken);
 
-    public async Task<LexiconApi.TmpValidationError[]> ValidateLexiconAsync(IEnumerable<LexiconEntry> lexicon, string language,
+    public async Task<LexiconApi.TmpValidationError[]> ValidateLexiconAsync(IEnumerable<LexiconEntryDto> lexicon, string language,
         CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
@@ -205,6 +203,7 @@ public partial class BeeyClient
     private const int unauthorizedRetryLoginCount = 1;
     private const string retryUnauthorizedErrorMessage = "Attempt {retryAttempt} - Request was not authorized with message '{message}'. Trying to relogin and waiting {delay}s before retry.";
     private const string unauthorizedErrorMessage = "Request was not authorized.";
+
     private Context CreatePollyContext(CancellationToken cancellationToken = default)
     {
         var result = new Context
@@ -260,5 +259,5 @@ public partial class BeeyClient
             );
     }
 
-    #endregion
+    #endregion Polly retry policies
 }

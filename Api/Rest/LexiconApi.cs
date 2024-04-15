@@ -1,10 +1,8 @@
-﻿using Beey.DataExchangeModel.Lexicons;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Beey.DataExchangeModel.Lexicons;
 
 namespace Beey.Api.Rest;
 
@@ -28,7 +26,7 @@ public class LexiconApi : BaseAuthApi<LexiconApi>
         return HandleResponse(result, r => JsonSerializer.Deserialize<TmpValidationError[]>(r.GetStringContent(), new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
     }
 
-    public async Task<TmpValidationError[]> ValidateLexiconAsync(IEnumerable<LexiconEntry> lexicon, string language,
+    public async Task<TmpValidationError[]> ValidateLexiconAsync(IEnumerable<LexiconEntryDto> lexicon, string language,
         CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()

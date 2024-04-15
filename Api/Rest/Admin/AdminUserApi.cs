@@ -1,13 +1,9 @@
-﻿using Beey.Api.DTO;
-using Beey.DataExchangeModel;
-using Beey.DataExchangeModel.Auth;
-using Beey.DataExchangeModel.Projects;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Beey.Api.DTO;
+using Beey.DataExchangeModel;
+using Beey.DataExchangeModel.Auth;
 
 namespace Beey.Api.Rest.Admin;
 
@@ -18,7 +14,7 @@ public class AdminUserApi : BaseAuthApi<AdminUserApi>
         EndPoint = "API/Admin/User";
     }
 
-    public async Task<Listing<UserViewModel>> ListAsync(int count, int skip, CancellationToken cancellationToken)
+    public async Task<Listing<UserDto>> ListAsync(int count, int skip, CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
         .AddUrlSegment("List")
@@ -26,29 +22,29 @@ public class AdminUserApi : BaseAuthApi<AdminUserApi>
         .AddParameter("count", count)
         .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonSerializer.Deserialize<Listing<UserViewModel>>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<Listing<UserDto>>(r.GetStringContent()));
     }
 
-    public async Task<UserViewModel> GetAsync(int id, CancellationToken cancellationToken)
+    public async Task<UserDto> GetAsync(int id, CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
             .AddUrlSegment(id.ToString())
             .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => JsonSerializer.Deserialize<UserViewModel>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<UserDto>(r.GetStringContent()));
     }
 
-    public async Task<UserViewModel> CreateAsync(UserAddModel user,
+    public async Task<UserDto> CreateAsync(UserAddDto user,
         CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
             .SetBody(JsonSerializer.Serialize(user), "application/json")
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonSerializer.Deserialize<UserViewModel>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<UserDto>(r.GetStringContent()));
     }
 
-    public async Task UpdateAsync(UserUpdateModel user,
+    public async Task UpdateAsync(UserUpdateDto user,
         CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()

@@ -1,19 +1,12 @@
-﻿using Beey.DataExchangeModel;
-using Beey.DataExchangeModel.Auth;
-using Beey.DataExchangeModel.Lexicons;
-using Beey.DataExchangeModel.Messaging;
-using Beey.DataExchangeModel.Orders;
-using Beey.DataExchangeModel.Projects;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
+using Beey.DataExchangeModel;
+using Beey.DataExchangeModel.Orders;
 
 namespace Beey.Client;
 
 public partial class BeeyClient
-{        
+{
     public async Task<string> CreateCreditOrderAsync(uint credit, CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
@@ -25,11 +18,11 @@ public partial class BeeyClient
         }, CreatePollyContext(cancellationToken), cancellationToken);
     }
 
-    public async Task<Listing<OrderInfoViewModel>> ListOrdersAsync(CancellationToken cancellationToken = default)
+    public async Task<Listing<OrderInfoDto>> ListOrdersAsync(CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<OrderInfoViewModel>>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<Listing<OrderInfoDto>>();
         return await policy.ExecuteAsync(async (ctx, c) =>
         {
             return await OrderApi.ListOrders(cancellationToken);

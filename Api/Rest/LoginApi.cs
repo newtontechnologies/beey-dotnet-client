@@ -1,9 +1,8 @@
-﻿using Beey.DataExchangeModel.Auth;
-using System.Collections.Generic;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Beey.DataExchangeModel.Auth;
 
 namespace Beey.Api.Rest;
 
@@ -27,7 +26,7 @@ public class LoginApi : BaseApi<LoginApi>
     {
         var result = await CreateBuilder()
             .AddUrlSegment("Login")
-            .SetBody(JsonSerializer.Serialize(new LoginData { Email = email, Password = password }), "application/json")
+            .SetBody(JsonSerializer.Serialize(new LoginDto { Email = email, Password = password }), "application/json")
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
         return HandleResponse(result, r => JsonSerializer.Deserialize<LoginToken>(r.GetStringContent()));
@@ -48,7 +47,7 @@ public class LoginApi : BaseApi<LoginApi>
     {
         var result = await CreateBuilder()
             .AddUrlSegment("RegisterAndLogin")
-            .SetBody(JsonSerializer.Serialize(new RegistrationData { Email = email, Password = password, Language = language }), "application/json")
+            .SetBody(JsonSerializer.Serialize(new RegistrationDto { Email = email, Password = password, Language = language }), "application/json")
             .AddParameters(("email", email), ("password", password))
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 

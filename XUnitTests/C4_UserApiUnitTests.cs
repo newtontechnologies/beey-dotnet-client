@@ -1,9 +1,8 @@
-using Beey.Api.Rest;
+using System.Linq;
+using System.Threading.Tasks;
 using Beey.Api.Rest.Admin;
 using Beey.Client;
 using Beey.DataExchangeModel.Auth;
-using System.Linq;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace XUnitTests;
@@ -48,7 +47,7 @@ public class C4_UserApiUnitTests
     [Fact, TestPriority(4)]
     public async Task CreateUserAsync()
     {
-        var user = await api.CreateAsync(new UserAddModel() { Email = testEmail, Password = testPassword }, default);
+        var user = await api.CreateAsync(new UserAddDto() { Email = testEmail, Password = testPassword }, default);
         createdUserId = user.Id;
     }
 
@@ -62,7 +61,7 @@ public class C4_UserApiUnitTests
     public async Task UpdateUserAsync()
     {
         var user = await api.GetAsync(createdUserId, default);
-        await api.UpdateAsync(new UserUpdateModel()
+        await api.UpdateAsync(new UserUpdateDto()
         {
             Id = createdUserId,
             Password = testPassword,
@@ -93,7 +92,7 @@ public class C4_UserApiUnitTests
     {
         var listing = await api.ListAsync(100, 0, default);
         var mainUser = listing.List.Where(u => u.Email == Configuration.Email).First();
-        await api.UpdateAsync(new UserUpdateModel()
+        await api.UpdateAsync(new UserUpdateDto()
         {
             Id = mainUser.Id,
             CreditMinutes = mainUser.CreditMinutes + 10

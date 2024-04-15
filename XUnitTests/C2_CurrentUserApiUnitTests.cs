@@ -1,11 +1,8 @@
-﻿using Beey.Api.Rest;
-using Beey.Client;
-using Beey.DataExchangeModel.Lexicons;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Beey.Api.Rest;
+using Beey.DataExchangeModel.Lexicons;
 using Xunit;
 
 namespace XUnitTests;
@@ -63,9 +60,9 @@ public class C2_CurrentUserApiUnitTests
     [Fact, TestPriority(7)]
     public async Task SetUserLex()
     {
-        await api.SetUserLexAsync("cs-CZ", new LexiconEntry[]
+        await api.SetUserLexAsync("cs-CZ", new LexiconEntryDto[]
             {
-                new LexiconEntry("test", "test")
+                new LexiconEntryDto("test", "test")
             }, default);
     }
 
@@ -75,7 +72,7 @@ public class C2_CurrentUserApiUnitTests
         var userLex = await api.GetUserLexAsync("cs-CZ", default);
         Assert.Single(userLex);
         Assert.Equal("test", userLex[0].Text);
-        Assert.Equal("test", userLex[0].Pronunciation);
+        Assert.Equal("test", userLex[0].IncorrectTranscription);
     }
 
     [Fact, TestPriority(9)]

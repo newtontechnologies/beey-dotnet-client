@@ -1,19 +1,15 @@
-﻿using Beey.Api.DTO;
+﻿using System;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Threading;
+using System.Threading.Tasks;
 using Beey.DataExchangeModel;
 using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Lexicons;
 using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Projects;
-using Beey.DataExchangeModel.Serialization.JsonConverters;
 using Beey.DataExchangeModel.Users;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Beey.Api.Rest;
 
@@ -64,26 +60,26 @@ public class CurrentUserApi : BaseAuthApi<CurrentUserApi>
         HandleResponse(result);
     }
 
-    public async Task<AggregatedListing<TranscriptionLogItemViewModel, decimal>> GetTranscriptionLogAsync(CancellationToken cancellationToken)
+    public async Task<AggregatedListing<TranscriptionLogItemDto, decimal>> GetTranscriptionLogAsync(CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
             .AddUrlSegment("TranscriptionLog")
             .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => JsonSerializer.Deserialize<AggregatedListing<TranscriptionLogItemViewModel, decimal>>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<AggregatedListing<TranscriptionLogItemDto, decimal>>(r.GetStringContent()));
     }
 
-    public async Task<LexiconEntry[]> GetUserLexAsync(string language, CancellationToken cancellationToken)
+    public async Task<LexiconEntryDto[]> GetUserLexAsync(string language, CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
             .AddUrlSegment("Lexicon")
             .AddParameter("language", language)
             .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => JsonSerializer.Deserialize<LexiconEntry[]>(r.GetStringContent(), new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<LexiconEntryDto[]>(r.GetStringContent(), new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
     }
 
-    public async Task SetUserLexAsync(string language, IEnumerable<LexiconEntry> userLex,
+    public async Task SetUserLexAsync(string language, IEnumerable<LexiconEntryDto> userLex,
         CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
@@ -115,17 +111,17 @@ public class CurrentUserApi : BaseAuthApi<CurrentUserApi>
         return HandleResponse(result, r => JsonSerializer.Deserialize<Message[]>(r.GetStringContent(), GetJsonSerializerOptions()));
     }
 
-    public async Task<PaymentInfoViewModel> GetPaymentInfoAsync(CancellationToken cancellationToken)
+    public async Task<PaymentInfoDto> GetPaymentInfoAsync(CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
             .EndPoint("XAPI/User")
             .AddUrlSegment("PaymentInfo")
             .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => JsonSerializer.Deserialize<PaymentInfoViewModel>(r.GetStringContent(), GetJsonSerializerOptions()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<PaymentInfoDto>(r.GetStringContent(), GetJsonSerializerOptions()));
     }
 
-    public async Task<PaymentInfoViewModel> SetPaymentInfoAsync(PaymentInfoViewModel paymentInfo, CancellationToken cancellationToken)
+    public async Task<PaymentInfoDto> SetPaymentInfoAsync(PaymentInfoDto paymentInfo, CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
             .EndPoint("XAPI/User")
@@ -133,7 +129,7 @@ public class CurrentUserApi : BaseAuthApi<CurrentUserApi>
             .SetBody(JsonSerializer.Serialize(paymentInfo))
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonSerializer.Deserialize<PaymentInfoViewModel>(r.GetStringContent(), GetJsonSerializerOptions()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<PaymentInfoDto>(r.GetStringContent(), GetJsonSerializerOptions()));
     }
 
     public async Task<bool> GetDataProtectionConsentAsync(CancellationToken cancellationToken)
@@ -146,7 +142,7 @@ public class CurrentUserApi : BaseAuthApi<CurrentUserApi>
         return HandleResponse(result, r => JsonSerializer.Deserialize<bool>(r.GetStringContent(), GetJsonSerializerOptions()));
     }
 
-    public async Task<UserViewModel> SetDataProtectionConsentAsync(bool consent, CancellationToken cancellationToken)
+    public async Task<UserDto> SetDataProtectionConsentAsync(bool consent, CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
             .EndPoint("XAPI/User")
@@ -154,7 +150,7 @@ public class CurrentUserApi : BaseAuthApi<CurrentUserApi>
             .AddParameter("consent", consent)
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonSerializer.Deserialize<UserViewModel>(r.GetStringContent(), GetJsonSerializerOptions()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<UserDto>(r.GetStringContent(), GetJsonSerializerOptions()));
     }
 
     private static JsonSerializerOptions GetJsonSerializerOptions() => Message.DefaultJsonSerializerOptions;

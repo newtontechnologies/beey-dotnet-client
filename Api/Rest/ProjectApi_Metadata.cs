@@ -1,13 +1,7 @@
-﻿using Beey.DataExchangeModel;
-using Beey.DataExchangeModel.Auth;
-using Beey.DataExchangeModel.Projects;
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Beey.DataExchangeModel.Projects;
 
 namespace Beey.Api.Rest;
 
@@ -32,7 +26,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
         return HandleResponse(result, r => r.GetStringContent());
     }
 
-    public async Task<Project> AddTagAsync(int id, long accessToken, string tag,
+    public async Task<ProjectDto> AddTagAsync(int id, long accessToken, string tag,
        CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
@@ -42,10 +36,10 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddParameter("tag", tag)
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<ProjectDto>(r.GetStringContent()));
     }
 
-    public async Task<Project> RemoveTagAsync(int id, long accessToken, string tag,
+    public async Task<ProjectDto> RemoveTagAsync(int id, long accessToken, string tag,
        CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
@@ -55,10 +49,10 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddParameter("tag", tag)
             .ExecuteAsync(HttpMethod.DELETE, cancellationToken);
 
-        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<ProjectDto>(r.GetStringContent()));
     }
 
-    public async Task<ProjectMetadata> GetMetadataAsync(int id, string key,
+    public async Task<ProjectMetadataDto> GetMetadataAsync(int id, string key,
        CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
@@ -67,10 +61,10 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddParameter("key", key)
             .ExecuteAsync(HttpMethod.GET, cancellationToken);
 
-        return HandleResponse(result, r => JsonSerializer.Deserialize<ProjectMetadata>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<ProjectMetadataDto>(r.GetStringContent()));
     }
 
-    public async Task<Project> AddMetadataAsync(int id, long accessToken,
+    public async Task<ProjectDto> AddMetadataAsync(int id, long accessToken,
         string key, string value,
        CancellationToken cancellationToken)
     {
@@ -82,10 +76,10 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .SetBody(value)
             .ExecuteAsync(HttpMethod.POST, cancellationToken);
 
-        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<ProjectDto>(r.GetStringContent()));
     }
 
-    public async Task<Project> RemoveMetadataAsync(int id, long accessToken, string key,
+    public async Task<ProjectDto> RemoveMetadataAsync(int id, long accessToken, string key,
        CancellationToken cancellationToken)
     {
         var result = await CreateBuilder()
@@ -95,6 +89,6 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
             .AddParameter("key", key)
             .ExecuteAsync(HttpMethod.DELETE, cancellationToken);
 
-        return HandleResponse(result, r => JsonSerializer.Deserialize<Project>(r.GetStringContent()));
+        return HandleResponse(result, r => JsonSerializer.Deserialize<ProjectDto>(r.GetStringContent()));
     }
 }

@@ -19,6 +19,7 @@ public partial class BeeyClient
             return await ProjectApi.DownloadAudioInitAsync(projectId, cancellationToken);
         }, cancellationToken));
     }
+
     public async Task<Stream> DownloadVideoInitAsync(int projectId,
         CancellationToken cancellationToken = default)
     {
@@ -30,6 +31,7 @@ public partial class BeeyClient
             return await ProjectApi.DownloadVideoInitAsync(projectId, cancellationToken);
         }, cancellationToken));
     }
+
     public async Task<Stream> DownloadMpdManifestAsync(int projectId,
         CancellationToken cancellationToken = default)
     {
@@ -41,6 +43,7 @@ public partial class BeeyClient
             return await ProjectApi.DownloadMpdManifestAsync(projectId, cancellationToken);
         }, cancellationToken));
     }
+
     public async Task<Stream> DownloadAudioSegmentAsync(int projectId, int segment,
         CancellationToken cancellationToken = default)
     {
@@ -52,6 +55,7 @@ public partial class BeeyClient
             return await ProjectApi.DownloadAudioSegmentAsync(projectId, segment, cancellationToken);
         }, cancellationToken));
     }
+
     public async Task<Stream> DownloadVideoSegmentAsync(int projectId, int segment,
         CancellationToken cancellationToken = default)
     {
@@ -76,34 +80,36 @@ public partial class BeeyClient
         }, cancellationToken));
     }
 
-    public async Task<Project> UploadMediaFileAsync(int projectId, long fileSize, string fileName, byte[] fileContent,
+    public async Task<ProjectDto> UploadMediaFileAsync(int projectId, long fileSize, string fileName, byte[] fileContent,
         CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectDto>();
         return await policy.ExecuteAsync(async (c) =>
         {
             return await ProjectApi.UploadMediaFileAsync(projectId, fileSize, fileName, fileContent, cancellationToken);
         }, cancellationToken);
     }
-    public async Task<Project> UploadMediaFileAsync(int projectId, long fileSize, string fileName, Stream fileContent,
+
+    public async Task<ProjectDto> UploadMediaFileAsync(int projectId, long fileSize, string fileName, Stream fileContent,
         CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectDto>();
         return await policy.ExecuteAsync(async (c) =>
         {
             return await ProjectApi.UploadMediaFileAsync(projectId, fileSize, fileName, fileContent, cancellationToken);
         }, cancellationToken);
     }
-    public async Task<Project> UploadMediaFileAsync(int projectId, long fileSize, System.IO.FileInfo fileInfo,
+
+    public async Task<ProjectDto> UploadMediaFileAsync(int projectId, long fileSize, System.IO.FileInfo fileInfo,
         CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectDto>();
         return await policy.ExecuteAsync(async (c) =>
         {
             return await ProjectApi.UploadMediaFileAsync(projectId, fileSize, fileInfo, cancellationToken);

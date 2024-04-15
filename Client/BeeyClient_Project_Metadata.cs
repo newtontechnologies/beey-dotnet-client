@@ -28,58 +28,62 @@ public partial class BeeyClient
         var jTags = (JsonArray)JsonNode.Parse(tags)!;
         return jTags.Select(t => t.GetValue<string>());
     }
-    public async Task<Project> AddTagAsync(int id, long accessToken, string tag,
+
+    public async Task<ProjectDto> AddTagAsync(int id, long accessToken, string tag,
         CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectDto>();
         return (await policy.ExecuteAsync(async (ctx, c) =>
         {
             return await ProjectApi.AddTagAsync(id, accessToken, tag, c);
         }, CreatePollyContext(cancellationToken), cancellationToken));
     }
-    public async Task<Project> DeleteTagAsync(int id, long accessToken, string tag,
+
+    public async Task<ProjectDto> DeleteTagAsync(int id, long accessToken, string tag,
         CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectDto>();
         return (await policy.ExecuteAsync(async (ctx, c) =>
         {
             return await ProjectApi.RemoveTagAsync(id, accessToken, tag, c);
         }, CreatePollyContext(cancellationToken), cancellationToken));
     }
 
-    public async Task<ProjectMetadata> GetMetadataAsync(int id, string key,
+    public async Task<ProjectMetadataDto> GetMetadataAsync(int id, string key,
        CancellationToken cancellationToken)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectMetadata>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectMetadataDto>();
         return await policy.ExecuteAsync(async (ctx, c) =>
         {
             return await ProjectApi.GetMetadataAsync(id, key, c);
         }, CreatePollyContext(cancellationToken), cancellationToken);
     }
-    public async Task<Project> AddMetadataAsync(int id, long accessToken,
+
+    public async Task<ProjectDto> AddMetadataAsync(int id, long accessToken,
         string key, string value,
        CancellationToken cancellationToken)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectDto>();
         return (await policy.ExecuteAsync(async (ctx, c) =>
         {
             return await ProjectApi.AddMetadataAsync(id, accessToken, key, value, c);
         }, CreatePollyContext(cancellationToken), cancellationToken));
     }
-    public async Task<Project> RemoveMetadataAsync(int id, long accessToken, string key,
+
+    public async Task<ProjectDto> RemoveMetadataAsync(int id, long accessToken, string key,
        CancellationToken cancellationToken)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectDto>();
         return (await policy.ExecuteAsync(async (ctx, c) =>
         {
             return await ProjectApi.RemoveMetadataAsync(id, accessToken, key, c);

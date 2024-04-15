@@ -1,16 +1,14 @@
-﻿using Beey.Api.DTO;
+﻿using System;
+using System.Collections.Generic;
+using System.Text.Json.Nodes;
+using System.Threading;
+using System.Threading.Tasks;
 using Beey.DataExchangeModel;
 using Beey.DataExchangeModel.Auth;
 using Beey.DataExchangeModel.Lexicons;
 using Beey.DataExchangeModel.Messaging;
 using Beey.DataExchangeModel.Projects;
 using Beey.DataExchangeModel.Users;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.Json.Nodes;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Beey.Client;
 
@@ -57,6 +55,7 @@ public partial class BeeyClient
         var jSettings = (JsonObject)JsonNode.Parse(settings)!;
         await PostUserSettingsAsync(jSettings, cancellationToken);
     }
+
     public async Task PostUserSettingsAsync(JsonObject settings,
         CancellationToken cancellationToken = default)
     {
@@ -70,11 +69,11 @@ public partial class BeeyClient
         }, CreatePollyContext(cancellationToken), cancellationToken);
     }
 
-    public async Task<LexiconEntry[]> GetUserLexAsync(string language, CancellationToken cancellationToken = default)
+    public async Task<LexiconEntryDto[]> GetUserLexAsync(string language, CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<LexiconEntry[]>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<LexiconEntryDto[]>();
         return await policy.ExecuteAsync(async (ctx, c) =>
         {
             return await CurrentUserApi.GetUserLexAsync(language, cancellationToken);
@@ -92,7 +91,7 @@ public partial class BeeyClient
         }, CreatePollyContext(cancellationToken), cancellationToken);
     }
 
-    public async Task SetUserLexAsync(string language, IEnumerable<LexiconEntry> userLex, CancellationToken cancellationToken = default)
+    public async Task SetUserLexAsync(string language, IEnumerable<LexiconEntryDto> userLex, CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
 
@@ -115,29 +114,29 @@ public partial class BeeyClient
         }, CreatePollyContext(cancellationToken), cancellationToken);
     }
 
-    public async Task<AggregatedListing<TranscriptionLogItemViewModel, decimal>> GetTranscriptionLogAsync(CancellationToken cancellationToken = default)
+    public async Task<AggregatedListing<TranscriptionLogItemDto, decimal>> GetTranscriptionLogAsync(CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<AggregatedListing<TranscriptionLogItemViewModel, decimal>>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<AggregatedListing<TranscriptionLogItemDto, decimal>>();
         return await policy.ExecuteAsync(async (ctx, c) =>
         {
             return await CurrentUserApi.GetTranscriptionLogAsync(cancellationToken);
         }, CreatePollyContext(cancellationToken), cancellationToken);
     }
 
-    public async Task<PaymentInfoViewModel> GetPaymentInfoAsync(CancellationToken cancellationToken = default)
+    public async Task<PaymentInfoAddDto> GetPaymentInfoAsync(CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<PaymentInfoViewModel>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<PaymentInfoDto>();
         return await policy.ExecuteAsync(async (ctx, c) =>
         {
             return await CurrentUserApi.GetPaymentInfoAsync(cancellationToken);
         }, CreatePollyContext(cancellationToken), cancellationToken);
     }
 
-    public async Task SetPaymentInfoAsync(PaymentInfoViewModel paymentInfo, CancellationToken cancellationToken = default)
+    public async Task SetPaymentInfoAsync(PaymentInfoDto paymentInfo, CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
 
@@ -160,11 +159,11 @@ public partial class BeeyClient
         }, CreatePollyContext(cancellationToken), cancellationToken);
     }
 
-    public async Task<UserViewModel> SetDataProtectionConsentAsync(bool consent, CancellationToken cancellationToken = default)
+    public async Task<UserDto> SetDataProtectionConsentAsync(bool consent, CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
 
-        var policy = CreateHttpAsyncUnauthorizedPolicy<UserViewModel>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<UserDto>();
         return await policy.ExecuteAsync(async (ctx, c) =>
         {
             return await CurrentUserApi.SetDataProtectionConsentAsync(consent, cancellationToken);

@@ -8,7 +8,7 @@ namespace Beey.Client;
 
 public partial class BeeyClient
 {
-    public async Task<Project> LabelTrsxAsync(int projectId,
+    public async Task<ProjectDto> LabelTrsxAsync(int projectId,
         long accessToken,
         string? variantId = null,
         int? subtitleLineLength = null,
@@ -37,7 +37,7 @@ public partial class BeeyClient
         CancellationToken cancellationToken = default)
     {
         RequireAuthorization();
-        var policy = CreateHttpAsyncUnauthorizedPolicy<Project>();
+        var policy = CreateHttpAsyncUnauthorizedPolicy<ProjectDto>();
         return await policy.ExecuteAsync(async (c) =>
         {
             return await ProjectApi.LabelTrsxAsync(projectId, accessToken, cancellationToken,

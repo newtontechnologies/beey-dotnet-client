@@ -1,11 +1,7 @@
-﻿using Beey.Api.Rest;
-using Beey.DataExchangeModel.Auth;
-using Beey.DataExchangeModel.Lexicons;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Threading.Tasks;
+using Beey.Api.Rest;
+using Beey.DataExchangeModel.Lexicons;
 using Xunit;
 
 namespace XUnitTests;
@@ -35,11 +31,11 @@ public class C6_LexiconApiUnitTests
     [Fact, TestPriority(2)]
     public async Task ValidateLexicon()
     {
-        var errors = await api.ValidateLexiconAsync(new LexiconEntry[]
-            {
-                new LexiconEntry("spěch", "spěch"),
-                new LexiconEntry("kouzelník", "kouzelník")
-            },"cs-CZ", default);
+        var errors = await api.ValidateLexiconAsync(
+            [
+                new LexiconEntryDto("spěch", "spěch"),
+                new LexiconEntryDto("kouzelník", "kouzelník")
+            ], "cs-CZ", default);
 
         Assert.Equal(2, errors.Length);
         Assert.Equal("sp>ě<ch", errors.Single(e => e.Text == "spěch").Error);
