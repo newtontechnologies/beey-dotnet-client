@@ -1,16 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>preview</LangVersion>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Polly" Version="7.2.3" />
+    <PackageReference Include="Polly" Version="8.3.1" />
     <PackageReference Include="System.Interactive.Async" Version="6.0.1" />
-    <PackageReference Include="System.Text.Json" Version="6.0.3" />
+    <PackageReference Include="System.Text.Json" Version="8.0.3" />
   </ItemGroup>
 
   <ItemGroup>
