@@ -23,7 +23,7 @@ public partial class BeeyClient
     // TODO get rid of password in plaintext and still be able to re-login?
     private string? userPassword;
 
-    protected LoginToken? LoginToken { get; set; }
+    public LoginToken? LoginToken { get; protected set; }
     protected LoginApi LoginApi { get; set; }
     protected CurrentUserApi CurrentUserApi { get; set; }
     protected SpeakerApi SpeakerApi { get; set; }
@@ -37,6 +37,7 @@ public partial class BeeyClient
     protected AdminUserApi AdminUserApi { get; set; }
 
     protected EmailApi EmailApi { get; set; }
+    public string Url { get; }
 
     public BeeyClient(string url)
     {
@@ -53,6 +54,7 @@ public partial class BeeyClient
 
         string webSocketsUrl = url.Replace("http://", "ws://").Replace("https://", "wss://");
         WebSocketsApi = new WebSocketsApi(webSocketsUrl);
+        Url = url;
     }
 
     private void SetTokens(LoginToken? loginToken)
