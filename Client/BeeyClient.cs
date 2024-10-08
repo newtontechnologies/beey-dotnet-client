@@ -111,7 +111,6 @@ public partial class BeeyClient
         temporaryLoginToken.Token = token;
 
         CurrentUserApi.Token = temporaryLoginToken;
-
         LoginToken loginToken = await CurrentUserApi.GetUserInfoAsync(cancellationToken);
 
         this.userEmail = loginToken.User.Email;
