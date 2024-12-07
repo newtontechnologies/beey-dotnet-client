@@ -94,9 +94,7 @@ public class WebSocketsApi
 
             await Task.Delay(1000);
 
-            long totalRead = 0;
             byte[] buffer = new byte[32 * 1024];
-            var lastreporttime = DateTime.MinValue;
             var starttime = DateTime.Now;
 
             var (bytes, res) = await ws.ReceiveMessageAsync(buffer, c);
@@ -117,13 +115,13 @@ public class WebSocketsApi
             var token = cts.Token;
             var receivingUntilClosed = Task.Run(async () =>
             {
-                byte[] buffer = new byte[32 * 1024];
+                byte[] rcvBuffer = new byte[32 * 1024];
                 ValueWebSocketReceiveResult? lastResult = null;
                 while (!token.IsCancellationRequested)
                 {
                     try
                     {
-                        lastResult = (await ws.ReceiveMessageAsync(buffer, default)).lastResult;
+                        lastResult = (await ws.ReceiveMessageAsync(rcvBuffer, default)).lastResult;
                         if (lastResult.Value.MessageType == WebSocketMessageType.Close)
                             break;
                     }
@@ -136,30 +134,32 @@ public class WebSocketsApi
             }, token);
 
             //send chunked
-            using (MemoryStream ms = new MemoryStream(buffer))
-            using (BinaryWriter bw = new BinaryWriter(ms))
+            var lastReportTime = DateTime.MinValue;
+            long totalLength = 0;
+            using (var ms = new MemoryStream(buffer))
+            using (var bw = new BinaryWriter(ms))
             {
                 while (true)
                 {
-                    ms.Seek(0, SeekOrigin.Begin);
-                    bw.Write((double)totalRead);
+                    const int hdrLength = sizeof(double) + sizeof(short);
 
-                    var read = await data.ReadAsync(buffer, sizeof(double) + sizeof(short), buffer.Length - sizeof(double) - sizeof(short));
-                    if (read <= 0) //EOF
+                    var bodyLength = await data.ReadAsync(buffer, hdrLength, buffer.Length - hdrLength);
+                    if (bodyLength <= 0) //EOF
                         break;
 
-                    ms.Seek(sizeof(double), SeekOrigin.Begin);
-                    bw.Write((short)read);
+                    ms.Seek(0, SeekOrigin.Begin);
+                    bw.Write((double)totalLength); // TODO: use UInt64 instead of double
+                    bw.Write((short)bodyLength);
 
-                    await ws.SendAsync(new ArraySegment<byte>(buffer, 0, sizeof(double) + sizeof(short) + read), WebSocketMessageType.Binary, true, c);
+                    await ws.SendAsync(new ArraySegment<byte>(buffer, 0, hdrLength + bodyLength), WebSocketMessageType.Binary, true, c);
 
-                    totalRead += read;
+                    totalLength += bodyLength;
 
-                    var tdelta = DateTime.Now - lastreporttime;
+                    var tdelta = DateTime.Now - lastReportTime;
                     if (tdelta > TimeSpan.FromSeconds(10))
                     {
-                        logger.LogInformation("written: {totalRead}B seconds: {seconds}:", totalRead, DateTime.Now - starttime);
-                        lastreporttime = DateTime.Now;
+                        logger.LogInformation("written: {totalRead}B seconds: {seconds}:", totalLength, DateTime.Now - starttime);
+                        lastReportTime = DateTime.Now;
                     }
                 }
             }
