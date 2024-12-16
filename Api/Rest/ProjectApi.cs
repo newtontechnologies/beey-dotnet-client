@@ -24,7 +24,7 @@ public partial class ProjectApi : BaseAuthApi<ProjectApi>
         EndPoint = "XAPI/Project";
     }
 
-    public async Task<ProjectDto> CreateAsync(string name, string customPath,
+    public async Task<ProjectDto> CreateAsync(string name, string? customPath,
         CancellationToken cancellationToken)
     {
         return await CreateAsync(new ParamsProjectInit()

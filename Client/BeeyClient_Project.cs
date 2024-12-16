@@ -28,7 +28,7 @@ public partial class BeeyClient
         }, CreatePollyContext(cancellationToken), cancellationToken));
     }
 
-    public async Task<ProjectDto> CreateProjectAsync(string name, string customPath,
+    public async Task<ProjectDto> CreateProjectAsync(string name, string? customPath,
         CancellationToken cancellationToken = default)
     {
         this.RequireAuthorization();
