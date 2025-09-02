@@ -1,6 +1,5 @@
 using Beey.Api.Rest;
 using Beey.Client;
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -14,8 +13,8 @@ public class C5_SpeakerApiUnitTests
 {
     static readonly SpeakerApi api = new SpeakerApi(Configuration.BeeyUrl);
 
-    const string testFirstName = "Miloš";
-    const string testSurname = "Kudìlka";
+    const string testFirstName = "Miloï¿½";
+    const string testSurname = "Kudï¿½lka";
 
     const string changedFirstName = "ASDF__ASDF";
     const TranscriptionCore.Speaker.Sexes testSex = TranscriptionCore.Speaker.Sexes.Male;
@@ -43,8 +42,8 @@ public class C5_SpeakerApiUnitTests
     [Fact, TestPriority(3)]
     public async Task CreateSpeakerAsync()
     {
-        var speaker = await api.CreateAsync(new TranscriptionCore.Speaker(testFirstName, testSurname, testSex, ""), default);
-        createdSpeakerId = speaker.DBID;
+        var speaker = await api.CreateAsync(new TranscriptionCore.Speaker() { FirstName = testFirstName, Surname = testSurname, Sex = testSex }, default);
+        createdSpeakerId = speaker.DbId.DBID;
 
         // wait a bit for Elasticsearch to update
         await Task.Delay(2000);
